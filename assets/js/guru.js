@@ -938,6 +938,7 @@
      ============================================================ */
   function gambarSemua() {
     document.getElementById('appName').textContent = (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
+    document.title = 'Panel Guru - ' + (J.sekolah || (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat'));
     gambarKelas();
     gambarDashboard();
     muatTabelSiswa();

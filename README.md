@@ -6,6 +6,12 @@ server sendiri), siap di-hosting gratis di **GitHub Pages**.
 Anak mengisi jurnal 7 kebiasaan setiap hari — mulai dari jam bangun pagi — lalu **rekapnya
 otomatis** terlihat oleh guru di sekolah dan orang tua di rumah.
 
+> 🏫 Dipakai di **SD N 4 Jehem**. Nama sekolah diatur di
+> [`assets/js/site-config.js`](assets/js/site-config.js) (`namaSekolah`), tampil di navbar
+> dan judul tab browser.
+>
+> 🌐 Website: **https://destroy27.github.io/jurnal-7-anak-indonesia-hebat/**
+
 ![Stack](https://img.shields.io/badge/Stack-HTML%20%2B%20CSS%20%2B%20JS-maroon) ![DB](https://img.shields.io/badge/DB-Google%20Sheets%20%2B%20Apps%20Script-gold) ![Host](https://img.shields.io/badge/Host-GitHub%20Pages-blue)
 
 ---
