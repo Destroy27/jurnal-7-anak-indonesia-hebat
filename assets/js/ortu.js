@@ -119,7 +119,7 @@
         '<span>' + p.persen + '%</span></div>' +
         '<div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div>' +
         '<div class="text-xs text-muted mt-1">' +
-        (p.type === 'time' && p.rataWaktu ? 'Rata-rata <b class="mono">' + p.rataWaktu + '</b> &middot; ' : '') +
+        (p.type === 'time' && p.rataWaktu ? (p.key === 'tidur' ? 'Rata-rata tidur' : 'Rata-rata bangun') + ' <b class="mono">' + p.rataWaktu + '</b> &middot; ' : '') +
         p.jumlah + ' dari ' + rentangHari + ' hari terisi</div></div></div>';
     }).join('');
 
@@ -156,9 +156,9 @@
     document.getElementById('riwayatList').innerHTML = hariAda.length ? hariAda.map(function (d) {
       var hr = r.harian[d];
       var chips = Object.keys(hr.byKey).sort(function (a, b) {
-        return H.byKey(a).no - H.byKey(b).no;
+        return H.noOf(a) - H.noOf(b);
       }).map(function (k) {
-        var h = H.byKey(k);
+        var h = H.safe(k);
         return '<span class="badge badge-soft" title="' + J.esc(h.title) + '">' +
           '<i class="' + h.icon + '" style="color:' + h.color + '"></i>' +
           J.esc(H.ringkas(k, hr.byKey[k].nilai)) + '</span>';

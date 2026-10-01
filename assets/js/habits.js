@@ -1,15 +1,26 @@
 /* ============================================================
-   Jurnal 7 Anak Indonesia Hebat — habits.js
+   Jurnal 7 Anak Indonesia Hebat - habits.js
    ------------------------------------------------------------
    Sumber tunggal definisi 7 kebiasaan. Dipakai oleh seluruh
    halaman (murid, guru, orang tua) supaya tampilan, penilaian,
    dan rekap selalu konsisten.
 
+   Daftar ini mengikuti 7 Kebiasaan Anak Indonesia Hebat (G7KAIH),
+   gerakan pendidikan karakter Kementerian Pendidikan Dasar dan
+   Menengah (Kemendikdasmen), diluncurkan 27 Desember 2024 di
+   Jakarta. Buku Panduan resmi terbit 11 April 2025.
+     1. Bangun pagi
+     2. Beribadah/berdoa sesuai keyakinan
+     3. Berolahraga
+     4. Makan sehat dan bergizi
+     5. Gemar belajar
+     6. Bermasyarakat
+     7. Tidur cepat (istirahat cukup)
+
    Tipe isian:
-     time  → jam (contoh: "05:30")   ada target jam (targetTime)
-     scale → angka 1..5               ada label tiap angka
-     check → sudah / belum            ada label singkat
-     text  → catatan / tulisan bebas
+     time  -> jam (contoh: "05:30")   ada target jam (targetTime)
+     check -> centang sudah / belum   ada label singkat
+   Setiap kebiasaan tetap bisa diisi catatan singkat opsional.
    ============================================================ */
 (function (root) {
   'use strict';
@@ -18,95 +29,85 @@
     {
       key: 'bangun',
       no: 1,
-      title: 'Bangun Pagi dengan Tujuan',
-      sub: 'Bangun lebih awal, punya rencana untuk hari ini',
+      title: 'Bangun Pagi',
+      sub: 'Bangun pagi dan mulai hari dengan tenang',
       type: 'time',
       unit: 'jam',
       targetTime: '05:30',
+      targetLabel: 'Target bangun',
+      placeholder: 'Contoh: 05:30',
       icon: 'fa-solid fa-sun',
-      color: '#C9A227',
-      tip: 'Coba satu alarm untuk bangun, jangan bolak-balik.',
-      placeholder: 'Contoh: 05:30'
+      color: '#B07D12',
+      tip: 'Coba satu alarm untuk bangun, jangan bolak-balik.'
     },
     {
-      key: 'sasaran',
+      key: 'ibadah',
       no: 2,
-      title: 'Tetapkan Sasaran Hari Ini',
-      sub: 'Tulis 1-3 hal yang ingin kamu capai hari ini',
-      type: 'text',
-      icon: 'fa-solid fa-bullseye',
-      color: '#A82249',
-      tip: 'Sasaran sebaiknya spesifik. Contoh: "Selesai PR Matematika halaman 3".',
-      placeholder: 'Sasaran saya hari ini adalah...',
-      maxLen: 300
+      title: 'Beribadah / Berdoa',
+      sub: 'Beribadah dan berdoa sesuai keyakinanmu',
+      type: 'check',
+      label: 'Sudah beribadah dan berdoa hari ini',
+      icon: 'fa-solid fa-hands-praying',
+      color: '#1D4E89',
+      tip: 'Sesuaikan dengan keyakinan dan agama yang kamu anut.'
     },
     {
-      key: 'prioritas',
+      key: 'olahraga',
       no: 3,
-      title: 'Prioritaskan yang Penting',
-      sub: 'Pilih kegiatan yang paling penting untuk kamu kerjakan',
+      title: 'Berolahraga',
+      sub: 'Badan sehat, tebal menghadapi tantangan',
       type: 'check',
-      label: 'Sudah kuprioritaskan dan kerjakan yang paling penting',
-      icon: 'fa-solid fa-list-check',
-      color: '#8E1C3B',
-      tip: 'Kalau tugasnya banyak, kerjakan yang paling sulit lebih dulu.'
+      label: 'Sudah olahraga hari ini',
+      icon: 'fa-solid fa-person-running',
+      color: '#2E7D32',
+      tip: 'Olahraga ringan seperti lari, bersepeda, atau bermain bola sudah cukup.'
     },
     {
-      key: 'boss',
+      key: 'makan',
       no: 4,
-      title: 'Aku yang BOS atas Hariku',
-      sub: 'Seberapa baik kamu mengatur waktu dan perasaanmu?',
-      type: 'scale',
-      labels: {
-        1: 'Sulit mengatur',
-        2: 'Kadang berhasil',
-        3: 'Cukup berhasil',
-        4: 'Berhasil',
-        5: 'Penuh berhasil'
-      },
-      icon: 'fa-solid fa-crown',
-      color: '#75162F',
-      tip: 'Kamu yang Bos atas harimu sendiri, bukan waktu yang mengatur kamu.'
-    },
-    {
-      key: 'refleksi',
-      no: 5,
-      title: 'Jadwalkan untuk Refleksi',
-      sub: 'Sebelum tidur, tulis pelajaran dari hari ini',
-      type: 'text',
-      icon: 'fa-solid fa-moon',
-      color: '#5C1126',
-      tip: 'Refleksi singkat setiap malam membuat kebiasaan makin kuat.',
-      placeholder: 'Hari ini aku belajar...',
-      maxLen: 300
-    },
-    {
-      key: 'dengar',
-      no: 6,
-      title: 'Dengarkan Dulu, Baru Bicara',
-      sub: 'Seberapa baik kamu mendengarkan orang lain?',
-      type: 'scale',
-      labels: {
-        1: 'Kurang',
-        2: 'Cukup',
-        3: 'Baik',
-        4: 'Sangat baik',
-        5: 'Sangat luar biasa'
-      },
-      icon: 'fa-solid fa-ear-listen',
-      color: '#9C7B16',
-      tip: 'Dengarkan sampai orang selesai bicara, baru kamu menjawab.'
-    },
-    {
-      key: 'asah',
-      no: 7,
-      title: 'Asah Gendangmu',
-      sub: 'Jaga badan dan tubuhmu tetap sehat',
+      title: 'Makan Sehat dan Bergizi',
+      sub: 'Jaga tubuh dengan makanan sehat',
       type: 'check',
-      label: 'Sudah olahraga, membaca, atau santai bareng keluarga',
-      icon: 'fa-solid fa-dumbbell',
-      color: '#12805C',
-      tip: 'Olahraga, baca buku, dan hang out bareng keluarga.'
+      label: 'Sudah makan sehat dan bergizi',
+      icon: 'fa-solid fa-bowl-food',
+      color: '#C2410C',
+      tip: 'Makan tiga kali sehari, perbanyak sayur dan buah.'
+    },
+    {
+      key: 'belajar',
+      no: 5,
+      title: 'Gemar Belajar',
+      sub: 'Suka belajar dan bertambah pengetahuan',
+      type: 'check',
+      label: 'Sudah belajar hari ini',
+      icon: 'fa-solid fa-book-open',
+      color: '#5B21B6',
+      tip: 'Walaupun sudah selesai belajar, sisihkan waktu untuk membaca.'
+    },
+    {
+      key: 'masyarakat',
+      no: 6,
+      title: 'Bermasyarakat',
+      sub: 'Sopan santun dan ramah terhadap sesama',
+      type: 'check',
+      label: 'Sudah bersikap baik kepada sesama',
+      icon: 'fa-solid fa-people-group',
+      color: '#0E7490',
+      tip: 'Bantu teman, sopan santun, dan jaga kebersihan bersama.'
+    },
+    {
+      key: 'tidur',
+      no: 7,
+      title: 'Tidur Cepat',
+      sub: 'Istirahat cukup, tidur sebelum jam 9 malam',
+      type: 'time',
+      unit: 'jam',
+      targetTime: '21:00',
+      targetLabel: 'Target tidur',
+      placeholder: 'Contoh: 20:30',
+      icon: 'fa-solid fa-bed',
+      color: '#334155',
+      tip: 'Tidur cukup 9-10 jam supaya sekolah besok lebih fit.'
     }
   ];
 
@@ -116,6 +117,19 @@
 
   /* Palet warna lengthwise 7 (untuk bar & sparkline) */
   var PALETTE = HABITS.map(function (h) { return h.color; });
+
+  /* Target jam hasil setelan guru: { bangun: { targetTime }, ... } */
+  var OVERRIDES = {};
+
+  function setOverrides(ov) { OVERRIDES = ov || {}; }
+
+  /* Target jam efektif untuk sebuah kebiasaan */
+  function targetOf(key) {
+    var h = BY_KEY[key];
+    if (!h) return null;
+    var ov = OVERRIDES[key];
+    return (ov && ov.targetTime) || h.targetTime || null;
+  }
 
   /* Nama hari dalam bahasa Indonesia */
   var HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -129,13 +143,28 @@
     { key: '14hari', icon: 'fa-solid fa-trophy', label: '14 Hari', desc: 'Jurnal 14 hari berturut-turut', butuh: 14 },
     { key: '21hari', icon: 'fa-solid fa-crown', label: '21 Hari', desc: 'Jurnal 21 hari berturut-turut', butuh: 21 },
     { key: '30hari', icon: 'fa-solid fa-gem', label: '30 Hari', desc: 'Jurnal 30 hari berturut-turut', butuh: 30 },
-    { key: 'bangunkecil', icon: 'fa-solid fa-sun', label: 'Bangun Pagi', desc: 'Bangun paling lambat 05:30 sebanyak 10x', butuh: 10 },
-    { key: 'lengkap', icon: 'fa-solid fa-star', label: 'Hari Lengkap', desc: 'Semua 7 kebiasaan terisi 10x', butuh: 10 }
+    { key: 'bangunkecil', icon: 'fa-solid fa-sun', label: 'Bangun Pagi', desc: 'Bangun sesuai target 10 kali', butuh: 10 },
+    { key: 'tidurtepat', icon: 'fa-solid fa-bed', label: 'Tidur Cepat', desc: 'Tidur sesuai target 10 kali', butuh: 10 },
+    { key: 'lengkap', icon: 'fa-solid fa-star', label: 'Hari Lengkap', desc: 'Semua 7 kebiasaan terisi 10 kali', butuh: 10 }
   ];
 
   /* ---------- Helper ---------- */
 
   function get(key) { return BY_KEY[key] || null; }
+
+  /* Aman untuk data lama / entri yang kebawa kode kebiasaan yang sudah
+     tidak dipakai. Selalu mengembalikan objek, tidak pernah null, jadi
+     halaman tetap bisa render walau isi jurnal tidak dikenali. */
+  function safe(key) {
+    return BY_KEY[key] || {
+      key: String(key || ''), no: 99, title: 'Kebiasaan', sub: '',
+      type: 'text', icon: 'fa-solid fa-circle-question', color: '#9C9CA2',
+      tip: '', label: ''
+    };
+  }
+
+  /* Nomor urut untuk pengurutan; kode tak dikenal ditaruh di akhir */
+  function noOf(key) { return BY_KEY[key] ? BY_KEY[key].no : 99; }
   function byNo(no) {
     for (var i = 0; i < HABITS.length; i++) if (HABITS[i].no === Number(no)) return HABITS[i];
     return null;
@@ -144,10 +173,9 @@
   function total() { return HABITS.length; }
 
   /* Skor satu isian 0..100
-     - time  : 100 bila <= target, turun 20 poin tiap 30 menit lebih lambat (min 0)
-     - scale : (nilai / 5) * 100
-     - check : 100 bila terisi
-     - text  : 100 bila ada isi                                        */
+       time  : 100 bila <= target, turun 20 poin tiap 30 menit
+               melewati target (min 0)
+       check : 100 bila terisi                                        */
   function scoreEntry(habitKey, nilai) {
     var h = BY_KEY[habitKey];
     if (!h) return 0;
@@ -156,16 +184,12 @@
 
     if (h.type === 'time') {
       var m = parseHM(v);
-      if (!m) return 0;
-      var t = parseHM(h.targetTime) || 330; /* default 05:30 */
+      if (m === null) return 0;
+      var t = parseHM(targetOf(habitKey));
+      if (t === null) return 100;
       var selisih = m - t;
       if (selisih <= 0) return 100;
       return Math.max(0, 100 - Math.ceil(selisih / 30) * 20);
-    }
-    if (h.type === 'scale') {
-      var n = parseInt(v, 10);
-      if (isNaN(n)) return 0;
-      return Math.max(0, Math.min(100, (n / 5) * 100));
     }
     return 100;
   }
@@ -197,14 +221,10 @@
   /* Label ringkas untuk rekap per kebiasaan */
   function ringkas(habitKey, nilai) {
     var h = BY_KEY[habitKey];
-    if (!h) return String(nilai || '');
     var v = String(nilai == null ? '' : nilai).trim();
     if (!v) return '-';
+    if (!h) return v;
     if (h.type === 'check') return v === '1' ? 'Sudah' : 'Belum';
-    if (h.type === 'scale') {
-      var lbl = h.labels && h.labels[v];
-      return lbl ? v + ' - ' + lbl : v;
-    }
     if (h.type === 'text') return v.length > 40 ? v.slice(0, 40) + '...' : v;
     return v;
   }
@@ -212,6 +232,8 @@
   root.HABITS7 = {
     list: HABITS,
     byKey: get,
+    safe: safe,
+    noOf: noOf,
     byNo: byNo,
     keys: keys,
     total: total,
@@ -219,6 +241,8 @@
     lencana: LENCANA,
     HARI: HARI,
     HARI_PENDEK: HARI_PENDEK,
+    setOverrides: setOverrides,
+    targetOf: targetOf,
     scoreEntry: scoreEntry,
     parseHM: parseHM,
     toHM: toHM,

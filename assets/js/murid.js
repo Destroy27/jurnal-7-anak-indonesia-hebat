@@ -110,7 +110,6 @@
 
   function gambarFormulir() {
     var t = J.todayISO();
-    var target = J.targetBangun();
 
     document.getElementById('habitGrid').innerHTML = H.list.map(function (h) {
       var v = isian[h.key] || { nilai: '', catatan: '' };
@@ -118,26 +117,22 @@
       var kontrol = '';
 
       if (h.type === 'time') {
+        var target = J.esc(J.targetOf ? J.targetOf(h.key) : h.targetTime);
         kontrol =
           '<div class="time-input-row">' +
           '<input class="time-input" type="time" data-habit="' + h.key + '" data-jenis="nilai"' +
-          ' value="' + J.esc(v.nilai) + '" step="300" aria-label="Jam bangun">' +
+          ' value="' + J.esc(v.nilai) + '" step="300" aria-label="' + J.esc(h.title) + '">' +
           '</div>' +
-          '<div class="time-target"><i class="fa-solid fa-bullseye"></i> Target bangun <b>' + J.esc(target) + '</b>' +
+          '<div class="time-target"><i class="fa-solid fa-bullseye"></i> ' +
+          J.esc(h.targetLabel || 'Target') + ' <b>' + target + '</b>' +
           (terisi ? ' - skor <b>' + H.scoreEntry(h.key, v.nilai) + '</b>' : '') + '</div>';
-      } else if (h.type === 'scale') {
-        kontrol =
-          '<div class="scale-row" data-scale="' + h.key + '">' +
-          [1, 2, 3, 4, 5].map(function (n) {
-            return '<button type="button" class="scale-btn' + (String(v.nilai) === String(n) ? ' on' : '') +
-              '" data-habit="' + h.key + '" data-nilai="' + n + '" aria-label="Nilai ' + n + '">' + n + '</button>';
-          }).join('') +
-          '</div><div class="scale-desc" data-desc="' + h.key + '">' +
-          J.esc((h.labels && h.labels[v.nilai]) || 'Pilih angka 1 sampai 5') + '</div>';
       } else if (h.type === 'check') {
+        var on = String(v.nilai) === '1';
         kontrol =
-          '<button type="button" class="check-row' + (v.nilai === '1' ? ' on' : '') + '" data-habit="' + h.key + '" data-jenis="check">' +
-          '<span class="box"><i class="fa-solid fa-check"></i></span><span>' + J.esc(h.label) + '</span></button>';
+          '<button type="button" class="check-row' + (on ? ' on' : '') + '" data-habit="' + h.key + '"' +
+          ' data-nilai="1" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+          '<span class="box"><i class="fa-solid fa-check"></i></span>' +
+          '<span class="check-label">' + J.esc(h.label || 'Sudah') + '</span></button>';
       } else {
         kontrol =
           '<textarea class="textarea" data-habit="' + h.key + '" data-jenis="nilai" maxlength="' + (h.maxLen || 300) +
@@ -179,7 +174,7 @@
         var k = btn.dataset.habit, n = btn.dataset.nilai;
         var baru = String(isian[k].nilai) === n ? '' : n;
         setIsian(k, baru);
-        var h = H.byKey(k);
+        var h = H.safe(k);
         var desc = document.querySelector('[data-desc="' + k + '"]');
         if (desc) desc.textContent = (baru && h.labels && h.labels[baru]) ? h.labels[baru] : 'Pilih angka 1 sampai 5';
       });
@@ -232,12 +227,14 @@
         : '<span class="badge badge-soft"><i class="fa-solid fa-pen"></i> Kosong</span>';
     }
 
-    /* Skor jam bangun langsung ditampilkan */
-    if (k === 'bangun') {
-      var target = document.querySelector('[data-kartu="bangun"] .time-target');
-      if (target) {
-        target.innerHTML = '<i class="fa-solid fa-bullseye"></i> Target bangun <b>' + J.esc(J.targetBangun()) + '</b>' +
-          (terisi ? ' - skor <b>' + H.scoreEntry('bangun', isian[k].nilai) + '</b>' : '');
+    /* Skor jam langsung diperbarui saat angka jam berubah */
+    if (H.byKey(k) && H.byKey(k).type === 'time') {
+      var kotak = document.querySelector('[data-kartu="' + k + '"] .time-target');
+      if (kotak) {
+        var h = H.safe(k);
+        kotak.innerHTML = '<i class="fa-solid fa-bullseye"></i> ' + J.esc(h.targetLabel || 'Target') +
+          ' <b>' + J.esc(H.targetOf(k)) + '</b>' +
+          (terisi ? ' - skor <b>' + H.scoreEntry(k, isian[k].nilai) + '</b>' : '');
       }
     }
     perbaruiRingkasanHari();
@@ -316,7 +313,7 @@
   document.getElementById('btnRiwayat').addEventListener('click', function () { muatRekap(true); });
 
   function konfeti() {
-    var warna = ['#A82249', '#C9A227', '#75162F', '#E3C15C', '#D9799A'];
+    var warna = ['#8B1826', '#B08D1C', '#5E0F1D', '#D2AE4A', '#A32030'];
     for (var i = 0; i < 40; i++) {
       (function (i) {
         var el = document.createElement('div');
@@ -387,7 +384,8 @@
         '<div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div>' +
         '<div class="text-xs text-muted mt-1">' +
         (p.type === 'time' && p.rataWaktu
-          ? 'Rata-rata bangun <b class="mono">' + p.rataWaktu + '</b> &middot; '
+          ? (p.key === 'tidur' ? 'Rata-rata tidur' : 'Rata-rata bangun') +
+            ' <b class="mono">' + p.rataWaktu + '</b> &middot; '
           : '') +
         p.jumlah + ' dari ' + rentangHari + ' hari terisi' +
         (p.rataSkor ? ' &middot; skor ' + p.rataSkor : '') +
@@ -427,9 +425,9 @@
       ? hariAda.map(function (d) {
         var hr = r.harian[d];
         var chips = Object.keys(hr.byKey).sort(function (a, b) {
-          return H.byKey(a).no - H.byKey(b).no;
+          return H.noOf(a) - H.noOf(b);
         }).map(function (k) {
-          var h = H.byKey(k);
+          var h = H.safe(k);
           return '<span class="badge badge-soft" title="' + J.esc(h.title) + '">' +
             '<i class="' + h.icon + '" style="color:' + h.color + '"></i>' +
             J.esc(H.ringkas(k, hr.byKey[k].nilai)) + '</span>';

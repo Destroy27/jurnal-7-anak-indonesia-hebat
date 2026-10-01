@@ -92,7 +92,7 @@ function doGet(e) {
   /* Tanpa parameter: tampilkan halaman informasi Ringkas */
   return HtmlService.createHtmlOutput(
     '<div style="font-family:Segoe UI,sans-serif;padding:28px;max-width:620px">' +
-    '<h2 style="color:#75162F;margin:0 0 10px">Backend Jurnal 7 Kebiasaan aktif</h2>' +
+    '<h2 style="color:#5E0F1D;margin:0 0 10px">Backend Jurnal 7 Kebiasaan aktif</h2>' +
     '<p style="color:#4B2A34;line-height:1.7">Alamat ini siap dipakai. Tempel URL yang berakhiran ' +
     '<b>/exec</b> ini ke file <b>assets/js/site-config.js</b> pada baris <b>scriptUrl</b>.</p>' +
     '<p style="color:#8A6C76;font-size:13px;line-height:1.8">' +
@@ -166,8 +166,8 @@ function pastikanSheet(nama, header) {
   if (header && header.length) {
     sh.getRange(1, 1, 1, header.length).setValues([header])
       .setFontWeight('bold')
-      .setBackground('#FADEE7')
-      .setFontColor('#5C1126');
+      .setBackground('#F0E8EA')
+      .setFontColor('#480B19');
     sh.setFrozenRows(1);
   }
   return sh;
@@ -211,7 +211,7 @@ function bacaConfig_() {
     appName: 'Jurnal 7 Anak Indonesia Hebat',
     teachers: [GURU_AWAL],
     classes: [],
-    habitOverrides: { bangun: { targetTime: '05:30' } },
+    habitOverrides: { bangun: { targetTime: '05:30' }, tidur: { targetTime: '21:00' } },
     notes: []
   };
   var sh;
@@ -264,8 +264,8 @@ function saveConfig_(body) {
   sh.clear();
   sh.getRange(1, 1, 1, 2).setValues([['Key', 'Value']])
     .setFontWeight('bold')
-    .setBackground('#FADEE7')
-    .setFontColor('#5C1126');
+    .setBackground('#F0E8EA')
+    .setFontColor('#480B19');
   sh.setFrozenRows(1);
 
   var appName = String(body.appName || 'Jurnal 7 Anak Indonesia Hebat');
@@ -296,7 +296,7 @@ function saveConfig_(body) {
   sh.getRange(2, 1, baris.length, 2).setValues(baris);
   sh.setColumnWidth(1, 150);
   sh.setColumnWidth(2, 500);
-  sh.setTabColor('#A82249');
+  sh.setTabColor('#8B1826');
 
   /* Buang data siswa & jurnal milik kelas yang sudah dihapus */
   var kelasHidup = {};
@@ -529,7 +529,7 @@ function saveEntries_(body) {
   });
 
   if (tambah.length) sh.getRange(sh.getLastRow() + 1, 1, tambah.length, 9).setValues(tambah);
-  sh.setTabColor('#A82249');
+  sh.setTabColor('#8B1826');
 
   /* Hasil tulis langsung terlihat, tanpa menunggu masa cache */
   cacheBuang_(LOGS_CACHE_KEY);

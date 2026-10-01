@@ -5,47 +5,53 @@
    ============================================================ */
 
 :root {
-  /* ---------- Merah Marun (warna utama) ---------- */
-  --maroon-950: #2A0710;
-  --maroon-900: #430C1B;
-  --maroon-800: #5C1126;
-  --maroon-700: #75162F;
-  --maroon-600: #8E1C3B;
-  --maroon-500: #A82249;
-  --maroon-400: #C04368;
-  --maroon-300: #D9799A;
-  --maroon-200: #EFC0D1;
-  --maroon-100: #FADEE7;
-  --maroon-50: #FEF3F7;
+  /* ---------- Merah Marun (warna utama, digelapkan) ----------
+     Catatan: tint 50-200 sengaja dibuat NETRAL (abu-abu hangat),
+     bukan merah muda. TINT ini dipakai sebagai latar tombol soft,
+     badge, pil, dan hover - kalau merah muda, seluruh halaman jadi
+    kemerythip dan warna marun yang menjadi identitas situs ini
+     ikut hilang. Dengan netral, warna marun hanya dipakai sebagai
+     TEKS dan ISIAN, sehingga accent-nya mudah ditukar. */
+  --maroon-950: #1B040A;
+  --maroon-900: #33070F;
+  --maroon-800: #480B19;
+  --maroon-700: #5E0F1D;
+  --maroon-600: #761322;
+  --maroon-500: #8B1826;
+  --maroon-400: #A32030;
+  --maroon-300: #BC6A72;
+  --maroon-200: #DCDCDC;
+  --maroon-100: #ECECEC;
+  --maroon-50:  #F5F5F5;
 
   /* ---------- Emas (aksen elegan) ---------- */
-  --gold-700: #7E6210;
-  --gold-600: #9C7B16;
-  --gold-500: #C9A227;
-  --gold-400: #E3C15C;
-  --gold-200: #F4E4B0;
-  --gold-100: #FBF3DC;
+  --gold-700: #6E560C;
+  --gold-600: #8A6C11;
+  --gold-500: #B08D1C;
+  --gold-400: #D2AE4A;
+  --gold-200: #E8E0C4;
+  --gold-100: #F6F3E8;
 
-  /* ---------- Netral hangat ---------- */
-  --ink: #241016;
-  --ink-2: #4B2A34;
-  --muted: #8A6C76;
-  --muted-2: #B49CA4;
-  --border: #EADFE3;
-  --border-soft: #F3EAEE;
-  --bg: #F7F2F4;
-  --bg-soft: #FBF8F9;
+  /* ---------- Netral (latar, tidak ada warna) ---------- */
+  --ink: #1A1A1C;
+  --ink-2: #3A3A3E;
+  --muted: #6E6E73;
+  --muted-2: #9C9CA2;
+  --border: #E2E2E4;
+  --border-soft: #F0F0F1;
+  --bg: #F4F4F3;
+  --bg-soft: #FAFAFA;
   --card: #FFFFFF;
 
   /* ---------- Status ---------- */
-  --success: #12805C;
-  --success-bg: #E6F6EF;
-  --warning: #B7791F;
-  --warning-bg: #FDF3E0;
-  --danger: #C62828;
-  --danger-bg: #FCEBEB;
-  --info: #1D6FA5;
-  --info-bg: #E8F3FA;
+  --success: #10714F;
+  --success-bg: #E9F5EF;
+  --warning: #9A6410;
+  --warning-bg: #FBF2E2;
+  --danger: #B3261E;
+  --danger-bg: #FBEBEA;
+  --info: #1A5C8A;
+  --info-bg: #EAF2F8;
 
   /* ---------- Bentuk ---------- */
   --radius-xs: 8px;
@@ -56,13 +62,13 @@
   --radius-full: 999px;
 
   /* ---------- Bayangan ---------- */
-  --shadow-xs: 0 1px 2px rgba(42, 7, 16, 0.05);
-  --shadow-sm: 0 2px 8px rgba(42, 7, 16, 0.06);
-  --shadow: 0 6px 24px rgba(42, 7, 16, 0.08);
-  --shadow-md: 0 12px 36px rgba(42, 7, 16, 0.11);
-  --shadow-lg: 0 22px 60px rgba(42, 7, 16, 0.16);
-  --shadow-maroon: 0 10px 30px rgba(168, 34, 73, 0.28);
-  --shadow-maroon-lg: 0 18px 46px rgba(168, 34, 73, 0.34);
+  --shadow-xs: 0 1px 2px rgba(26, 26, 28, 0.05);
+  --shadow-sm: 0 2px 8px rgba(26, 26, 28, 0.06);
+  --shadow: 0 6px 24px rgba(26, 26, 28, 0.08);
+  --shadow-md: 0 12px 36px rgba(26, 26, 28, 0.11);
+  --shadow-lg: 0 22px 60px rgba(26, 26, 28, 0.16);
+  --shadow-maroon: 0 10px 30px rgba(118, 19, 34, 0.26);
+  --shadow-maroon-lg: 0 18px 46px rgba(118, 19, 34, 0.32);
 
   /* ---------- Tipografi ---------- */
   --font-display: "Playfair Display", "Georgia", serif;
@@ -114,8 +120,8 @@ h1, h2, h3, h4 {
 /* ---------- Scrollbar ---------- */
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #DCCBD1; border-radius: var(--radius-full); }
-::-webkit-scrollbar-thumb:hover { background: var(--muted-2); }
+::-webkit-scrollbar-thumb { background: #D2D2D4; border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: #B4B4B8; }
 
 /* ---------- Layout ---------- */
 .container {
@@ -136,7 +142,10 @@ h1, h2, h3, h4 {
 
 .hidden { display: none !important; }
 
-/* ---------- Dekorasi latar (elegan, lembut) ---------- */
+/* ---------- Dekorasi latar (sangat halus, tanpa warna) ----------
+     Dulu ada tiga blob merah muda yang membuat halaman terasa pink.
+     Sekarang opacity-nya diturunkan drastic dan hanya memakai
+     maroon gelap + emas, supaya konten tetap jadi fokus. */
 .bg-decor {
   position: fixed;
   inset: 0;
@@ -147,13 +156,13 @@ h1, h2, h3, h4 {
 .blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.55;
+  filter: blur(90px);
+  opacity: 0.18;
   animation: floatBlob 14s ease-in-out infinite;
 }
-.blob-1 { width: 380px; height: 380px; background: rgba(168, 34, 73, 0.18); top: -130px; left: -110px; }
-.blob-2 { width: 420px; height: 420px; background: rgba(201, 162, 39, 0.13); top: 30%; right: -160px; animation-delay: -5s; }
-.blob-3 { width: 340px; height: 340px; background: rgba(142, 28, 59, 0.12); bottom: -140px; left: 26%; animation-delay: -9s; }
+.blob-1 { width: 380px; height: 380px; background: rgba(139, 24, 38, 0.30); top: -130px; left: -110px; }
+.blob-2 { width: 420px; height: 420px; background: rgba(176, 141, 28, 0.22); top: 30%; right: -160px; animation-delay: -5s; }
+.blob-3 { width: 340px; height: 340px; background: rgba(60, 60, 66, 0.22); bottom: -140px; left: 26%; animation-delay: -9s; }
 
 @keyframes floatBlob {
   0%, 100% { transform: translate(0, 0) scale(1); }
@@ -254,7 +263,7 @@ h1, h2, h3, h4 {
 /* ---------- Skeleton loading ---------- */
 .skeleton {
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, #F1E7EB 25%, #FAF4F6 50%, #F1E7EB 75%);
+  background: linear-gradient(90deg, #EDEDEE 25%, #F7F7F8 50%, #EDEDEE 75%);
   background-size: 420px 100%;
   animation: shimmer 1.3s linear infinite;
 }

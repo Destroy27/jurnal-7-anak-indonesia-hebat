@@ -16,21 +16,26 @@ otomatis** terlihat oleh guru di sekolah dan orang tua di rumah.
 
 ---
 
-## 🌟 7 Kebiasaan Anak Indonesia Hebat
+## 🌟 7 Kebiasaan Anak Indonesia Hebat (G7KAIH)
 
 | # | Kebiasaan | Isian | Tipe |
 |---|---|---|---|
-| 1 | **Bangun Pagi dengan Tujuan** | Jam bangun pagi (jam bisa diatur guru) | 🕐 jam |
-| 2 | **Tetapkan Sasaran Hari Ini** | Tulis 1–3 target hari ini | ✍️ tulisan |
-| 3 | **Prioritaskan yang Penting** | Sudah / belum | ✅ centang |
-| 4 | **Aku yang BOS atas Hariku** | Skala 1–5 mengatur waktu & perasaan | 1️⃣ skala |
-| 5 | **Jadwalkan untuk Refleksi** | Tulis pelajaran hari ini sebelum tidur | ✍️ tulisan |
-| 6 | **Dengarkan Dulu, Baru Bicara** | Skala 1–5|mendengarkan orang lain | 1️⃣ skala |
-| 7 | **Asah Gendangmu** | Sudah / belum olahraga, baca, santai | ✅ centang |
+| 1 | **Bangun Pagi** | Jam bangun pagi (target bisa diatur guru) | 🕐 jam |
+| 2 | **Beribadah / Berdoa** | Sudah / belum | ✅ centang |
+| 3 | **Berolahraga** | Sudah / belum | ✅ centang |
+| 4 | **Makan Sehat dan Bergizi** | Sudah / belum | ✅ centang |
+| 5 | **Gemar Belajar** | Sudah / belum | ✅ centang |
+| 6 | **Bermasyarakat** | Sudah / belum | ✅ centang |
+| 7 | **Tidur Cepat** | Jam tidur malam (target bisa diatur guru) | 🕐 jam |
 
 Setiap isian diberi **skor 0–100** sehingga bisa langsung dijumlahkan jadi nilai kelas.
-Untuk kebiasaan jam bangun, skor 100 bila bangun **paling lambat sesuai target** (bawaan 05:30),
-lalu turun 20 poin tiap 30 menit lebih lambat.
+Untuk kebiasaan jam (bangun & tidur), skor 100 bila **paling lambat sesuai target**
+(bawaan bangun 05:30, tidur 21:00), lalu turun 20 poin tiap 30 menit lebih lambat.
+Setiap kebiasaan juga bisa diberi **catatan singkat** opsional.
+
+> **Sumber daftar:** 7 Kebiasaan Anak Indonesia Hebat (G7KAIH) adalah gerakan pendidikan
+> karakter Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen), diluncurkan
+> 27 Desember 2024 di Jakarta. Buku Panduannya terbit 11 April 2025.
 
 ---
 
@@ -51,13 +56,7 @@ lalu turun 20 poin tiap 30 menit lebih lambat.
 ### Halaman Murid (`murid.html`) — tampilan besar & ramah anak SD
 
 - **Isi jam bangun pagi** lewat input jam, lengkap dengan **target sekolah** & skor langsung
-- Sasaran hari ini, prioritas, skala "aku BOS", refleksi malam, escalas mendengar, asah gendang
-- **Tombol Simpan** mengirim 7 kebiasaan dalam **1 request** saja (hemat kuota)
-- **Konfeti** + toast ucapan selamat saat 7 kebiasaan terisi semua
-- **Rekap pribadi**: hari terisi, rata-rata poin, rata-rata jam bangun, streak beruntun
-- **Kalender kebiasaan** (heatmap 30 hari) — makin gelap makin lengkap
-- **Grafik jam bangun** 10 hari terakhir
-- **8 lencana pencapaian** (3/7/14/21/30 hari beruntun, bangun pagi, hari lengkap)
+- Lima kebiasaan centang (ibadah, olahraga, makan sehat, gemar belajar, bermasyarakat) + jam tidur cepat
 - Riwayat 5 hari terakhir + **catatan dari guru**
 - Auto-sinkron tiap 90 detik, dan **tidak melakukan** sinkron saat tab disembunyikan
 
@@ -260,15 +259,20 @@ Sesuai arsitektur tanpa server, ada hal yang perlu diketahui:
 
 ## 🎨 Tema Warna
 
-Nuansa **merah marun** dengan aksen emas —dipilih agar terlihat elegan sekaligus hangat,
-cocok untuk lingkungan sekolah. Seluruh warna terkumpul di variabel CSS pada
-[`assets/css/base.css`](assets/css/base.css), jadi mengganti tema cukup mengedit satu tempat.
+Nuansa **merah marun gelap** dengan aksen emas, dipadukan **abu-abu netral** untuk
+seluruh latar, tombol, badge, dan garis. Semua latar merah muda (pink) sengaja
+dihilangkan supaya merah marun hanya muncul sebagai teks dan isian — warnanya jadi
+lebih bersih dan mudah ditukar tema.
 
 ```
-Maroon utama   #75162F   Aksen emas   #C9A227
-Maroon gelap   #430C1B   Emas terang   #E3C15C
-Maroon muda    #A82249   Latar        #F7F2F4
+Maroon utama   #5E0F1D   Aksen emas    #B08D1C
+Maroon gelap   #33070F   Emas terang   #D2AE4A
+Maroon mid     #8B1826   Latar         #F4F4F3
+Netral teks    #1A1A1C   Kartu         #FFFFFF
 ```
+
+Tujuh kebiasaan memakai **warna berbeda** yang gelap dan pekat, supaya mudah
+dibedakan di grafik rekap guru.
 
 ---
 

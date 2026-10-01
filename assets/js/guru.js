@@ -372,8 +372,8 @@
     var hariAda = Object.keys(r.harian).sort().reverse().slice(0, 14);
     isi += '<div id="dRiwayat">' + (hariAda.length ? hariAda.map(function (d) {
       var hr = r.harian[d];
-      var baris = Object.keys(hr.byKey).sort(function (a, b) { return H.byKey(a).no - H.byKey(b).no; }).map(function (k) {
-        var h = H.byKey(k);
+      var baris = Object.keys(hr.byKey).sort(function (a, b) { return H.noOf(a) - H.noOf(b); }).map(function (k) {
+        var h = H.safe(k);
         return '<div class="list-row" style="padding:8px 0">' +
           '<div class="ri-no" style="background:' + h.color + ';width:28px;height:28px;font-size:11px">' + h.no + '</div>' +
           '<div class="list-main"><h4 style="font-size:13px">' + J.esc(h.title) + '</h4>' +
@@ -401,7 +401,7 @@
     document.getElementById('dRiwayat').addEventListener('click', function (e) {
       var b = e.target.closest('[data-hapus]');
       if (!b) return;
-      if (!confirm('Hapus isian "' + H.byKey(b.dataset.hapus).title + '" tanggal ' + J.fmtTanggal(b.dataset.tanggal) + '?')) return;
+      if (!confirm('Hapus isian "' + H.safe(b.dataset.hapus).title + '" tanggal ' + J.fmtTanggal(b.dataset.tanggal) + '?')) return;
       J.hapusEntry(s.kelasId, s.nis, b.dataset.tanggal, b.dataset.hapus, function (r) {
         if (r.ok) { J.tutupModal(); gambarDashboard(); muatTabelSiswa(); J.toast('Isian dihapus', '', 'ok'); }
         else J.toast('Gagal hapus', r.msg, 'err');
@@ -853,7 +853,8 @@
   function muatPengaturan() {
     document.getElementById('setNamaApp').value = J.config.appName || '';
     var ov = J.config.habitOverrides || {};
-    document.getElementById('setTarget').value = (ov.bangun && ov.bangun.targetTime) || H.byKey('bangun').targetTime;
+    document.getElementById('setTarget').value = H.targetOf('bangun') || '';
+    document.getElementById('setTargetTidur').value = H.targetOf('tidur') || '';
     document.getElementById('setUrl').value = J.scriptURL;
 
     document.getElementById('infoStatus').innerHTML = J.isConfigured()
@@ -892,15 +893,20 @@
   document.getElementById('btnSimpanIdentitas').addEventListener('click', function () {
     var nama = document.getElementById('setNamaApp').value.trim();
     var target = document.getElementById('setTarget').value;
+    var targetTidur = document.getElementById('setTargetTidur').value;
     if (!nama) { J.toast('Nama aplikasi wajib diisi', '', 'warn'); return; }
     if (!target) { J.toast('Target jam bangun wajib diisi', '', 'warn'); return; }
     var cfg = JSON.parse(JSON.stringify(J.config));
     cfg.appName = nama;
     cfg.habitOverrides = cfg.habitOverrides || {};
     cfg.habitOverrides.bangun = { targetTime: target };
+    if (targetTidur) cfg.habitOverrides.tidur = { targetTime: targetTidur };
     J.simpanConfig(cfg, function (r) {
-      if (r.ok) { gambarSemua(); J.toast('Pengaturan disimpan', '', 'ok'); }
-      else J.toast('Gagal', r.msg, 'err');
+      if (r.ok) {
+        J.terapkanTarget();
+        gambarSemua();
+        J.toast('Pengaturan disimpan', '', 'ok');
+      } else J.toast('Gagal', r.msg, 'err');
     });
   });
 
@@ -1017,7 +1023,8 @@
         cfg.teachers.push({ user: 'guru', nama: 'Guru', pass: hash });
       }
       if (!cfg.notes) cfg.notes = [];
-      if (!cfg.habitOverrides) cfg.habitOverrides = { bangun: { targetTime: '05:30' } };
+      if (!cfg.habitOverrides) cfg.habitOverrides = { bangun: { targetTime: '05:30' }, tidur: { targetTime: '21:00' } };
+      J.terapkanTarget();
       J.simpanConfig(cfg);
       J.toast('Akun guru dibuat', 'username: guru - password: guru123. Segera ganti!', 'warn');
     });

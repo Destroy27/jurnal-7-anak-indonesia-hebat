@@ -83,6 +83,7 @@
         state.students = c.students || [];
         state.entries = c.entries || [];
         _configLoaded = true;
+        terapkanTarget();
       }
     } catch (e) { /* abaikan cache rusak */ }
   }
@@ -208,11 +209,12 @@
       return String(e.nis) === n && String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode);
     }) || null;
   }
-  /* Target jam bangun bisa diatur guru per kelas */
-  function targetBangun() {
-    var ov = (state.config.habitOverrides || {}).bangun;
-    return (ov && ov.targetTime) || (H.byKey('bangun').targetTime || '05:30');
-  }
+  /* Target jam bangun & tidur bisa diatur guru lewat tab Pengaturan */
+  function targetBangun() { return H.targetOf('bangun') || '05:30'; }
+  function targetTidur() { return H.targetOf('tidur') || '21:00'; }
+
+  /* Teruskan setelan target guru ke habits.js supaya skor ikut berubah */
+  function terapkanTarget() { H.setOverrides(state.config.habitOverrides || {}); }
 
   /* ================= MESIN REKAP ================= */
 
@@ -340,9 +342,16 @@
       return m !== null && m <= (H.parseHM(targetBangun()) || 330);
     }).length;
     var hariLengkap = Object.keys(harian).filter(function (d) { return harian[d].lengkap; }).length;
+    var tidurTepat = semuaEntries.filter(function (e) {
+      if (e.kode !== 'tidur') return false;
+      var m = H.parseHM(e.nilai);
+      var t = H.parseHM(targetTidur());
+      return m !== null && t !== null && m <= t;
+    }).length;
 
     return H.lencana.filter(function (l) {
       if (l.key === 'bangunkecil') return bangunTelat >= l.butuh;
+      if (l.key === 'tidurtepat') return tidurTepat >= l.butuh;
       if (l.key === 'lengkap') return hariLengkap >= l.butuh;
       return hariAktif >= l.butuh;
     });
@@ -534,6 +543,7 @@
         state.students = r.students || [];
         state.entries = r.entries || [];
         _configLoaded = true;
+        terapkanTarget();
         saveCache();
         jadwalkanTuangAntrean();
         if (onDone) onDone({ ok: true, jumlahSiswa: state.students.length, jumlahEntri: state.entries.length });
@@ -565,7 +575,6 @@
   }
 
   function buildEntry(siswa, tanggal, kode, nilai, catatan) {
-    var h = H.byKey(kode);
     return {
       action: 'save_entries',
       kelasId: String(siswa.kelasId || ''),
@@ -783,10 +792,10 @@
   function svgDefs() {
     return '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
       '<defs><linearGradient id="' + GRAD_ID + '" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0%" stop-color="#A82249"/><stop offset="100%" stop-color="#5C1126"/>' +
+      '<stop offset="0%" stop-color="#8B1826"/><stop offset="100%" stop-color="#480B19"/>' +
       '</linearGradient>' +
       '<linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="#A82249"/><stop offset="100%" stop-color="#A82249" stop-opacity="0"/>' +
+      '<stop offset="0%" stop-color="#8B1826"/><stop offset="100%" stop-color="#8B1826" stop-opacity="0"/>' +
       '</linearGradient></defs></svg>';
   }
 
@@ -929,7 +938,8 @@
     fmtWaktu: fmtWaktu, fmtTanggalPendekJam: fmtTanggalPendekJam,
 
     getKelas: getKelas, getSiswa: getSiswa, getSiswaKelas: getSiswaKelas,
-    entriesOf: entriesOf, entryOf: entryOf, targetBangun: targetBangun,
+    entriesOf: entriesOf, entryOf: entryOf, targetBangun: targetBangun, targetTidur: targetTidur,
+      terapkanTarget: terapkanTarget,
 
     rekapSiswa: rekapSiswa, rekapKelas: rekapKelas, deretHari: deretHari,
     hitungStreak: hitungStreak, streakTerpanjang: streakTerpanjang,
