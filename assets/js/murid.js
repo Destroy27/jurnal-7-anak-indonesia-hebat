@@ -377,7 +377,18 @@
   function muatSapaan() {
     var jam = new Date().getHours();
     var sapaan = jam < 11 ? 'Selamat pagi' : jam < 15 ? 'Selamat siang' : jam < 18 ? 'Selamat sore' : 'Selamat malam';
-    document.getElementById('sapaan').textContent = sapaan + ', ' + (siswa ? siswa.nama.split(' ')[0] : 'Teman') + '!';
+    
+    // PERBAIKAN: Gunakan Nama Panggilan (jika ada), atau potongan pertama dari nama lengkap
+    var panggilan = 'Teman';
+    if (siswa) {
+      if (siswa.panggilan && siswa.panggilan.trim() !== '') {
+        panggilan = siswa.panggilan;
+      } else {
+        panggilan = siswa.nama.split(' ')[0];
+      }
+    }
+    
+    document.getElementById('sapaan').textContent = sapaan + ', ' + panggilan + '!';
     document.getElementById('tanggalHari').textContent = J.fmtHari(J.todayISO()) + ', ' + J.fmtTanggal(J.todayISO());
   }
 
