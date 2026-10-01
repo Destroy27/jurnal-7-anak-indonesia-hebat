@@ -6,49 +6,68 @@
 <meta name="theme-color" content="#134A3B">
 <title>Jurnal Saya - 7 Anak Indonesia Hebat</title>
 
-<!-- FONT BAWAAN -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<!-- CSS BAWAAN -->
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/pages.css">
 
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23134A3B'/><text y='69' x='50' text-anchor='middle' font-size='54' fill='%23F0EAD8' font-family='serif' font-weight='bold'>7</text></svg>">
-
-<!-- CSS TAMBAHAN KHUSUS MOBILE HEATMAP AGAR TIDAK SEGEDE GABAN -->
 <style>
+  /* --- 1. CSS LOGO LINGKARAN BESAR DI TENGAH --- */
+  .big-logo-container {
+    width: 100px;
+    height: 100px;
+    margin: -50px auto 16px auto; /* Margin negatif agar melayang ke atas */
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 4px solid #F0EAD8; /* Warna krem emas khas */
+    position: relative;
+    z-index: 2;
+  }
+  .big-logo-container img {
+    width: 60%;
+    height: auto;
+  }
+  .big-logo-container i {
+    font-size: 40px;
+    color: var(--primary);
+  }
+
+  /* --- 2. CSS FIX KALENDER (HEATMAP) AGAR TIDAK KEBESARAN --- */
   #heatmap {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: auto; /* Memungkinkan di-scroll ke samping jika kepanjangan */
     overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 8px;
+    padding-bottom: 10px;
+    text-align: center;
+    -webkit-overflow-scrolling: touch; /* Halus saat di-scroll di HP */
   }
-  #heatmap svg, #heatmap .heatmap-container, #heatmap table {
-    max-width: 100% !important;
+  #heatmap > div, #heatmap svg {
+    margin: 0 auto;
+    max-width: 100% !important; /* Mencegah membesar tak terkendali */
     height: auto !important;
   }
 </style>
 </head>
 <body>
 
-  <!-- STATUS BAR -->
   <div id="statusBar" class="banner hidden">
     <span id="statusTeks"></span>
     <button id="btnPerbaiki" class="btn btn-sm btn-ghost" style="margin-left:10px; border: 1px solid currentColor;">Perbaiki</button>
   </div>
 
-  <!-- NAVBAR ATAS -->
   <header class="topnav">
     <div class="container wrap-lg topnav-inner">
       <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-book-open"></i>
-        </div>
+        <!-- Ikon buku kecil di atas bisa disembunyikan jika sudah ada logo besar, tapi kita biarkan saja -->
+        <div class="brand-icon"><i class="fa-solid fa-book-open"></i></div>
         <div class="brand-text">
           <h1 id="appName">Jurnal 7 Anak Indonesia Hebat</h1>
           <p id="identitas" style="font-size:12px; opacity:0.9;">Memuat data...</p>
@@ -61,12 +80,19 @@
     </div>
   </header>
 
-  <!-- KONTEN UTAMA -->
-  <main class="container wrap-lg main">
+  <main class="container wrap-lg main" style="padding-top: 60px;"> <!-- Padding ditambah agar logo melayang tidak tertutup -->
     
-    <!-- SAPAAN & RINGKASAN HARI INI -->
-    <section class="card text-center mb-3">
-      <h2 id="sapaan" style="font-family: 'Playfair Display', serif; font-size: 22px; color: var(--primary);">Selamat datang!</h2>
+    <!-- SAPAAN & RINGKASAN HARI INI + LOGO BESAR -->
+    <section class="card text-center mb-3" style="position: relative;">
+      
+      <!-- INI DIA LOGO BESARNYA -->
+      <div class="big-logo-container">
+        <!-- Akan mencoba load logo.png, jika tidak ada akan memunculkan ikon buku -->
+        <img src="assets/img/logo.png" alt="Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <i class="fa-solid fa-book-open" style="display:none;"></i>
+      </div>
+
+      <h2 id="sapaan" style="font-family: 'Playfair Display', serif; font-size: 24px; color: var(--primary);">Selamat datang!</h2>
       <p id="tanggalHari" class="text-muted" style="margin-bottom: 16px; font-size: 14px;"></p>
       
       <div style="display:flex; justify-content:center; gap: 16px; align-items:center;">
@@ -86,9 +112,7 @@
       <div class="card-head mb-2">
         <h2>Jurnal Hari Ini</h2>
       </div>
-      
       <div id="habitGrid" class="habit-grid"></div>
-      
       <div class="card mt-3 text-center">
         <button id="btnSimpanSemua" class="btn btn-success btn-block btn-lg mb-1">
           <i class="fa-solid fa-floppy-disk"></i> Simpan
@@ -107,7 +131,7 @@
         </div>
       </div>
 
-      <!-- KALENDER / HEATMAP YANG RAPI DI MOBILE -->
+      <!-- KALENDER / HEATMAP YANG SUDAH RAPI -->
       <section class="card mb-3">
         <div class="card-head" style="margin-bottom: 12px;">
           <div>
@@ -117,11 +141,10 @@
             </p>
           </div>
         </div>
-
-        <!-- Tempat Kalender Heatmap Dirender (Dibungkus pengaman lebar layar) -->
+        
+        <!-- Kalender masuk ke sini (Diatur CSS khusus di head) -->
         <div id="heatmap"></div>
 
-        <!-- Legenda Warna -->
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 12px; font-size: 11.5px; color: var(--muted);">
           <span>Kosong</span>
           <div style="display: flex; gap: 3px;">
@@ -140,22 +163,18 @@
         <div class="card text-center" style="padding: 14px 10px;">
           <div id="statHariAktif" style="font-size: 22px; font-weight: 800; color: var(--primary);">0</div>
           <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Hari Aktif</div>
-          <div id="statHariAktifHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
         <div class="card text-center" style="padding: 14px 10px;">
           <div id="statPoin" style="font-size: 22px; font-weight: 800; color: var(--primary);">0</div>
           <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Rata-rata Poin</div>
-          <div id="statPoinHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
         <div class="card text-center" style="padding: 14px 10px;">
           <div id="statStreak" style="font-size: 22px; font-weight: 800; color: var(--gold-600);">0</div>
           <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Streak Terjaga</div>
-          <div id="strekTeks" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
         <div class="card text-center" style="padding: 14px 10px;">
           <div id="statBangun" style="font-size: 22px; font-weight: 800; color: #2563eb;">-</div>
           <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Rata-rata Bangun</div>
-          <div id="statBangunHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
       </div>
 
@@ -167,28 +186,12 @@
         <div id="lencanaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px;"></div>
       </section>
 
-      <!-- GRAFIK JAM BANGUN -->
-      <section class="card mb-3">
-        <div class="card-head mb-2">
-          <h2><i class="fa-solid fa-chart-line" style="color: #2563eb;"></i> Grafik Jam Bangun Pagi</h2>
-        </div>
-        <div id="grafikBangun" style="height: 130px; margin-top: 12px;"></div>
-      </section>
-
       <!-- PROGRES PER KEBIASAAN -->
       <section class="card mb-3">
         <div class="card-head mb-2">
           <h2><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Progres per Kebiasaan</h2>
         </div>
         <div id="rekapList" style="display: flex; flex-direction: column; gap: 10px;"></div>
-      </section>
-
-      <!-- CATATAN DARI GURU -->
-      <section class="card mb-3" id="cardCatatan" style="display:none; border-left: 4px solid var(--primary); background: #f0fdf4;">
-        <div class="card-head mb-2">
-          <h2><i class="fa-solid fa-envelope-open-text"></i> Pesan dari Guru</h2>
-        </div>
-        <div id="catatanList" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </section>
 
       <!-- RIWAYAT HARIAN -->
@@ -199,11 +202,9 @@
         </div>
         <div id="riwayatList" style="display: flex; flex-direction: column; gap: 10px;"></div>
       </section>
-
     </div>
   </main>
 
-  <!-- TOAST NOTIFIKASI -->
   <div id="toast" role="status" aria-live="polite">
     <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
     <div class="t-content">
@@ -212,7 +213,6 @@
     </div>
   </div>
 
-  <!-- SCRIPT APLIKASI -->
   <script src="assets/js/site-config.js"></script>
   <script src="assets/js/habits.js"></script>
   <script src="assets/js/core.js"></script>
