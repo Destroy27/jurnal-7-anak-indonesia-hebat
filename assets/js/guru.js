@@ -499,19 +499,40 @@
     for (var i = 0; i < 4; i++) s += huruf[Math.floor(Math.random() * huruf.length)];
     return KODE_AWAL + s;
   }
-  /* Nomor absen berikutnya: siswa01, siswa02, ... (lewati yang terpakai) */
+  /* Nomor absen berikutnya, mengikuti gaya nomor yang sudah dipakai
+     kelas ini. Ada dua gaya yang lazim:
+       - "siswa01, siswa02, ..."  -> dari nomor urut
+       - "1331, 1332, ..."         -> dari No. Induk sekolah
+     Kalau tidak ada pola yang dikenali, jatuh ke siswa01. */
   function absenBerikutnya() {
     var list = J.getSiswaKelas(kelasAktif);
-    var max = 0, dipakai = {};
+    var max = 0, dipakai = {}, gaya = null;
     list.forEach(function (s) {
       var n = String(s.nis || '').trim();
+      if (!n) return;
       dipakai[n.toLowerCase()] = true;
-      var m = n.toLowerCase().match(/^siswa\s*[-_]?\s*(\d+)$/);
-      if (m) max = Math.max(max, parseInt(m[1], 10));
+      if (/^\d+$/.test(n)) {
+        gaya = 'angka';
+        max = Math.max(max, parseInt(n, 10));
+      } else {
+        var m = n.toLowerCase().match(/^siswa\s*[-_]?\s*(\d+)$/);
+        if (m) { gaya = 'siswa'; max = Math.max(max, parseInt(m[1], 10)); }
+      }
     });
-    var n = max + 1;
-    while (n < 1000 && dipakai['siswa' + ('0' + n).slice(-2)]) n++;
-    return 'siswa' + ('0' + n).slice(-2);
+
+    if (gaya === 'angka') {
+      var a = max + 1;
+      while (dipakai[String(a)]) a++;
+      return String(a);
+    }
+    if (gaya === 'siswa') {
+      var s = max + 1;
+      while (s < 1000 && dipakai['siswa' + ('0' + s).slice(-2)]) s++;
+      return 'siswa' + ('0' + s).slice(-2);
+    }
+    var baru = 1;
+    while (baru < 1000 && dipakai['siswa' + ('0' + baru).slice(-2)]) baru++;
+    return 'siswa' + ('0' + baru).slice(-2);
   }
 
   /* Nama panggilan dicadangkan dari kata pertama nama lengkap */
