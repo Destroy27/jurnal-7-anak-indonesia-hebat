@@ -48,6 +48,12 @@
     var sc = root.SITECONFIG || {};
     return String(sc.scriptUrl || '').trim();
   }
+  /* Nama sekolah ditulis sekali di site-config.js, dipakai untuk
+     judul tab, navbar, dan kop halaman cetak. */
+  function namaSekolah() {
+    var sc = root.SITECONFIG || {};
+    return String(sc.namaSekolah || '').trim();
+  }
   var scriptURL = (function () {
     try { return localStorage.getItem(KEYS.script) || siteScriptURL(); } catch (e) { return siteScriptURL(); }
   })();
@@ -906,6 +912,7 @@
     get scriptURL() { return scriptURL; },
     set scriptURL(v) { scriptURL = String(v || '').trim(); saveScriptURL(); },
     get siteScriptURL() { return siteScriptURL(); },
+    get sekolah() { return namaSekolah(); },
     get pendingCount() { return _pending.length; },
 
     isConfigured: isConfigured,

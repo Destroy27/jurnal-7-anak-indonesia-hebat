@@ -12,12 +12,17 @@
   document.getElementById('tahun').textContent = new Date().getFullYear();
   document.head.insertAdjacentHTML('beforeend', J.svgDefs());
 
-  /* ---------- Nama aplikasi ---------- */
+  /* ---------- Nama aplikasi & sekolah ---------- */
   function terapkanNamaApp(nama) {
     nama = nama || 'Jurnal 7 Anak Indonesia Hebat';
-    document.title = nama;
+    var sekolah = J.sekolah || '';
+    document.title = sekolah ? nama + ' - ' + sekolah : nama;
     document.getElementById('namaAppNav').textContent = nama;
+    var sub = document.getElementById('namaSekolahNav');
+    if (sub) sub.textContent = sekolah || 'Mencetak Anak Indonesia Hebat';
     document.getElementById('namaAppFoot').textContent = nama;
+    var foot = document.getElementById('namaSekolahFoot');
+    if (foot) foot.textContent = sekolah;
   }
 
   /* ---------- 7 kebiasaan di panel kiri ---------- */
@@ -164,6 +169,7 @@
   /* ---------- Init ---------- */
   gambarKebiasaan();
   perbaruiSetup();
+  terapkanNamaApp(J.config.appName);
 
   if (J.isConfigured()) {
     J.syncAll(function (r) {
