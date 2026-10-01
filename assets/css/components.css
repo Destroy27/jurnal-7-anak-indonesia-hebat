@@ -3,47 +3,59 @@
    Kartu · tombol · input · badge · tabel · toast · modal · grafik
    ============================================================ */
 
-/* ================= TOP NAV ================= */
+/* ================= TOP NAV =================
+   Header sekarang simple & modern:
+   - latar krem solid (bukan putih transparan) supaya lebih tenang
+   - garis bawah tipis, tidak ada bayangan tebal
+   - logo jadi kotak hijau botol solid + angka 7 krem, tanpa gradient
+   -School name jadi pill krem terpisah, bukan teks kecil yang samar */
 .topnav {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(20px) saturate(1.5);
-  -webkit-backdrop-filter: blur(20px) saturate(1.5);
-  border-bottom: 1px solid rgba(234, 223, 227, 0.8);
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
 }
 .topnav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  min-height: 68px;
-  padding-block: 9px;
+  min-height: 72px;
+  padding-block: 10px;
 }
 
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .brand-icon {
-  width: 44px; height: 44px;
-  border-radius: 14px;
+  width: 42px; height: 42px;
+  border-radius: 13px;
   flex-shrink: 0;
-  background: linear-gradient(140deg, var(--maroon-600), var(--maroon-800));
+  background: var(--maroon-700);
   color: var(--gold-400);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  box-shadow: var(--shadow-maroon);
-  border: 1px solid rgba(227, 193, 92, 0.28);
+  font-size: 17px;
 }
 .brand-text { min-width: 0; }
+/* Nama sekolah jadi pill krem: jelas dibaca, tapi tidak bersaing
+   dengan nama aplikasi */
+.brand-text p {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--maroon-600);
+  background: var(--maroon-50);
+  border: 1px solid var(--maroon-100);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+}
 .brand-text h1 {
   font-family: var(--font);
-  font-size: 15px; font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: 15.5px; font-weight: 800;
+  letter-spacing: -0.015em;
   color: var(--maroon-900);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.brand-text p {
-  font-size: 11px; color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -53,14 +65,14 @@
   width: 40px; height: 40px;
   border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(168, 34, 73, 0.05);
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   color: var(--ink-2);
   font-size: 14px;
   transition: all 0.18s ease;
 }
 .icon-btn:hover {
-  background: rgba(168, 34, 73, 0.1);
+  background: rgba(23, 92, 73, 0.1);
   color: var(--maroon-600);
   border-color: var(--maroon-200);
   transform: translateY(-1px);
@@ -102,7 +114,7 @@
 .card-hero {
   background:
     radial-gradient(1000px 300px at 88% -20%, rgba(201, 162, 39, 0.22), transparent 62%),
-    linear-gradient(135deg, var(--maroon-800), var(--maroon-600) 55%, var(--maroon-700));
+    var(--maroon-700);
   border-color: rgba(255, 255, 255, 0.1);
   color: #fff;
   box-shadow: var(--shadow-maroon-lg);
@@ -192,7 +204,7 @@
 .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--maroon-600), var(--maroon-800));
+  background: var(--maroon-700);
   color: #fff;
   box-shadow: var(--shadow-maroon);
 }
@@ -201,10 +213,12 @@
   box-shadow: var(--shadow-maroon-lg);
 }
 
+/* Tombol krem: dipakai untuk aksi sekunder, mis. "Sudah Diisi, Coba Lagi".
+   Teksnya hijau botol tua supaya kontrasnya tetap kuat. */
 .btn-gold {
-  background: linear-gradient(135deg, var(--gold-400), var(--gold-600));
-  color: #3D2E05;
-  box-shadow: 0 10px 26px rgba(201, 162, 39, 0.34);
+  background: var(--gold-400);
+  color: var(--maroon-800);
+  box-shadow: 0 10px 26px rgba(168, 147, 95, 0.26);
 }
 .btn-gold:hover:not(:disabled) { transform: translateY(-2px); }
 
@@ -263,7 +277,7 @@
   outline: none;
   border-color: var(--maroon-400);
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(168, 34, 73, 0.09);
+  box-shadow: 0 0 0 4px rgba(23, 92, 73, 0.09);
 }
 .input:disabled, .select:disabled { opacity: 0.6; cursor: not-allowed; }
 .textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
@@ -398,7 +412,7 @@
   box-shadow: 0 4px 12px rgba(201, 162, 39, 0.4);
 }
 .lencana.locked { background: var(--bg); border-color: var(--border); color: var(--muted-2); }
-.lencana.locked i { background: #E7DEE1; color: var(--muted-2); box-shadow: none; }
+.lencana.locked i { background: #EFEDE3; color: var(--muted-2); box-shadow: none; }
 
 /* ================= TABEL ================= */
 .table-wrap {
@@ -523,8 +537,8 @@
   transition: transform 0.15s ease;
   cursor: default;
 }
-.heat-cell.lv1 { background: #EDEDEE; color: var(--maroon-600); }
-.heat-cell.lv2 { background: #D4D4D7; color: var(--maroon-700); }
+.heat-cell.lv1 { background: #F1EFE6; color: var(--maroon-600); }
+.heat-cell.lv2 { background: #DEDACE; color: var(--maroon-700); }
 .heat-cell.lv3 { background: var(--maroon-400); color: #fff; }
 .heat-cell.lv4 { background: var(--maroon-700); color: #fff; }
 .heat-cell.today { border-color: var(--gold-500); box-shadow: 0 0 0 2px rgba(201, 162, 39, 0.18); }
@@ -724,7 +738,7 @@
   body { background: #fff; }
   .card, .table-wrap {
     box-shadow: none !important;
-    border: 1px solid #D8CDD1 !important;
+    border: 1px solid #E4E0D3 !important;
     break-inside: avoid;
   }
   .print-head { display: block !important; margin-bottom: 16px; }

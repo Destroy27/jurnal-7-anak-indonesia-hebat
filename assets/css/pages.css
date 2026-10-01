@@ -37,35 +37,47 @@
   line-height: 1.65;
 }
 
+/* ===== Kartu 7 kebiasaan =====
+   Bukan daftar (bukan chip horizontal), tapi grid kartu.
+   Tampilan simple: kotak krem, nomor kecil di kiri, tanpa
+   subjudul yang panjang supaya tidak penuh. */
 .habit-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
-  margin-top: 28px;
+  gap: 10px;
+  margin-top: 26px;
   max-width: 560px;
 }
 .habit-chip {
-  display: flex; align-items: center; gap: 11px;
-  padding: 11px 13px;
-  background: rgba(255, 255, 255, 0.72);
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 15px;
+  background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  backdrop-filter: blur(6px);
-  transition: all 0.2s ease;
+  border-radius: var(--radius);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
-.habit-chip:hover { border-color: var(--maroon-200); transform: translateX(3px); box-shadow: var(--shadow-sm); }
+.habit-chip:hover {
+  border-color: var(--maroon-300);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
 .habit-chip .hc-no {
-  width: 28px; height: 28px;
-  border-radius: 9px;
+  width: 30px; height: 30px;
+  border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display);
-  font-size: 13px; font-weight: 700;
+  font-size: 14px; font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
 .habit-chip .hc-txt { min-width: 0; }
-.habit-chip .hc-txt strong { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink); }
-.habit-chip .hc-txt span { display: block; font-size: 11px; color: var(--muted); }
+.habit-chip .hc-txt strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
 
 /* Panel login */
 .login-panel {
@@ -126,7 +138,7 @@
 }
 .habit-card.filled {
   border-color: var(--maroon-200);
-  box-shadow: 0 6px 20px rgba(168, 34, 73, 0.1);
+  box-shadow: 0 6px 20px rgba(23, 92, 73, 0.1);
 }
 .habit-card.filled::before { width: 5px; opacity: 1; }
 
@@ -179,7 +191,7 @@
 }
 .time-input:focus {
   outline: none; border-color: var(--maroon-400); background: #fff;
-  box-shadow: 0 0 0 4px rgba(168, 34, 73, 0.09);
+  box-shadow: 0 0 0 4px rgba(23, 92, 73, 0.09);
 }
 .time-target {
   display: flex; align-items: center; gap: 6px;
@@ -205,7 +217,7 @@
 }
 .scale-btn:hover { border-color: var(--maroon-300); color: var(--maroon-600); transform: translateY(-2px); }
 .scale-btn.on {
-  background: linear-gradient(140deg, var(--maroon-600), var(--maroon-800));
+  background: var(--maroon-700);
   border-color: var(--maroon-700);
   color: #fff;
   box-shadow: var(--shadow-maroon);
@@ -245,7 +257,7 @@
   color: var(--maroon-800);
 }
 .check-row.on .box {
-  background: linear-gradient(140deg, var(--maroon-600), var(--maroon-800));
+  background: var(--maroon-700);
   border-color: var(--maroon-700);
   color: #fff;
 }
@@ -289,10 +301,10 @@
 }
 .hv-cell i { font-size: 15px; }
 .hv-cell span { font-size: 9.5px; font-weight: 800; font-family: var(--mono); }
-.hv-cell.lv1 { background: #EDEDEE; color: var(--maroon-600); }
-.hv-cell.lv2 { background: #D4D4D7; color: var(--maroon-700); }
+.hv-cell.lv1 { background: #F1EFE6; color: var(--maroon-600); }
+.hv-cell.lv2 { background: #DEDACE; color: var(--maroon-700); }
 .hv-cell.lv3 { background: var(--maroon-400); color: #fff; }
-.hv-cell.lv4 { background: var(--maroon-700); color: #fff; box-shadow: 0 6px 16px rgba(117, 22, 47, 0.28); }
+.hv-cell.lv4 { background: var(--maroon-700); color: #fff; box-shadow: 0 6px 16px rgba(15, 59, 48, 0.28); }
 
 /* Daftar rekap per kebiasaan */
 .rekap-list { display: flex; flex-direction: column; gap: 15px; }
@@ -325,7 +337,7 @@
 }
 .class-card:hover { border-color: var(--maroon-300); transform: translateY(-2px); }
 .class-card.active {
-  background: linear-gradient(140deg, var(--maroon-700), var(--maroon-900));
+  background: var(--maroon-800);
   border-color: var(--maroon-800);
   box-shadow: var(--shadow-maroon);
 }
@@ -361,8 +373,8 @@
   color: var(--muted-2);
   border: 1.5px solid transparent;
 }
-.matrix-cell.lv1 { background: #EDEDEE; color: var(--maroon-600); }
-.matrix-cell.lv2 { background: #D4D4D7; color: var(--maroon-700); }
+.matrix-cell.lv1 { background: #F1EFE6; color: var(--maroon-600); }
+.matrix-cell.lv2 { background: #DEDACE; color: var(--maroon-700); }
 .matrix-cell.lv3 { background: var(--maroon-400); color: #fff; }
 .matrix-cell.lv4 { background: var(--maroon-700); color: #fff; }
 .matrix-cell.today { box-shadow: 0 0 0 2px var(--gold-400); }
@@ -372,7 +384,7 @@
   display: flex; align-items: center; gap: 15px;
   padding: 18px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--maroon-700), var(--maroon-900));
+  background: var(--maroon-800);
   color: #fff;
   margin-bottom: 18px;
 }
@@ -467,9 +479,9 @@
 
 /* Efekldquo menyala&rdquo; saatupyai terisi */
 @keyframes glowFill {
-  0% { box-shadow: 0 0 0 0 rgba(168, 34, 73, 0.28); }
-  70% { box-shadow: 0 0 0 12px rgba(168, 34, 73, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(168, 34, 73, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(23, 92, 73, 0.28); }
+  70% { box-shadow: 0 0 0 12px rgba(23, 92, 73, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(23, 92, 73, 0); }
 }
 .just-filled { animation: glowFill 0.7s ease; }
 

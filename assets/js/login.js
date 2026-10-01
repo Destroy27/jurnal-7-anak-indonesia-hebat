@@ -25,13 +25,14 @@
     if (foot) foot.textContent = sekolah;
   }
 
-  /* ---------- 7 kebiasaan di panel kiri ---------- */
+  /* ---------- Kartu 7 kebiasaan di panel kiri ----------
+     Hanya judul, tanpa subjudul: supaya kartu ringkas dan tidak
+     penuh. Warna kotak memakai warna habit yang sudah gelap. */
   function gambarKebiasaan() {
     document.getElementById('habitStrip').innerHTML = H.list.map(function (h) {
       return '<div class="habit-chip">' +
         '<span class="hc-no" style="background:' + h.color + '">' + h.no + '</span>' +
-        '<span class="hc-txt"><strong>' + J.esc(h.title) + '</strong>' +
-        '<span>' + J.esc(h.sub) + '</span></span></div>';
+        '<span class="hc-txt"><strong>' + J.esc(h.title) + '</strong></span></div>';
     }).join('');
   }
 

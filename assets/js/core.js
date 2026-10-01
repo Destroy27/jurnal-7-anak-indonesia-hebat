@@ -792,10 +792,10 @@
   function svgDefs() {
     return '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
       '<defs><linearGradient id="' + GRAD_ID + '" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0%" stop-color="#8B1826"/><stop offset="100%" stop-color="#480B19"/>' +
+      '<stop offset="0%" stop-color="#175C49"/><stop offset="100%" stop-color="#0F3B30"/>' +
       '</linearGradient>' +
       '<linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="#8B1826"/><stop offset="100%" stop-color="#8B1826" stop-opacity="0"/>' +
+      '<stop offset="0%" stop-color="#175C49"/><stop offset="100%" stop-color="#175C49" stop-opacity="0"/>' +
       '</linearGradient></defs></svg>';
   }
 

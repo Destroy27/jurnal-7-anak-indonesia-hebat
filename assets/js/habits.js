@@ -37,7 +37,7 @@
       targetLabel: 'Target bangun',
       placeholder: 'Contoh: 05:30',
       icon: 'fa-solid fa-sun',
-      color: '#B07D12',
+      color: '#8A6D1A',
       tip: 'Coba satu alarm untuk bangun, jangan bolak-balik.'
     },
     {
@@ -48,7 +48,7 @@
       type: 'check',
       label: 'Sudah beribadah dan berdoa hari ini',
       icon: 'fa-solid fa-hands-praying',
-      color: '#1D4E89',
+      color: '#1F5A7A',
       tip: 'Sesuaikan dengan keyakinan dan agama yang kamu anut.'
     },
     {
@@ -59,7 +59,7 @@
       type: 'check',
       label: 'Sudah olahraga hari ini',
       icon: 'fa-solid fa-person-running',
-      color: '#2E7D32',
+      color: '#2F7D4F',
       tip: 'Olahraga ringan seperti lari, bersepeda, atau bermain bola sudah cukup.'
     },
     {
@@ -70,7 +70,7 @@
       type: 'check',
       label: 'Sudah makan sehat dan bergizi',
       icon: 'fa-solid fa-bowl-food',
-      color: '#C2410C',
+      color: '#B85C22',
       tip: 'Makan tiga kali sehari, perbanyak sayur dan buah.'
     },
     {
@@ -81,7 +81,7 @@
       type: 'check',
       label: 'Sudah belajar hari ini',
       icon: 'fa-solid fa-book-open',
-      color: '#5B21B6',
+      color: '#5B4A9E',
       tip: 'Walaupun sudah selesai belajar, sisihkan waktu untuk membaca.'
     },
     {
@@ -92,7 +92,7 @@
       type: 'check',
       label: 'Sudah bersikap baik kepada sesama',
       icon: 'fa-solid fa-people-group',
-      color: '#0E7490',
+      color: '#2A7A80',
       tip: 'Bantu teman, sopan santun, dan jaga kebersihan bersama.'
     },
     {
@@ -106,7 +106,7 @@
       targetLabel: 'Target tidur',
       placeholder: 'Contoh: 20:30',
       icon: 'fa-solid fa-bed',
-      color: '#334155',
+      color: '#4A5A54',
       tip: 'Tidur cukup 9-10 jam supaya sekolah besok lebih fit.'
     }
   ];
