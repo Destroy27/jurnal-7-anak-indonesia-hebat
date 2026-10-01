@@ -50,7 +50,7 @@
   <!-- ================= ISI ================= -->
   <main class="container wrap-lg main">
 
-    <!-- Hero -->
+    <!-- Hero / Setup Cek Koneksi (Hidden by default) -->
     <section class="card card-hero anim-in" id="setupCard">
       <div class="card-head" style="margin-bottom:12px">
         <div>
@@ -83,51 +83,38 @@
       </div>
     </section>
 
-    <!-- ============ KARTU 7 KEBIASAAN (paling atas) ============ -->
-    <section class="showcase" id="showcase">
-      <div class="showcase-head">
-        <span class="eyebrow">7 Kebiasaan Anak Indonesia Hebat</span>
-        <h1>Tujuh kebiasaan <em>luar biasa</em> setiap hari.</h1>
-        <p>
-          Inilah yang diisi setiap anak setiap hari, dari bangun pagi sampai tidur cepat.
-          Tinggal centang atau tulis jamnya - cukup satu menit dari HP.
-        </p>
+    <!-- ============ KARTU 7 KEBIASAAN (HEADER SHAPE BARU) ============ -->
+    <section class="card anim-in" id="showcase" style="background: #ffffff; border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); position: relative; overflow: hidden; margin-bottom: 24px; border: 1px solid #f0f0f0;">
+      <!-- Ikon Matahari Kanan Atas -->
+      <div style="position: absolute; top: 20px; right: 20px; font-size: 38px; color: #F6C144; z-index: 1;">
+        <i class="fa-solid fa-cloud-sun"></i>
+      </div>
+      
+      <h1 style="font-size: 22px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: #111827; margin: 0 0 12px 0; line-height: 1.3; position: relative; z-index: 2;">
+        7 Kebiasaan Anak<br>Indonesia Hebat
+      </h1>
+      
+      <p style="font-size: 14.5px; color: #4B5563; line-height: 1.6; margin: 0; position: relative; z-index: 2; padding-right: 40px;">
+        Tujuh kebiasaan luar biasa setiap hari. Inilah yang diisi setiap anak setiap hari, dari bangun pagi sampai tidur cepat. Tinggal centang atau tulis jamnya - cukup satu menit dari HP.
+      </p>
+
+      <!-- Ikon Bulan Kanan Bawah (Watermark) -->
+      <div style="position: absolute; bottom: -15px; right: -5px; font-size: 70px; color: #94A3B8; opacity: 0.15; z-index: 0;">
+        <i class="fa-solid fa-moon"></i>
       </div>
 
-      <div class="show-cards" id="habitCards"></div>
-
-      <p class="sumber-note">
-        <i class="fa-solid fa-book-open-reader"></i>
-        G7KAIH adalah gerakan pendidikan karakter Kementerian Pendidikan Dasar dan
-        Menengah (Kemendikdasmen), diluncurkan 27 Desember 2024 di Jakarta.
-        Buku Panduannya terbit 11 April 2025.
-      </p>
+      <!-- Jika cards harian dimunculkan via script, penampungnya ada di sini -->
+      <div class="show-cards" id="habitCards" style="margin-top: 16px;"></div>
     </section>
 
-    <!-- Login -->
+    <!-- Login Section -->
     <section class="login-wrap" id="loginWrap">
 
-      <div class="login-intro">
-        <span class="eyebrow">Masuk ke Jurnal</span>
-        <h2>Tempat masing-masing peran.</h2>
-        <p>
-          Guru melihat rekap kelas dan catatan harian. Orang tua memantau kemajuan anak
-          dari rumah. Murid cukup mengisi jurnal sendiri setiap pagi.
-        </p>
+      <!-- Kolom kanan: KARTU LOGIN (dipertahankan urutannya agar fitur tab tetap berfungsi baik) -->
+      <div class="login-panel" style="margin-bottom: 32px;">
 
-        <div class="flex gap-2 flex-wrap mt-4" style="font-size:12.5px;color:var(--muted)">
-          <span class="badge badge-maroon"><i class="fa-solid fa-mobile-screen"></i> Cukup dari HP</span>
-          <span class="badge badge-gold"><i class="fa-solid fa-shield-halved"></i> Data di Spreadsheet kamu sendiri</span>
-          <span class="badge badge-success"><i class="fa-solid fa-chart-line"></i> Rekap otomatis</span>
-        </div>
-      </div>
-
-      <!-- Kolom kanan: KARTU LOGIN (kartu putih + kotak logo ala Jarco) -->
-      <div class="login-panel">
-
-        <!-- Kepala kartu: logo + judul dalam satu baris (hemat tinggi layar) -->
+        <!-- Kepala kartu -->
         <div class="login-head">
-          <!-- Kotak logo: ganti assets/img/logo.png dengan logomu -->
           <div class="login-logo-box">
             <i class="fa-solid fa-book-open"></i>
             <img data-logo src="assets/img/logo.png" alt="Logo Jurnal 7 Kebiasaan">
@@ -157,7 +144,8 @@
               <label for="nis"><i class="fa-solid fa-id-card"></i> No. Absen</label>
               <div class="input-group">
                 <i class="fa-solid fa-id-card"></i>
-                <input class="input mono" id="nis" name="nis" type="text" maxlength="20" placeholder="contoh: siswa01"
+                <!-- REVISI: placeholder diubah dari "siswa01" menjadi "01" -->
+                <input class="input mono" id="nis" name="nis" type="text" maxlength="20" placeholder="contoh: 01"
                   autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
               </div>
             </div>
@@ -214,6 +202,43 @@
           </button>
         </form>
       </div>
+
+      <!-- REVISI: Penambahan Bagian Fungsi Kalender di Bawah Login -->
+      <div class="login-intro" style="padding: 10px 0;">
+        <h2 style="font-size: 20px; font-family: 'Playfair Display', serif; font-weight: 700; color: #134A3B; margin-bottom: 20px;">
+          Fungsi Kalender Kebiasaanmu:
+        </h2>
+        
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="min-width: 40px; height: 40px; background: #e8f5e9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #166534; font-size: 16px;">
+              <i class="fa-regular fa-calendar-check"></i>
+            </div>
+            <span style="font-size: 15px; color: #111; font-weight: 600;">Pelacakan Harian <br><span style="font-weight: 400; color: #4b5563; font-size: 13.5px;">(Membangun disiplin)</span></span>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="min-width: 40px; height: 40px; background: #e8f5e9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #166534; font-size: 16px;">
+              <i class="fa-solid fa-chart-simple"></i>
+            </div>
+            <span style="font-size: 15px; color: #111; font-weight: 600;">Visualisasi Kemajuan <br><span style="font-weight: 400; color: #4b5563; font-size: 13.5px;">(Melihat pencapaian)</span></span>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="min-width: 40px; height: 40px; background: #e8f5e9; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #166534; font-size: 16px;">
+              <i class="fa-solid fa-award"></i>
+            </div>
+            <span style="font-size: 15px; color: #111; font-weight: 600;">Sertifikat Prestasi <br><span style="font-weight: 400; color: #4b5563; font-size: 13.5px;">(Mendapatkan apresiasi)</span></span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap" style="font-size:12.5px;color:var(--muted); padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.2);">
+          <span class="badge badge-maroon"><i class="fa-solid fa-mobile-screen"></i> Cukup dari HP</span>
+          <span class="badge badge-gold"><i class="fa-solid fa-shield-halved"></i> Data di Spreadsheet kamu sendiri</span>
+          <span class="badge badge-success"><i class="fa-solid fa-chart-line"></i> Rekap otomatis</span>
+        </div>
+      </div>
+
     </section>
   </main>
 
