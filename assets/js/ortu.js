@@ -81,7 +81,7 @@
       anak.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
     document.getElementById('sapaan').textContent = 'Kemajuan ' + anak.nama.split(' ')[0];
     document.getElementById('subJudul').textContent =
-      (kelas ? kelas.nama : '-') + ' &middot;NIS ' + anak.nis + ' &middot; ' +
+      (kelas ? kelas.nama : '-') + ' &middot; No. absen ' + anak.nis + ' &middot; ' +
       rentangHari + ' hari terakhir';
     muatRekap();
   }

@@ -26,7 +26,7 @@
   /* ---------------- State global ---------------- */
   var state = {
     config: { appName: 'Jurnal 7 Anak Indonesia Hebat', teachers: [], habitOverrides: {}, notes: [] },
-    students: [],   /* { kelasId, nis, nama, pin, kodeOrtu, kelas } */
+    students: [],   /* { kelasId, nis, nama, panggilan, pin, kodeOrtu, kelas } */
     entries: []     /* { id, kelasId, nis, nama, tanggal, kode, nilai, catatan, tsISO, tsDisplay } */
   };
   var onExternalChange = null;
@@ -175,9 +175,13 @@
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
+  /* No. absen dicari tanpa memperhatikan huruf besar/kecil:
+     "Siswa01" oleh murid tetap ketemu siswa "siswa01". */
   function getSiswa(nis) {
-    var n = String(nis == null ? '' : nis).trim();
-    for (var i = 0; i < state.students.length; i++) if (String(state.students[i].nis) === n) return state.students[i];
+    var n = String(nis == null ? '' : nis).trim().toLowerCase();
+    for (var i = 0; i < state.students.length; i++) {
+      if (String(state.students[i].nis).trim().toLowerCase() === n) return state.students[i];
+    }
     return null;
   }
   function getSiswaKelas(kelasId) {
@@ -410,12 +414,19 @@
       return { ok: true, role: 'guru', guru: cocok };
     });
   }
-  function loginSiswa(nis, pin) {
-    var s = getSiswa(String(nis || '').trim());
-    if (!s) return Promise.resolve({ ok: false, msg: 'NIS tidak terdaftar. Hubungi guru.' });
-    return sha256(String(pin || '')).then(function (hash) {
+  /* Login murid: No. Absen (bebas, mis. siswa01) + Nama Panggilan.
+     Nama panggilan disimpan dua kali: polos (supaya guru bisa
+     membantu murid yang lupa) & hash SHA-256 (dipakai saat login). */
+  function loginSiswa(nis, panggilan) {
+    var s = getSiswa(nis);
+    if (!s) return Promise.resolve({ ok: false, msg: 'No. absen tidak terdaftar. Tanya guru kelasmu.' });
+    var pw = String(panggilan || '').trim();
+    if (!pw) return Promise.resolve({ ok: false, msg: 'Nama panggilan wajib diisi.' });
+    return sha256(pw.toLowerCase()).then(function (hash) {
       if (!hash) return { ok: false, msg: 'Browser tidak mendukung SHA-256 (butuh HTTPS).' };
-      if (hash !== s.pin) return { ok: false, msg: 'PIN salah.' };
+      if (hash !== s.pin) {
+        return { ok: false, msg: 'Nama panggilan salah. Tanya guru kelasmu ya.' };
+      }
       return { ok: true, role: 'siswa', siswa: s };
     });
   }
@@ -717,7 +728,8 @@
       .concat(daftar.map(function (s) {
         return {
           kelasId: kelasId, nis: String(s.nis).trim(), nama: String(s.nama).trim(),
-          kelas: s.kelas || '', pin: s.pin || '', kodeOrtu: String(s.kodeOrtu || '').trim()
+          kelas: s.kelas || '', panggilan: String(s.panggilan || '').trim(),
+          pin: s.pin || '', kodeOrtu: String(s.kodeOrtu || '').trim()
         };
       }));
     saveCache();

@@ -90,15 +90,16 @@
 
       <div class="banner banner-info mb-3" style="font-size:12.5px">
         <i class="fa-solid fa-lightbulb"></i>
-        <span>Setiap siswa punya <b>NIS</b> (untuk login murid), <b>PIN</b> (sandi 4-6 angka), dan
-        <b>Kode Akses</b> untuk orang tuanya. Berikan kode ortu kepada masing-masing wali.</span>
+        <span>Murid masuk memakai <b>No. Absen</b> (contoh: <span class="mono">siswa01</span>) + <b>Nama Panggilan</b> (sandi-nya).
+        Nama panggilan sengaja ditampilkan apa adanya supaya guru bisa <b>membantu murid yang lupa</b> &mdash;
+        salin lewat <b>Salin Daftar Login</b> sebagai cadangan. Berikan <b>Kode Akses</b> kepada masing-masing wali orang tua.</span>
       </div>
 
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
-              <th>Siswa</th><th>NIS</th><th>PIN</th><th>Kode Orang Tua</th>
+              <th>Siswa</th><th>No. Absen</th><th>Nama Panggilan</th><th>Kode Orang Tua</th>
               <th>Terisi (14h)</th><th class="text-right">Aksi</th>
             </tr>
           </thead>
@@ -107,6 +108,7 @@
       </div>
 
       <div class="flex gap-1 flex-wrap mt-3 no-print">
+        <button class="btn btn-ghost btn-sm" id="btnSalinSiswa"><i class="fa-solid fa-clipboard"></i> Salin Daftar Login</button>
         <button class="btn btn-ghost btn-sm" id="btnUnduhSiswa"><i class="fa-solid fa-file-csv"></i> Unduh Template CSV</button>
         <button class="btn btn-danger btn-sm" id="btnKosongkan"><i class="fa-solid fa-trash"></i> Kosongkan Jurnal Kelas Ini</button>
       </div>

@@ -25,7 +25,7 @@
         '<div class="card card-lg text-center" style="max-width:420px">' +
         '<div class="empty-icon"><i class="fa-solid fa-lock"></i></div>' +
         '<h2 style="font-size:20px;margin-bottom:8px">Belum masuk</h2>' +
-        '<p class="text-sm text-muted">Silakan masuk dengan NIS dan PIN terlebih dahulu.</p>' +
+        '<p class="text-sm text-muted">Silakan masuk dengan No. Absen dan Nama Panggilan terlebih dahulu.</p>' +
         '<a class="btn btn-primary btn-block mt-3" href="index.html"><i class="fa-solid fa-arrow-right-to-bracket"></i> Halaman Masuk</a>' +
         '</div></div>';
       return false;
@@ -52,7 +52,7 @@
 
     var kelas = J.getKelas(siswa.kelasId);
     document.getElementById('identitas').textContent =
-      siswa.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas') + ' - NIS ' + siswa.nis;
+      siswa.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas') + ' - No. absen ' + siswa.nis;
   }
 
   document.getElementById('btnLogout').addEventListener('click', function () {

@@ -15,7 +15,7 @@
 window.SITECONFIG = {
   /* Ganti string kosong di bawah dengan URL deployment kamu,
      contoh: https://script.google.com/macros/s/AKfycb.../exec  */
-  scriptUrl: 'http://localhost:8099/exec',
+  scriptUrl: '',
 
   /* Nama aplikasi yang tampil di judul & header.
      Bisa diubah juga dari menu Pengaturan di Panel Guru. */

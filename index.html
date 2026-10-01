@@ -122,21 +122,23 @@
           <!-- Murid -->
           <div data-panel="siswa">
             <div class="field">
-              <label for="nis"><i class="fa-solid fa-id-card"></i> NIS</label>
+              <label for="nis"><i class="fa-solid fa-id-card"></i> No. Absen</label>
               <div class="input-group">
                 <i class="fa-solid fa-id-card"></i>
-                <input class="input" id="nis" name="nis" type="text" inputmode="numeric" placeholder="contoh: 24001" autocomplete="username">
+                <input class="input mono" id="nis" name="nis" type="text" maxlength="20" placeholder="contoh: siswa01"
+                  autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
               </div>
             </div>
             <div class="field">
-              <label for="pin"><i class="fa-solid fa-key"></i> PIN</label>
+              <label for="pin"><i class="fa-solid fa-key"></i> Nama Panggilan</label>
               <div class="input-group">
                 <i class="fa-solid fa-key"></i>
-                <input class="input" id="pin" name="pin" type="password" inputmode="numeric" placeholder="PIN dari guru" autocomplete="current-password">
-                <button type="button" class="toggle" data-toggle="pin" aria-label="Lihat PIN"><i class="fa-solid fa-eye"></i></button>
+                <input class="input" id="pin" name="pin" type="password" maxlength="20" placeholder="contoh: Adi"
+                  autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false">
+                <button type="button" class="toggle" data-toggle="pin" aria-label="Lihat nama panggilan"><i class="fa-solid fa-eye"></i></button>
               </div>
             </div>
-            <p class="field-hint">Belum punya NIS atau PIN? Minta ke guru kelasmu.</p>
+            <p class="field-hint">Lupa nama panggilan? Tanya guru kelasmu &mdash; guru punya daftarnya.</p>
           </div>
 
           <!-- Guru -->
@@ -182,7 +184,7 @@
 
         <div class="banner banner-maroon mt-3" style="font-size:12px">
           <i class="fa-solid fa-circle-info"></i>
-          <span>Satu aplikasi untuk banyak kelas. Guru mengatur siswa, NIS, PIN, dan kode akses orang tua dari Panel Guru.</span>
+          <span>Satu aplikasi untuk banyak kelas. Guru mengatur no. absen, nama panggilan, dan kode akses orang tua dari Panel Guru.</span>
         </div>
       </div>
     </section>

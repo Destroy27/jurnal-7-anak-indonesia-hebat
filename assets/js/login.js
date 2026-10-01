@@ -87,9 +87,9 @@
     var p;
     if (role === 'siswa') {
       var nis = document.getElementById('nis').value.trim();
-      var pin = document.getElementById('pin').value.trim();
-      if (!nis || !pin) { gagal('NIS dan PIN wajib diisi.'); return; }
-      p = J.loginSiswa(nis, pin);
+      var panggilan = document.getElementById('pin').value.trim();
+      if (!nis || !panggilan) { gagal('No. absen dan nama panggilan wajib diisi.'); return; }
+      p = J.loginSiswa(nis, panggilan);
     } else if (role === 'guru') {
       var u = document.getElementById('gUser').value.trim();
       var pw = document.getElementById('gPass').value;

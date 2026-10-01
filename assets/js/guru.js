@@ -302,7 +302,7 @@
   /* ---------- Ekspor CSV ---------- */
   function eksporCsv() {
     var r = J.rekapKelas(kelasAktif, rentangHari);
-    var head = ['NIS', 'Nama', 'Poin', 'Kelengkapan (%)', 'Hari Terisi', 'Streak', 'Jam Bangun Terakhir'];
+    var head = ['No. Absen', 'Nama', 'Poin', 'Kelengkapan (%)', 'Hari Terisi', 'Streak', 'Jam Bangun Terakhir'];
     H.list.forEach(function (h) { head.push(h.no + '. ' + h.title); });
     var rows = [head];
     r.baris.forEach(function (b) {
@@ -337,7 +337,8 @@
       '<div class="siswa-detail-head">' +
       '<div class="av">' + J.esc(J.inisial(s.nama)) + '</div>' +
       '<div><h3>' + J.esc(s.nama) + '</h3>' +
-      '<p>' + J.esc(kelas ? kelas.nama : '-') + ' &middot; NIS ' + J.esc(s.nis) + '</p></div>' +
+      '<p>' + J.esc(kelas ? kelas.nama : '-') + ' &middot; No. absen ' + J.esc(s.nis) +
+      ' &middot; nama panggilan "' + J.esc(s.panggilan || '-') + '"</p></div>' +
       '<div class="mini-stats">' +
       '<div><strong>' + r.rataPoin + '</strong><span>Poin</span></div>' +
       '<div><strong>' + r.kelengkapan + '%</strong><span>Kelengkapan</span></div>' +
@@ -458,10 +459,10 @@
       var r = J.rekapSiswa(s.nis, 14);
       return '<tr>' +
         '<td><div class="siswa-cell"><div class="av">' + J.esc(J.inisial(s.nama)) + '</div>' +
-        '<div class="info"><strong>' + J.esc(s.nama) + '</strong><span>NIS ' + J.esc(s.nis) + '</span></div></div></td>' +
-        '<td class="num">' + J.esc(s.nis) + '</td>' +
-        '<td class="num">' + J.esc(s.pin ? '***' : '-') + '</td>' +
-        '<td class="num">' + J.esc(s.kodeOrtu || '-') + '</td>' +
+        '<div class="info"><strong>' + J.esc(s.nama) + '</strong><span>No. absen ' + J.esc(s.nis) + '</span></div></div></td>' +
+        '<td class="num mono">' + J.esc(s.nis) + '</td>' +
+        '<td class="num"><b class="mono pw-terlihat">' + J.esc(s.panggilan || '-') + '</b></td>' +
+        '<td class="num mono">' + J.esc(s.kodeOrtu || '-') + '</td>' +
         '<td><div class="progress-row"><div class="progress thin"><i style="width:' + r.kelengkapan + '%"></i></div>' +
         '<span class="pct">' + r.kelengkapan + '%</span></div></td>' +
         '<td class="text-right nowrap">' +
@@ -498,57 +499,99 @@
     for (var i = 0; i < 4; i++) s += huruf[Math.floor(Math.random() * huruf.length)];
     return KODE_AWAL + s;
   }
-  function acakPin() {
-    return String(Math.floor(1000 + Math.random() * 9000));
+  /* Nomor absen berikutnya: siswa01, siswa02, ... (lewati yang terpakai) */
+  function absenBerikutnya() {
+    var list = J.getSiswaKelas(kelasAktif);
+    var max = 0, dipakai = {};
+    list.forEach(function (s) {
+      var n = String(s.nis || '').trim();
+      dipakai[n.toLowerCase()] = true;
+      var m = n.toLowerCase().match(/^siswa\s*[-_]?\s*(\d+)$/);
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    });
+    var n = max + 1;
+    while (n < 1000 && dipakai['siswa' + ('0' + n).slice(-2)]) n++;
+    return 'siswa' + ('0' + n).slice(-2);
+  }
+
+  /* Nama panggilan dicadangkan dari kata pertama nama lengkap */
+  function panggilanDariNama(nama) {
+    var kata = String(nama || '').trim().split(/\s+/)[0] || '';
+    return kata.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
   }
 
   function formSiswa(nisLama) {
     var lama = nisLama ? J.getSiswa(nisLama) : null;
-    var pin = lama ? '' : acakPin();
     var kode = lama ? lama.kodeOrtu : kodeOtomatis();
 
     J.modal({
       judul: lama ? 'Edit Siswa' : 'Tambah Siswa',
       isi:
         '<div class="grid grid-2" style="gap:14px">' +
-        '<div class="field"><label>Nama <span class="req">*</span></label>' +
+        '<div class="field"><label>Nama Lengkap <span class="req">*</span></label>' +
         '<input class="input" id="fsNama" type="text" maxlength="40" value="' + J.esc(lama ? lama.nama : '') + '"></div>' +
-        '<div class="field"><label>NIS <span class="req">*</span></label>' +
-        '<input class="input mono" id="fsNis" type="text" maxlength="20" inputmode="numeric" value="' + J.esc(lama ? lama.nis : '') + '"' +
-        (lama ? ' disabled' : '') + '></div>' +
-        '<div class="field"><label>PIN (sandi murid)</label>' +
-        '<input class="input mono" id="fsPin" type="text" maxlength="6" inputmode="numeric" value="' + J.esc(pin) + '"' +
-        (lama ? ' placeholder="Kosongkan bila tidak diubah"' : '') + '></div>' +
+        '<div class="field"><label>No. Absen <span class="req">*</span></label>' +
+        '<input class="input mono" id="fsNis" type="text" maxlength="20" value="' +
+        J.esc(lama ? lama.nis : absenBerikutnya()) + '"' +
+        (lama ? ' disabled' : '') + '>' +
+        (lama ? '' : '<button type="button" class="btn btn-ghost btn-xs" id="fsAbsenBaru" style="margin-top:6px">' +
+          '<i class="fa-solid fa-rotate"></i> Nomor berikutnya</button>') + '</div>' +
+        '<div class="field"><label>Nama Panggilan (sandi login) <span class="req">*</span></label>' +
+        '<input class="input mono" id="fsPanggilan" type="text" maxlength="20" value="' +
+        J.esc(lama ? lama.panggilan || '' : '') + '" placeholder="contoh: Adi"' +
+        (lama ? ' autocomplete="off"' : ' autocomplete="off"') + '>' +
+        '<span class="field-hint">Murid masuk memakai <b>No. Absen</b> + <b>Nama Panggilan</b> ini.</span></div>' +
         '<div class="field"><label>Kode Akses Orang Tua</label>' +
         '<input class="input mono" id="fsKode" type="text" maxlength="20" value="' + J.esc(kode) + '"></div>' +
         '</div>' +
         '<div class="banner banner-maroon mt-3" style="font-size:12px"><i class="fa-solid fa-circle-info"></i>' +
-        '<span>Sampaikan PIN ke murid, dan <b>Kode Akses Orang Tua</b> ke wali murid. Satu kode = satu anak.</span></div>',
+        '<span>Sampaikan <b>No. Absen</b> dan <b>Nama Panggilan</b> ke murid. Bila murid lupa, ' +
+        'nama panggilan tetap terlihat di tabel ini &mdash; bisa dicetak lewat tombol ' +
+        '<b>Unduh Template CSV</b> atau disalin lewat <b>Salin Daftar Login</b>.</span></div>',
       footer: '<button class="btn btn-ghost" data-tutup>Batal</button>' +
         '<button class="btn btn-primary" id="fsSimpan"><i class="fa-solid fa-check"></i> Simpan</button>'
     });
 
     if (!lama) {
-      document.getElementById('fsPin').addEventListener('click', function () { this.value = acakPin(); });
       document.getElementById('fsKode').addEventListener('click', function () { this.value = kodeOtomatis(); });
+      document.getElementById('fsAbsenBaru').addEventListener('click', function () { this.value = absenBerikutnya(); });
+
+      /* Nama panggilan ikut terisi dari kata pertama nama, selama
+         guru belum mengetiknya sendiri. */
+      var isiPanggilan = document.getElementById('fsPanggilan');
+      var diisiManual = false;
+      isiPanggilan.addEventListener('input', function () { diisiManual = true; });
+      document.getElementById('fsNama').addEventListener('input', function () {
+        if (!diisiManual) isiPanggilan.value = panggilanDariNama(this.value);
+      });
     }
 
     document.getElementById('fsSimpan').addEventListener('click', function () {
       var nama = document.getElementById('fsNama').value.trim();
       var nis = (lama ? lama.nis : document.getElementById('fsNis').value.trim());
-      var p = document.getElementById('fsPin').value.trim();
+      var panggilan = document.getElementById('fsPanggilan').value.trim();
       var ko = document.getElementById('fsKode').value.trim().toUpperCase();
 
       if (!nama) { J.toast('Nama wajib diisi', '', 'warn'); return; }
-      if (!nis) { J.toast('NIS wajib diisi', '', 'warn'); return; }
-      /* Edit: PIN dikosongkan berarti tidak diubah */
-      var pinBaru = p;
-      if (lama && !p) pinBaru = null;
-      else if (!/^\d{4,6}$/.test(p)) { J.toast('PIN harus 4-6 angka', '', 'warn'); return; }
+      if (!nis) { J.toast('No. absen wajib diisi', '', 'warn'); return; }
+      if (!/^[a-zA-Z0-9._-]{1,20}$/.test(nis)) {
+        J.toast('No. absen tidak valid', 'Gunakan huruf/angka saja, contoh: siswa01', 'warn'); return;
+      }
+      /* Edit: nama panggilan dikosongkan berarti tidak diubah */
+      var panggilanFinal = panggilan;
+      if (lama) {
+        if (!panggilanFinal) panggilanFinal = lama.panggilan || '';
+      } else if (!panggilanFinal) {
+        panggilanFinal = panggilanDariNama(nama);
+      }
+      if (!panggilanFinal) {
+        J.toast('Nama panggilan wajib diisi', 'Murid butuh ini untuk bisa masuk.', 'warn'); return;
+      }
+      if (panggilanFinal.length > 20) { J.toast('Nama panggilan maksimal 20 huruf', '', 'warn'); return; }
 
       var sudahAda = J.getSiswa(nis);
       if (sudahAda && (!lama || sudahAda.nis !== lama.nis)) {
-        J.toast('NIS sudah dipakai', 'NIS ' + nis + ' dipakai ' + sudahAda.nama + '.', 'err');
+        J.toast('No. absen sudah dipakai', 'No. absen ' + nis + ' dipakai ' + sudahAda.nama + '.', 'err');
         return;
       }
       var bentrokKode = J.state.students.some(function (x) {
@@ -556,26 +599,36 @@
       });
       if (ko && bentrokKode) { J.toast('Kode sudah dipakai', 'Pilih kode lain untuk orang tua.', 'err'); return; }
 
-      /* PIN disimpan sebagai hash */
-      var tugas = pinBaru
-        ? J.sha256(pinBaru).then(function (hash) {
+      /* Nama panggilan disimpan polos (agar guru bisa membantu murid
+         yang lupa) sekaligus sebagai hash SHA-256 untuk login. */
+      var panggilanFinal = lama && !panggilan ? (lama.panggilan || '') : panggilan;
+      var hashFinal = lama && panggilanFinal === (lama.panggilan || '') ? lama.pin : '';
+
+      var tugas = hashFinal
+        ? Promise.resolve(hashFinal)
+        : J.sha256(panggilanFinal.toLowerCase()).then(function (hash) {
             if (!hash) throw new Error('Browser tidak mendukung SHA-256.');
             return hash;
-          })
-        : Promise.resolve(lama.pin);
+          });
 
       tugas.then(function (hash) {
         var daftar = J.getSiswaKelas(kelasAktif).filter(function (x) { return x.nis !== nis; });
         if (lama) daftar = daftar.concat([{
-          kelasId: lama.kelasId, nis: lama.nis, nama: nama, pin: hash, kodeOrtu: ko
+          kelasId: lama.kelasId, nis: lama.nis, nama: nama,
+          panggilan: panggilanFinal, pin: hash, kodeOrtu: ko
         }]);
-        else daftar.push({ kelasId: kelasAktif, nis: nis, nama: nama, pin: hash, kodeOrtu: ko });
+        else daftar.push({
+          kelasId: kelasAktif, nis: nis, nama: nama,
+          panggilan: panggilanFinal, pin: hash, kodeOrtu: ko
+        });
 
         J.simpanSiswa(kelasAktif, daftar, function (r) {
           if (r.ok) {
             J.tutupModal();
             muatTabelSiswa(); gambarKelas(); gambarDashboard();
-            J.toast('Siswa disimpan', nama + (pinBaru ? ' - PIN ' + pinBaru : '') + (ko ? ' - Kode ortu ' + ko : ''), 'ok');
+            J.toast('Siswa disimpan',
+              nama + ' - No. absen ' + nis + ', nama panggilan "' + panggilanFinal + '"' +
+              (ko ? ' - Kode ortu ' + ko : ''), 'ok');
           } else J.toast('Gagal menyimpan', r.msg, 'err');
         });
       }).catch(function (e) { J.toast('Gagal menyimpan', e.message, 'err'); });
@@ -595,11 +648,12 @@
       isi:
         '<div class="banner banner-info mb-3" style="font-size:12.5px"><i class="fa-solid fa-circle-info"></i>' +
         '<span>Tempel daftar dari Excel atau Google Sheets. Format per baris:<br>' +
-        '<b class="mono">NIS | Nama | PIN | KodeOrangTua</b><br>' +
-        'Kode orang tua boleh dikosongkan - nanti diisi guru.</span></div>' +
+        '<b class="mono">No. Absen | Nama | Nama Panggilan | KodeOrangTua</b><br>' +
+        'Nama panggilan boleh dikosongkan &mdash; nanti diambil dari kata pertama nama. ' +
+        'Kode orang tua juga boleh kosong, nanti diisi guru.</span></div>' +
         '<div class="field"><label for="tmTmpData">Data Siswa</label>' +
         '<textarea class="textarea mono" id="tmTmpData" rows="10" style="font-size:12.5px" ' +
-        'placeholder="24001 | Adi Pratama | 1234 | ORTU-A1B2&#10;24002 | Bela Sari | 1234 | "></textarea></div>',
+        'placeholder="siswa01 | Adi Pratama | adi | ORTU-A1B2&#10;siswa02 | Bela Sari | bela | "></textarea></div>',
       footer: '<button class="btn btn-ghost" data-tutup>Batal</button>' +
         '<button class="btn btn-primary" id="tmProses"><i class="fa-solid fa-check"></i> Tambahkan Semua</button>'
     });
@@ -614,22 +668,32 @@
       var baru = [], dupe = [], hashTugas = [];
       baris.forEach(function (b) {
         var p = b.split(/\s*[|;\t]\s*/).map(function (x) { return x.trim(); });
-        var nis = p[0], nama = p[1], pin = p[2] || acakPin(), ko = (p[3] || '').toUpperCase();
+        var nis = p[0], nama = p[1];
+        var panggilan = (p[2] || '').replace(/\s+/g, '');
+        var ko = (p[3] || '').toUpperCase();
         if (!nis || !nama) return;
+        if (!panggilan) panggilan = panggilanDariNama(nama);
+        if (!panggilan) return;
+        nis = nis.toLowerCase();
         if (nisAda[nis]) { dupe.push(nis + ' - ' + nama); return; }
-        if (!/^\d{4,6}$/.test(pin)) pin = acakPin();
         nisAda[nis] = true;
-        baru.push({ kelasId: kelasAktif, nis: nis, nama: nama, pin: pin, kodeOrtu: ko, _pin: pin });
-        hashTugas.push(J.sha256(pin).then(function (hash) {
+        baru.push({
+          kelasId: kelasAktif, nis: nis, nama: nama,
+          panggilan: panggilan, pin: '', kodeOrtu: ko
+        });
+        hashTugas.push(J.sha256(panggilan.toLowerCase()).then(function (hash) {
           baru.find(function (x) { return x.nis === nis; }).pin = hash;
         }));
       });
 
-      if (!baru.length) { J.toast('Tidak ada data valid', dupe.length ? 'Semua NIS sudah terdaftar.' : 'Cek format baris.', 'warn'); return; }
+      if (!baru.length) { J.toast('Tidak ada data valid', dupe.length ? 'Semua no. absen sudah terdaftar.' : 'Cek format baris.', 'warn'); return; }
 
       Promise.all(hashTugas).then(function () {
         var daftar = ada.concat(baru.map(function (x) {
-          return { kelasId: x.kelasId, nis: x.nis, nama: x.nama, pin: x.pin, kodeOrtu: x.kodeOrtu };
+          return {
+            kelasId: x.kelasId, nis: x.nis, nama: x.nama,
+            panggilan: x.panggilan, pin: x.pin, kodeOrtu: x.kodeOrtu
+          };
         }));
         J.simpanSiswa(kelasAktif, daftar, function (r) {
           if (r.ok) {
@@ -642,14 +706,54 @@
     });
   });
 
+  /* ---------- Daftar login (cadangan guru) ---------- */
+  function teksDaftarLogin() {
+    var k = J.getKelas(kelasAktif);
+    var siswa = J.getSiswaKelas(kelasAktif);
+    var lines = ['DAFTAR LOGIN MURID - ' + (k ? k.nama : '-')];
+    lines.push('No. Absen | Nama Lengkap | Nama Panggilan | Kode Orang Tua');
+    siswa.forEach(function (s) {
+      lines.push([s.nis, s.nama, s.panggilan || '-', s.kodeOrtu || '-'].join(' | '));
+    });
+    return lines.join('\n');
+  }
+
+  function salinTeks(teks, selesai) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(teks).then(selesai, function () { salinGanti(teks, selesai); });
+    } else salinGanti(teks, selesai);
+  }
+  function salinGanti(teks, selesai) {
+    var ta = document.createElement('textarea');
+    ta.value = teks;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    selesai();
+  }
+
+  document.getElementById('btnSalinSiswa').addEventListener('click', function () {
+    if (!kelasAktif) { J.toast('Pilih kelas dulu', '', 'warn'); return; }
+    if (!J.getSiswaKelas(kelasAktif).length) { J.toast('Belum ada siswa', '', 'warn'); return; }
+    var teks = teksDaftarLogin();
+    salinTeks(teks, function () {
+      J.toast('Daftar login disalin',
+        J.getSiswaKelas(kelasAktif).length + ' siswa - tempel di WhatsApp/Word sebagai cadangan.', 'ok');
+    });
+  });
+
   document.getElementById('btnUnduhSiswa').addEventListener('click', function () {
     var siswa = J.getSiswaKelas(kelasAktif);
-    var rows = [['NIS', 'Nama', 'PIN', 'KodeOrangTua', 'Jurnal Terisi (14h)']];
+    var rows = [['No. Absen', 'Nama', 'Nama Panggilan', 'KodeOrangTua', 'Jurnal Terisi (14h)']];
     siswa.forEach(function (s) {
-      rows.push([s.nis, s.nama, '', s.kodeOrtu || '', J.rekapSiswa(s.nis, 14).kelengkapan + '%']);
+      rows.push([s.nis, s.nama, s.panggilan || '', s.kodeOrtu || '', J.rekapSiswa(s.nis, 14).kelengkapan + '%']);
     });
     J.exportCSV(rows, 'template-siswa-' + (J.getKelas(kelasAktif) || {}).nama + '.csv');
-    J.toast('Template diunduh', 'Buka di Excel, isi kolom PIN & Kode Orang Tua, lalu tempel kembali.', 'ok');
+    J.toast('Template diunduh',
+      'Sudah terisi no. absen & nama panggilan - simpan sebagai cadangan, lalu tempel kembali bila perlu.', 'ok');
   });
 
   document.getElementById('btnKosongkan').addEventListener('click', function () {

@@ -37,6 +37,13 @@ var LOCK_TIMEOUT_MS = 15000;   /* berapa lama request menunggu giliran */
 var CACHE_DETIK     = 30;      /* masa cache data master              */
 var LOGS_CACHE_KEY  = 'j7_logs_v1';
 
+/* Kolom sheet SISWA. "Nama Panggilan" ada di paling kanan supaya
+   sheet lama (5 kolom) tetap kompatibel tanpa migrasi data. */
+var HEADER_SISWA = [
+  'Kelas ID', 'No. Absen', 'Nama Lengkap', 'Sandi (hash)',
+  'Kode Orang Tua', 'Nama Panggilan'
+];
+
 /* ============================================================
    ENTRY POINT
    ============================================================ */
@@ -292,8 +299,24 @@ function bersihkanKelasHilang_(kelasHidup) {
   }
 }
 
+/* Perbarui baris header sheet SISWA kalau kolomnya belum lengkap.
+   Data di bawahnya tidak disentuh sama sekali. */
+function rapikanHeaderSiswa_(sh) {
+  var sekarang = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var perlu = false;
+  for (var i = 0; i < HEADER_SISWA.length; i++) {
+    if (String(sekarang[i] || '').trim() !== HEADER_SISWA[i]) { perlu = true; break; }
+  }
+  if (!perlu) return;
+  sh.getRange(1, 1, 1, HEADER_SISWA.length).setValues([HEADER_SISWA]);
+  if (sh.getFrozenRows() < 1) sh.setFrozenRows(1);
+}
+
 /* ============================================================
-   SISWA  (sheet: SISWA | Kelas ID | NIS | Nama | PIN | Kode Ortu)
+   SISWA  (sheet: SISWA | Kelas ID | No. Absen | Nama | Sandi |
+           Kode Ortu | Nama Panggilan)
+   Catatan: kolom "Nama Panggilan" sengaja ditambahkan di paling
+   kanan agar data lama (5 kolom) tetap bisa dibaca apa adanya.
    ============================================================ */
 function getStudents_() {
   var cached = cacheGet_('siswa');
@@ -303,7 +326,7 @@ function getStudents_() {
   var sh = getSS().getSheetByName(SHEET_SISWA);
   var siswa = [];
   if (sh && sh.getLastRow() > 1) {
-    var data = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
+    var data = sh.getRange(2, 1, sh.getLastRow() - 1, 6).getValues();
     data.forEach(function (r) {
       var kelasId = String(r[0]).trim();
       var nis = String(r[1]).trim();
@@ -314,7 +337,8 @@ function getStudents_() {
         nis: nis,
         nama: nama,
         pin: String(r[3]).trim(),
-        kodeOrtu: String(r[4]).trim()
+        kodeOrtu: String(r[4]).trim(),
+        panggilan: String(r[5]).trim()
       });
     });
   }
@@ -328,7 +352,8 @@ function saveStudents_(body) {
   if (!kelasId) return { ok: false, msg: 'kelasId kosong' };
   var masuk = boolArray_(body.students);
 
-  var sh = pastikanSheet(SHEET_SISWA, ['Kelas ID', 'NIS', 'Nama', 'PIN', 'Kode Orang Tua']);
+  var sh = pastikanSheet(SHEET_SISWA, HEADER_SISWA);
+  rapikanHeaderSiswa_(sh);
 
   /* Hapus semua baris kelas ini dulu, dari bawah ke atas supaya
      tetap aman walaupun baris kelas lain tersebar di sheet. */
@@ -351,16 +376,23 @@ function saveStudents_(body) {
     if (!nis || !nama) return;
     if (sudah[nis]) return;
     sudah[nis] = true;
-    bersih.push([kelasId, nis, nama, String(s.pin || '').trim(), String(s.kodeOrtu || '').trim()]);
+    bersih.push([
+      kelasId, nis, nama,
+      String(s.pin || '').trim(),
+      String(s.kodeOrtu || '').trim(),
+      String(s.panggilan || '').trim()
+    ]);
   });
   if (bersih.length) {
     var mulai = sh.getLastRow() + 1;
-    sh.getRange(mulai, 1, bersih.length, 5).setValues(bersih);
+    sh.getRange(mulai, 1, bersih.length, 6).setValues(bersih);
   }
   sh.setColumnWidth(1, 110);
   sh.setColumnWidth(2, 100);
   sh.setColumnWidth(3, 230);
+  sh.setColumnWidth(4, 120);
   sh.setColumnWidth(5, 130);
+  sh.setColumnWidth(6, 140);
   sh.setTabColor('#C9A227');
 
   cacheBuang_('siswa');
@@ -369,9 +401,9 @@ function saveStudents_(body) {
 
 /* ============================================================
    JURNAL  (sheet: JURNAL)
-   Kelas ID | NIS | Nama | Tanggal | Kode | Nilai | Catatan | ISO | Tampil
+   Kelas ID | No. Absen | Nama | Tanggal | Kode | Nilai | Catatan | ISO | Tampil
    ============================================================ */
-var HEADER_JURNAL = ['Kelas ID', 'NIS', 'Nama', 'Tanggal', 'Kode Kebiasaan', 'Nilai', 'Catatan', 'Waktu ISO', 'Waktu Tampil'];
+var HEADER_JURNAL = ['Kelas ID', 'No. Absen', 'Nama', 'Tanggal', 'Kode Kebiasaan', 'Nilai', 'Catatan', 'Waktu ISO', 'Waktu Tampil'];
 
 function getEntries_() {
   /* Cache 3 detik: saat banyak perangkat sync bersamaan dalam

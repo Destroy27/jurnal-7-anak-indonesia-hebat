@@ -32,7 +32,7 @@ lalu turun 20 poin tiap 30 menit lebih lambat.
 
 | Peran | Halaman | Login | Hak akses |
 |---|---|---|---|
-| **Murid** | `murid.html` | **NIS** + **PIN** | Isi jurnal sendiri, lihat rekap pribadi |
+| **Murid** | `murid.html` | **No. Absen** + **Nama Panggilan** | Isi jurnal sendiri, lihat rekap pribadi |
 | **Guru** | `guru.html` | **username** + **password** | Rekap seluruh kelas, kelola siswa, beri catatan |
 | **Orang Tua** | `ortu.html` | **Kode Akses** | **Hanya melihat** rekap anaknya |
 
@@ -93,6 +93,11 @@ lalu turun 20 poin tiap 30 menit lebih lambat.
 
 > Sheet `CONFIG`, `SISWA`, dan `JURNAL` **dibuat otomatis** saat data pertama masuk —
 > tidak perlu dibuat manual.
+>
+> Struktur sheet `SISWA`:
+> `Kelas ID | No. Absen | Nama Lengkap | Sandi (hash) | Kode Orang Tua | Nama Panggilan`
+> Kolom terakhir sengaja ditambahkan paling kanan, jadi sheet versi lama (5 kolom)
+> tetap terbaca tanpa perlu migrasi.
 
 ### Langkah 2 — Tempel URL ke Website
 
@@ -126,12 +131,24 @@ di browser — seluruh fungsi tetap jalan (data lewat Apps Script).
    **username `guru`** · **password `guru123`**
    → **segera ganti password** di tab *Pengaturan → Akun Guru* (hapus akun default)
 2. Tab **Kelas & Siswa**: klik **Kelas Baru** di tab Dashboard dulu (misal `4A`)
-3. **Tambah Siswa** (satu-satu) atau **Tempel Massal** (dari Excel) — PIN & Kode Orang Tua
-   dibuat otomatis
-4. **Sampaikan ke wali murid**: tabel:
-   - ke **murid** → NIS + PIN
+3. **Tambah Siswa** (satu-satu) atau **Tempel Massal** (dari Excel)
+4. **Sampaikan ke wali murid**:
+   - ke **murid** → **No. Absen** (mis. `siswa01`) + **Nama Panggilan** (mis. `adi`)
    - ke **orang tua** → Kode Akses (satu kode = satu anak)
-5. Tab **Pengaturan** → atur **target jam bangun** sesuai kesepakatan sekolah
+5. Cadangan login: klik **Salin Daftar Login** (atau **Unduh Template CSV**) di tab
+   *Kelas & Siswa*. Nama panggilan tampil polos di tabel supaya guru bisa membantu
+   murid yang lupa — ini bukan rahasia, cuma alat bantu ingat-mengingat.
+6. Tab **Pengaturan** → atur **target jam bangun** sesuai kesepakatan sekolah
+
+### Cara Murid Masuk
+
+| Yang diisi | Contoh | Keterangan |
+|---|---|---|
+| No. Absen | `siswa01` | Bebas, huruf/angka. Dibuat berurutan otomatis oleh guru |
+| Nama Panggilan | `adi` | Sama dengan yang tercatat guru, tidak peka huruf besar/kecil |
+
+Kalau murid lupa nama panggilan: **tanya guru kelas**, guru bisa membacanya langsung
+dari tabel *Kelas & Siswa* (atau dari daftar login yang sudah dicadangkan guru).
 
 ### Langkah 5 — Hosting di GitHub Pages 🌐
 
@@ -205,8 +222,11 @@ jurnal-7-anak-indonesia-hebat/
 
 Sesuai arsitektur tanpa server, ada hal yang perlu diketahui:
 
-- Password guru, PIN murid, dan kode orang tua disimpan sebagai **hash SHA-256**
-  (bukan teks biasa)
+- Password guru dan nama panggilan murid disimpan sebagai **hash SHA-256** untuk login
+- **Nama panggilan disimpan juga dalam bentuk polos** di sheet `SISWA` (kolom
+  `Nama Panggilan`) supaya guru bisa membantu murid yang lupa — ini disengaja, karena
+  untuk anak SD jauh lebih penting guru bisa membacanya daripada sandi yang
+  benar-benar rahasia
 - Login pada dasarnya adalah **pintu antarmuka**: data tersinkron ke perangkat, sehingga secara
   teknis siapa pun yang bisa membuka aplikasi bisa melihat data yang tersinkron
 - **Jangan bagikan URL spreadsheet** ke siapa pun. Yang dibagikan hanya URL website
@@ -223,7 +243,7 @@ Sesuai arsitektur tanpa server, ada hal yang perlu diketahui:
 |---|---|
 | Muncul kartu "Hubungkan Database dulu" | `scriptUrl` di `assets/js/site-config.js` masih kosong |
 | "Database belum terbaca" | Klik **Pengaturan → Tes Koneksi**. Pastikan deployment Apps Script versi terbaru (**Deploy → Manage deployments → ✏️ → Version: New**) |
-| Murid tidak bisa login | Cek NIS & PIN di **Kelas & Siswa**. PIN tampil tersamar (`***`), klik ikon pensil untuk melihat/mengganti |
+| Murid tidak bisa login | Cek **No. Absen** & **Nama Panggilan** di tab **Kelas & Siswa**. Nama panggilan tampil polos — tinggal dibacakan ke murid, lalu klik ikon pensil untuk menggantinya |
 | Orang tua tidak bisa masuk | Pastikan **Kode Akses** siswa sudah diisi (kolomnya boleh kosong saat tambah, bisa diisi ulang lewat Edit) |
 | Data tidak muncul di rekap guru | Klik tombol **⟳ Sinkron** di kanan atas |
 | Isian tersimpan tapi belum masuk database | Banner kuning "menunggu dikirim ulang" akan hilang sendiri setelah terkonfirmasi. Jangan tutup aplikasi buru-buru |
@@ -248,4 +268,4 @@ Maroon muda    #A82249   Latar        #F7F2F4
 
 ## 📄 Lisensi
 
-Bebas dipakai dan dimodifikasi untuk kebutuhan pendidikan masing-masing sekolah.
+Bebas dipakai dan dimodifikasi untuk kebutuhan pendidikan masing-masing sekolah.g-masing sekolah.
