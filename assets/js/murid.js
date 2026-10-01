@@ -1,7 +1,8 @@
 /* ============================================================
    Jurnal 7 Anak Indonesia Hebat — murid.js
    ------------------------------------------------------------
-   Halaman murid: mengisi jurnal harian + melihat rekap pribadi.
+   Halaman murid: mengisi jurnal harian + melihat rekap pribadi
+   + Upload Foto Dokumentasi (Kecuali Bangun Pagi & Tidur Cepat).
    ============================================================ */
 (function () {
   'use strict';
@@ -12,7 +13,7 @@
   var sesi = J.ambilSesi();
   var siswa = null;
   var rentangHari = 7;
-  var isian = {};        /* { habitKey: { nilai, catatan } } — isian hari ini */
+  var isian = {};        /* { habitKey: { nilai, catatan, foto } } — isian hari ini */
   var formTerbuka = true;
 
   /* ============================================================
@@ -41,9 +42,6 @@
   /* ============================================================
      2. IDENTITAS & SESSION
      ============================================================ */
-  /* true setelah sinkron pertama selesai. Sebelum itu, "siswa belum
-     ketemu" hanya berarti belum ada di cache perangkat - bukan berarti
-     murid tidak terdaftar, jadi tidak boleh ditampilkan sebagai error. */
   var sinkronSelesai = false;
 
   function pasangIdentitas() {
@@ -103,15 +101,13 @@
       var e = J.entryOf(siswa.nis, t, h.key);
       isian[h.key] = {
         nilai: e ? e.nilai : '',
-        catatan: e ? e.catatan : ''
+        catatan: e ? e.catatan : '',
+        foto: e ? (e.foto || '') : ''
       };
     });
   }
 
   /* ---------- Badge status ---------- */
-  /* Centang tampil "Sudah", jam tampil "Terisi", kosong "Kosong".
-     Dipakai saat form pertama kali digambar DAN setiap kali isian
-     berubah, supaya tidak ada dua versi teks yang berbeda. */
   function badgeStatus(h, terisi) {
     if (!terisi) return '<span class="badge badge-soft"><i class="fa-solid fa-pen"></i> Kosong</span>';
     if (h && h.type === 'check') return '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Sudah</span>';
@@ -119,10 +115,6 @@
   }
 
   /* ---------- Kolom catatan ---------- */
-  /* Aturan "wajib" berasal dari habits.js (wajibCatatan: true).
-     begitu kebiasaan centang aktif, kolomnya ditandai wajib:
-     bintang merah + petunjuk. Pesan error baru muncul kalau
-     sekali simpan ditolak (lihat validasiCatatan). */
   function kolomCatatan(h, v) {
     if (h.type === 'text') return '';
 
@@ -130,9 +122,6 @@
     var terisi = String(v.nilai || '').trim() !== '';
     var aktif = wajib && terisi;
 
-    /* Placeholder menyesuaikan keadaan: sebelum dicentang anak
-       diberi tahu bahwa catatan akan jadi wajib, sesudahnya
-       diminta langsung menulis. */
     var placeholder = aktif ? 'Tulis catatan singkat...'
       : (wajib ? 'Catatan (wajib setelah dicentang)' : 'Catatan (opsional)');
 
@@ -151,8 +140,48 @@
     '</div>';
   }
 
-  /* Pasang / lepas tanda wajib tanpa menggambar ulang seluruh
-     form (dipanggil setiap kali nilai kebiasaan berubah). */
+  /* ---------- Kolom Foto Dokumentasi (Kecuali Bangun Pagi & Tidur Cepat) ---------- */
+  function kolomFoto(h, v) {
+    if (h.key === 'bangun' || h.key === 'tidur') return '';
+    var adaFoto = !!(v && v.foto);
+
+    return '<div class="habit-photo-wrap" data-photo="' + h.key + '" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border,#e2e8f0);">' +
+      '<label for="input-foto-' + h.key + '" class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;background:rgba(19,74,59,0.06);color:var(--primary,#134A3B);border:1px dashed var(--primary,#134A3B);border-radius:8px;padding:6px 12px;">' +
+        '<i class="fa-solid fa-camera"></i> <span class="lbl-foto-' + h.key + '">' + (adaFoto ? 'Ganti Foto Dokumentasi' : 'Unggah Foto Dokumentasi') + '</span>' +
+      '</label>' +
+      '<input type="file" id="input-foto-' + h.key + '" data-habit="' + h.key + '" data-jenis="foto" accept="image/*" capture="environment" style="display:none">' +
+      '<div class="foto-preview-container" id="box-prev-' + h.key + '" style="margin-top:8px;position:relative;display:' + (adaFoto ? 'inline-block' : 'none') + ';">' +
+        '<img id="img-prev-' + h.key + '" src="' + J.esc(v.foto || '') + '" alt="Dokumentasi" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #ddd;object-fit:cover;">' +
+        '<button type="button" class="btn-hapus-foto" data-hapus-foto="' + h.key + '" style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,0.85);color:#fff;border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;" title="Hapus Foto">' +
+          '<i class="fa-solid fa-xmark"></i>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* Fungsi penolong untuk kompresi foto ke Base64 */
+  function bacaDanKompresFoto(file, callback) {
+    if (!file) return callback('');
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        var canvas = document.createElement('canvas');
+        var maxW = 600;
+        var scale = Math.min(1, maxW / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        callback(dataUrl);
+      };
+      img.onerror = function () { callback(e.target.result); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   function bungkusCatatan(key) {
     return document.querySelector('[data-note="' + key + '"]');
   }
@@ -178,20 +207,16 @@
         input.removeAttribute('aria-required');
       }
     }
-    /* Tanda galat hilang begitu catatan terisi atau centang dilepas. */
     if (!wajib || String(v.catatan || '').trim() !== '') bungkus.classList.remove('galat');
   }
 
-  /* ---------- Validasi catatan wajib ---------- */
-  /* Mengembalikan daftar kebiasaan yang sudah dicentang tapi
-     catatannya masih kosong. */
   function validasiCatatan() {
     var salah = [];
     H.list.forEach(function (h) {
       if (!h.wajibCatatan) return;
       var v = isian[h.key] || {};
-      if (String(v.nilai || '').trim() === '') return;      /* belum dicentang */
-      if (String(v.catatan || '').trim() !== '') return;     /* sudah diisi */
+      if (String(v.nilai || '').trim() === '') return;
+      if (String(v.catatan || '').trim() !== '') return;
       salah.push(h);
     });
     return salah;
@@ -203,8 +228,6 @@
       bungkus.classList.toggle('galat', kunci.indexOf(h.key) > -1);
     });
   }
-  /* Tolak simpan + jelaskan ke anak kebiasaan mana yang catatan
-     '-nya belum ada. Return true kalau simpan dibatalkan. */
   function tolakCatatanKosong(salah) {
     tandaiGalat(salah.map(function (h) { return h.key; }));
     if (!salah.length) return false;
@@ -218,8 +241,6 @@
     var fokus = document.querySelector('[data-note="' + salah[0].key + '"] input');
     if (fokus) {
       fokus.focus();
-      /* Dinaikkan sedikit supaya tidak tertutup bar simpan
-         yang menempel di atas. */
       var atas = fokus.getBoundingClientRect().top + window.pageYOffset - 150;
       if (atas > 0) window.scrollTo({ top: atas, behavior: 'smooth' });
     }
@@ -230,7 +251,7 @@
     var t = J.todayISO();
 
     document.getElementById('habitGrid').innerHTML = H.list.map(function (h) {
-      var v = isian[h.key] || { nilai: '', catatan: '' };
+      var v = isian[h.key] || { nilai: '', catatan: '', foto: '' };
       var terisi = String(v.nilai).trim() !== '';
       var kontrol = '';
 
@@ -257,9 +278,6 @@
           '" placeholder="' + J.esc(h.placeholder || 'Tulis di sini...') + '">' + J.esc(v.nilai) + '</textarea>';
       }
 
-      /* Gambar kebiasaan (lingkaran) dipakai juga di halaman ini,
-         dibaca dari SITECONFIG.gambarKebiasaan. Kalau file-nya
-         belum ada, otomatis turun ke ikon + warna kebiasaan. */
       var gambar = J.gambarHabit(h.key);
       var foto = gambar
         ? '<img src="' + J.esc(gambar) + '" alt="" loading="lazy" onerror="this.remove()">'
@@ -277,6 +295,7 @@
         '</div>' +
         kontrol +
         kolomCatatan(h, v) +
+        kolomFoto(h, v) +
         (h.tip ? '<div class="habit-tip"><i class="fa-solid fa-lightbulb"></i><span>' + J.esc(h.tip) + '</span></div>' : '') +
         '</article>';
     }).join('');
@@ -324,19 +343,64 @@
     document.querySelectorAll('[data-jenis="catatan"]').forEach(function (el) {
       el.addEventListener('input', function () {
         var k = el.dataset.habit;
-        isian[k] = isian[k] || { nilai: '', catatan: '' };
+        isian[k] = isian[k] || { nilai: '', catatan: '', foto: '' };
         isian[k].catatan = el.value;
         var kartu = document.querySelector('[data-kartu="' + k + '"]');
         var terisi = (isian[k].nilai !== '' && isian[k].nilai != null) || el.value.trim() !== '';
         if (kartu) kartu.classList.toggle('filled', terisi);
-        /* Menghapus pesan "wajib diisi" begitu anak mulai mengetik. */
         tandaiCatatanWajib(k);
+      });
+    });
+
+    /* Foto Dokumentasi */
+    document.querySelectorAll('input[type="file"][data-jenis="foto"]').forEach(function (inp) {
+      inp.addEventListener('change', function () {
+        var k = inp.dataset.habit;
+        var file = inp.files && inp.files[0];
+        if (!file) return;
+
+        bacaDanKompresFoto(file, function (dataUrl) {
+          isian[k] = isian[k] || { nilai: '', catatan: '', foto: '' };
+          isian[k].foto = dataUrl;
+
+          var boxPrev = document.getElementById('box-prev-' + k);
+          var imgPrev = document.getElementById('img-prev-' + k);
+          var lbl = document.querySelector('.lbl-foto-' + k);
+
+          if (imgPrev) imgPrev.src = dataUrl;
+          if (boxPrev) boxPrev.style.display = 'inline-block';
+          if (lbl) lbl.textContent = 'Ganti Foto Dokumentasi';
+
+          var kartu = document.querySelector('[data-kartu="' + k + '"]');
+          if (kartu) kartu.classList.add('filled');
+          perbaruiRingkasanHari();
+        });
+      });
+    });
+
+    /* Hapus foto */
+    document.querySelectorAll('[data-hapus-foto]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var k = btn.dataset.hapusFoto;
+        if (isian[k]) isian[k].foto = '';
+
+        var boxPrev = document.getElementById('box-prev-' + k);
+        var imgPrev = document.getElementById('img-prev-' + k);
+        var lbl = document.querySelector('.lbl-foto-' + k);
+        var inpFile = document.getElementById('input-foto-' + k);
+
+        if (imgPrev) imgPrev.src = '';
+        if (boxPrev) boxPrev.style.display = 'none';
+        if (lbl) lbl.textContent = 'Unggah Foto Dokumentasi';
+        if (inpFile) inpFile.value = '';
+
+        perbaruiRingkasanHari();
       });
     });
   }
 
   function setIsian(k, nilai) {
-    if (!isian[k]) isian[k] = { nilai: '', catatan: '' };
+    if (!isian[k]) isian[k] = { nilai: '', catatan: '', foto: '' };
     isian[k].nilai = nilai == null ? '' : String(nilai);
 
     var h = H.byKey(k) || H.safe(k);
@@ -345,7 +409,7 @@
     var terisi = isian[k].nilai !== '';
     var centang = !!(h && h.type === 'check' && isian[k].nilai === '1');
     if (kartu) {
-      kartu.classList.toggle('filled', terisi || isian[k].catatan !== '');
+      kartu.classList.toggle('filled', terisi || isian[k].catatan !== '' || isian[k].foto !== '');
       kartu.classList.toggle('centang', centang);
       if (terisi && !kartu.classList.contains('just-filled')) {
         kartu.classList.add('just-filled');
@@ -356,19 +420,14 @@
       badge.innerHTML = badgeStatus(h, terisi);
     }
 
-    /* Tombol centang harus ikut berubah display saat diklik.
-       Dulu hanya badge status yang berubah, jadi kotak centangnya
-       tetap terlihat kosong sampai form digambar ulang. */
     var barisCentang = kartu ? kartu.querySelector('.check-row') : null;
     if (barisCentang) {
       barisCentang.classList.toggle('on', centang);
       barisCentang.setAttribute('aria-pressed', centang ? 'true' : 'false');
     }
 
-    /* Tanda "catatan wajib" ikut muncul / hilang. */
     tandaiCatatanWajib(k);
 
-    /* Skor jam langsung diperbarui saat angka jam berubah */
     if (H.byKey(k) && H.byKey(k).type === 'time') {
       var kotak = document.querySelector('[data-kartu="' + k + '"] .time-target');
       if (kotak) {
@@ -406,10 +465,6 @@
   function simpanSemua(pakaiTombol) {
     if (sedangSimpan) return;
 
-    /* Validasi DULUAN, sebelum tombol dinonaktifkan: kebiasaan yang
-       sudah dicentang wajib punya catatan (aturan wajibCatatan di
-       habits.js). Kalau belum, simpan dibatalkan dan kursor
-       langsung diarahkan ke kolom catatan pertama. */
     var salah = validasiCatatan();
     if (tolakCatatanKosong(salah)) return;
 
@@ -423,12 +478,16 @@
     var t = J.todayISO();
     var items = [];
     H.list.forEach(function (h) {
-      var v = isian[h.key] || { nilai: '', catatan: '' };
+      var v = isian[h.key] || { nilai: '', catatan: '', foto: '' };
       var adaNilai = String(v.nilai || '').trim() !== '';
       var adaCatatan = String(v.catatan || '').trim() !== '';
-      if (!adaNilai && !adaCatatan) return;
-      if (adaCatatan && !adaNilai) return; /* catatan tanpa isian utama: abaikan */
-      items.push(J.buildEntry(siswa, t, h.key, v.nilai, v.catatan));
+      var adaFoto = String(v.foto || '').trim() !== '';
+      if (!adaNilai && !adaCatatan && !adaFoto) return;
+      if (adaCatatan && !adaNilai) return;
+
+      var entry = J.buildEntry(siswa, t, h.key, v.nilai, v.catatan);
+      if (v.foto) entry.foto = v.foto;
+      items.push(entry);
     });
 
     if (!items.length) {
@@ -547,7 +606,7 @@
       var menit = e ? H.parseHM(e.nilai) : null;
       return {
         label: J.fmtTanggalPendek(d).slice(0, 5),
-        value: menit === null ? 0 : Math.max(0, 12 - menit / 60),  /* makin pagi = makin tinggi */
+        value: menit === null ? 0 : Math.max(0, 12 - menit / 60),
         menit: menit,
         warna: e ? 'gold' : ''
       };
@@ -619,7 +678,7 @@
   function perbaruiAntrean() {
     var n = J.pendingCount;
     if (n > 0) {
-      tampilkanStatus(n + ' isian menunggu dikirim ulang ke database. App akan mengirimkannya otomatis saat koneksi tersedia.', 'warn');
+      tampilkanStatus(n + ' isian menunggu dikirim ulang ke database. App akan mengirimikannya otomatis saat koneksi tersedia.', 'warn');
     } else {
       sembunyikanStatus();
     }
@@ -646,8 +705,6 @@
     muatRekap();
   }
 
- /* Belum sinkron: jangan buru-buru mencari siswa. Cache di perangkat
-     masih kosong, jadi results barulah nanti yang benar. */
   if (J.state.students.length) pasangIdentitas();
 
   if (!J.isConfigured()) {
@@ -657,7 +714,6 @@
     return;
   }
 
-  /* Tunggu sinkron pertama agar data siswa & jurnal benar */
   J.syncAll(function (r) {
     sinkronSelesai = true;
     if (!r.ok) {
@@ -666,14 +722,6 @@
     }
     pasangIdentitas();
     muatSemua();
-    /* Sambol status harus ikut dibersihkan begitu sinkron
-       pertama BERHASIL. Dulu bar merah "belum terhubung" /
-       "belum terbaca" tetap nempel di layar walaupun database
-       sudah nyambung, dan baru hilang saat sinkron otomatis
-       90 detik kemudian. perbaruiAntrean() menyembunyikan
-       bar kalau antrean kosong, atau menggantinya jadi bar
-       kuning "menunggu dikirim" kalau masih ada isian
-       yang belum masuk database. */
     perbaruiAntrean();
     J.mulaiAutoSync(function () {
       var lama = document.getElementById('sapaan').textContent;
@@ -686,10 +734,8 @@
     }, 90000);
   });
 
-  /* Perbarui jam pada sapaan */
   setInterval(muatSapaan, 30000);
 
-  /* Shortcut: Ctrl/Cmd + S untuk menyimpan */
   document.addEventListener('keydown', function (e) {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
       e.preventDefault();
