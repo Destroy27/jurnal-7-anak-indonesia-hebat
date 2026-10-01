@@ -6,22 +6,37 @@
 <meta name="theme-color" content="#134A3B">
 <title>Jurnal Saya - 7 Anak Indonesia Hebat</title>
 
-<!-- FONT BAWAAN APLIKASI (Ini yang bikin teksnya rapi) -->
+<!-- FONT BAWAAN -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-<!-- CSS BAWAAN APLIKASI (Ini yang bikin styling kembali normal) -->
+<!-- CSS BAWAAN -->
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="assets/css/pages.css">
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23134A3B'/><text y='69' x='50' text-anchor='middle' font-size='54' fill='%23F0EAD8' font-family='serif' font-weight='bold'>7</text></svg>">
+
+<!-- CSS TAMBAHAN KHUSUS MOBILE HEATMAP AGAR TIDAK SEGEDE GABAN -->
+<style>
+  #heatmap {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
+  #heatmap svg, #heatmap .heatmap-container, #heatmap table {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
 </head>
 <body>
 
-  <!-- STATUS BAR (Offline/Error) -->
+  <!-- STATUS BAR -->
   <div id="statusBar" class="banner hidden">
     <span id="statusTeks"></span>
     <button id="btnPerbaiki" class="btn btn-sm btn-ghost" style="margin-left:10px; border: 1px solid currentColor;">Perbaiki</button>
@@ -66,7 +81,7 @@
       </div>
     </section>
 
-    <!-- FORMULIR JURNAL (Tersembunyi secara default) -->
+    <!-- FORMULIR JURNAL -->
     <div id="bukaForm" style="display:none; margin-bottom: 24px;">
       <div class="card-head mb-2">
         <h2>Jurnal Hari Ini</h2>
@@ -92,29 +107,29 @@
         </div>
       </div>
 
-      <!-- KALENDER / HEATMAP YANG SUDAH DIPERJELAS -->
+      <!-- KALENDER / HEATMAP YANG RAPI DI MOBILE -->
       <section class="card mb-3">
-        <div class="card-head" style="margin-bottom: 16px;">
+        <div class="card-head" style="margin-bottom: 12px;">
           <div>
-            <h2 style="color: var(--primary);"><i class="fa-regular fa-calendar-check"></i> Kalender Kebiasaanku</h2>
-            <p style="font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.5;">
-              Pantau terus kemajuanmu! Semakin hijau kotak kalendernya, semakin banyak kebiasaan hebat yang kamu lakukan hari itu. <strong>Jangan biarkan ada hari yang kosong!</strong>
+            <h2 style="color: var(--primary); font-size: 18px;"><i class="fa-regular fa-calendar-check"></i> Kalender Kebiasaanku</h2>
+            <p style="font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.4;">
+              Pantau kemajuanmu! Semakin hijau kotaknya, semakin hebat kebiasaanmu hari itu. <strong>Jangan biarkan kosong!</strong>
             </p>
           </div>
         </div>
 
-        <!-- Tempat Kalender Heatmap Dirender -->
+        <!-- Tempat Kalender Heatmap Dirender (Dibungkus pengaman lebar layar) -->
         <div id="heatmap"></div>
 
         <!-- Legenda Warna -->
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; font-size: 12px; color: var(--muted);">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 12px; font-size: 11.5px; color: var(--muted);">
           <span>Kosong</span>
-          <div style="display: flex; gap: 4px;">
-            <span style="width: 12px; height: 12px; border-radius: 3px; background: #ebedf0;"></span>
-            <span style="width: 12px; height: 12px; border-radius: 3px; background: #9be9a8;"></span>
-            <span style="width: 12px; height: 12px; border-radius: 3px; background: #40c463;"></span>
-            <span style="width: 12px; height: 12px; border-radius: 3px; background: #30a14e;"></span>
-            <span style="width: 12px; height: 12px; border-radius: 3px; background: #216e39;"></span>
+          <div style="display: flex; gap: 3px;">
+            <span style="width: 10px; height: 10px; border-radius: 2px; background: #ebedf0;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 2px; background: #9be9a8;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 2px; background: #40c463;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 2px; background: #30a14e;"></span>
+            <span style="width: 10px; height: 10px; border-radius: 2px; background: #216e39;"></span>
           </div>
           <span>Lengkap!</span>
         </div>
@@ -122,25 +137,25 @@
 
       <!-- STATISTIK KOTAK (Grid 2 Kolom) -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-        <div class="card text-center" style="padding: 16px 12px;">
-          <div id="statHariAktif" style="font-size: 24px; font-weight: 800; color: var(--primary);">0</div>
-          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Hari Aktif</div>
-          <div id="statHariAktifHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 14px 10px;">
+          <div id="statHariAktif" style="font-size: 22px; font-weight: 800; color: var(--primary);">0</div>
+          <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Hari Aktif</div>
+          <div id="statHariAktifHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
-        <div class="card text-center" style="padding: 16px 12px;">
-          <div id="statPoin" style="font-size: 24px; font-weight: 800; color: var(--primary);">0</div>
-          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Rata-rata Poin</div>
-          <div id="statPoinHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 14px 10px;">
+          <div id="statPoin" style="font-size: 22px; font-weight: 800; color: var(--primary);">0</div>
+          <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Rata-rata Poin</div>
+          <div id="statPoinHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
-        <div class="card text-center" style="padding: 16px 12px;">
-          <div id="statStreak" style="font-size: 24px; font-weight: 800; color: var(--gold-600);">0</div>
-          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Streak Terjaga</div>
-          <div id="strekTeks" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 14px 10px;">
+          <div id="statStreak" style="font-size: 22px; font-weight: 800; color: var(--gold-600);">0</div>
+          <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Streak Terjaga</div>
+          <div id="strekTeks" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
-        <div class="card text-center" style="padding: 16px 12px;">
-          <div id="statBangun" style="font-size: 24px; font-weight: 800; color: #2563eb;">-</div>
-          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Rata-rata Bangun</div>
-          <div id="statBangunHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 14px 10px;">
+          <div id="statBangun" style="font-size: 22px; font-weight: 800; color: #2563eb;">-</div>
+          <div style="font-size: 12.5px; font-weight: 600; margin-top: 4px;">Rata-rata Bangun</div>
+          <div id="statBangunHint" style="font-size: 10.5px; color: var(--muted); margin-top: 2px;"></div>
         </div>
       </div>
 
@@ -149,7 +164,7 @@
         <div class="card-head mb-2">
           <h2><i class="fa-solid fa-medal" style="color: var(--gold-500);"></i> Lencana Penghargaan</h2>
         </div>
-        <div id="lencanaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px;"></div>
+        <div id="lencanaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px;"></div>
       </section>
 
       <!-- GRAFIK JAM BANGUN -->
@@ -157,7 +172,7 @@
         <div class="card-head mb-2">
           <h2><i class="fa-solid fa-chart-line" style="color: #2563eb;"></i> Grafik Jam Bangun Pagi</h2>
         </div>
-        <div id="grafikBangun" style="height: 140px; margin-top: 16px;"></div>
+        <div id="grafikBangun" style="height: 130px; margin-top: 12px;"></div>
       </section>
 
       <!-- PROGRES PER KEBIASAAN -->
@@ -165,7 +180,7 @@
         <div class="card-head mb-2">
           <h2><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Progres per Kebiasaan</h2>
         </div>
-        <div id="rekapList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        <div id="rekapList" style="display: flex; flex-direction: column; gap: 10px;"></div>
       </section>
 
       <!-- CATATAN DARI GURU -->
@@ -182,7 +197,7 @@
           <h2><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Terakhir</h2>
           <button id="btnRiwayat" class="btn btn-sm btn-ghost"><i class="fa-solid fa-rotate"></i> Perbarui</button>
         </div>
-        <div id="riwayatList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+        <div id="riwayatList" style="display: flex; flex-direction: column; gap: 10px;"></div>
       </section>
 
     </div>
