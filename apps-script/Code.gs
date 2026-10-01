@@ -44,6 +44,17 @@ var HEADER_SISWA = [
   'Kode Orang Tua', 'Nama Panggilan'
 ];
 
+/* Akun guru bawaan, dibuat OTOMATIS pada run pertama saja sehingga
+   guru tidak terkunci dari websitenya sendiri. Password masih
+   SHA-256 dari teks aslinya ("guru123").
+   PENTING: setelah masuk, segera ganti password ini di
+   Panel Guru > Pengaturan > Akun Guru. */
+var GURU_AWAL = {
+  user: 'guru',
+  nama: 'Guru',
+  pass: 'ae81343369944399b70de862dbe75536faa8e44c50ad0a312e380303173f4756'
+};
+
 /* ============================================================
    ENTRY POINT
    ============================================================ */
@@ -198,17 +209,36 @@ function getAll_() {
 function bacaConfig_() {
   var bawaan = {
     appName: 'Jurnal 7 Anak Indonesia Hebat',
-    teachers: [],
+    teachers: [GURU_AWAL],
     classes: [],
     habitOverrides: { bangun: { targetTime: '05:30' } },
     notes: []
   };
-  var sh = getSS().getSheetByName(SHEET_CONFIG);
+  var sh;
+  try { sh = pastikanSheet(SHEET_CONFIG, ['Key', 'Value']); } catch (e) { sh = null; }
   if (!sh || sh.getLastRow() < 1) return bawaan;
 
   var data = sh.getRange(1, 1, sh.getLastRow(), 2).getValues();
   var peta = {};
   data.forEach(function (r) { peta[String(r[0]).trim()] = r[1]; });
+
+  /* Run pertama: sheet CONFIG belum punya key 'teachers', jadi dibuatkan
+     satu akun guru bawaan supaya guru bisa langsung masuk.
+     Begitu key ini tersimpan - walau nilainya array kosong karena semua
+     akun memang sengaja dihapus - akun bawaan tidak akan muncul lagi. */
+  if (!Object.prototype.hasOwnProperty.call(peta, 'teachers')) {
+    var akun = [GURU_AWAL];
+    try {
+      sh.getRange(sh.getLastRow() + 1, 1, 1, 2).setValues([['teachers', JSON.stringify(akun)]]);
+    } catch (e) { return bawaan; }
+    return {
+      appName: String(peta.app_name || bawaan.appName),
+      teachers: akun,
+      classes: boolArray_(parseJSON_(peta.classes, [])),
+      habitOverrides: objArray_(parseJSON_(peta.habit_overrides, bawaan.habitOverrides)),
+      notes: boolArray_(parseJSON_(peta.notes, []))
+    };
+  }
 
   return {
     appName: String(peta.app_name || bawaan.appName),

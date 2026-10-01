@@ -936,6 +936,15 @@
   /* ============================================================
      9. INIT
      ============================================================ */
+  /* SHA-256 dari "guru123". Cukup untuk mendeteksi apakah password
+     bawaan masih terpasang - tidak perlu membandingkan teks biasa. */
+  var SANDI_GURU_AWAL = 'ae81343369944399b70de862dbe75536faa8e44c50ad0a312e380303173f4756';
+
+  function cekGuruAwal() {
+    var masihBawaan = J.teachers.some(function (t) { return t.pass === SANDI_GURU_AWAL; });
+    document.getElementById('peringatanGuruAwal').classList.toggle('hidden', !masihBawaan);
+  }
+
   function gambarSemua() {
     document.getElementById('appName').textContent = (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
     document.title = 'Panel Guru - ' + (J.sekolah || (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat'));
@@ -943,6 +952,7 @@
     gambarDashboard();
     muatTabelSiswa();
     muatDaftarCatatan();
+    cekGuruAwal();
   }
 
   if (!J.isConfigured()) {
