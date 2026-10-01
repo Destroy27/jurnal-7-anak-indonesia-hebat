@@ -67,9 +67,18 @@
   /* ============================================================
      2. TAMPILKAN
      ============================================================ */
+  /* true setelah sinkron pertama selesai. Sebelum itu, "anak belum
+     ketemu" hanya berarti belum ada di cache perangkat, bukan berarti
+     kode aksesnya salah - jadi banner merah harus ditahan. */
+  var sinkronSelesai = false;
+
   function muatSemua() {
     anak = J.getSiswa(sesi.siswa.nis);
     if (!anak) {
+      if (!sinkronSelesai) {
+        document.getElementById('sapaan').textContent = 'Memuat data...';
+        return;
+      }
       document.getElementById('sapaan').textContent = 'Data anak tidak ditemukan';
       document.getElementById('subJudul').textContent = 'Minta guru kelas untuk memeriksa Kode Akses Anda.';
       tampilkanStatus('Data anak tidak ada di database. Hubungi guru.', 'danger');
@@ -193,6 +202,7 @@
   else document.getElementById('sapaan').textContent = 'Memuat data...';
 
   J.syncAll(function (r) {
+    sinkronSelesai = true;
     if (!r.ok) {
       if (!J.state.students.length) {
         document.getElementById('sapaan').textContent = 'Gagal memuat data';

@@ -41,11 +41,19 @@
   /* ============================================================
      2. IDENTITAS & SESSION
      ============================================================ */
+  /* true setelah sinkron pertama selesai. Sebelum itu, "siswa belum
+     ketemu" hanya berarti belum ada di cache perangkat - bukan berarti
+     murid tidak terdaftar, jadi tidak boleh ditampilkan sebagai error. */
+  var sinkronSelesai = false;
+
   function pasangIdentitas() {
     siswa = J.getSiswa(sesi.siswa.nis);
     if (!siswa) {
-      J.toast('Data tidak ditemukan', 'Data kamu belum ada di database. Minta guru menambahkamu.', 'err');
-      document.getElementById('identitas').textContent = 'Data tidak ditemukan';
+      document.getElementById('identitas').textContent =
+        sinkronSelesai ? 'Data tidak ditemukan' : 'Memuat data...';
+      if (sinkronSelesai) {
+        J.toast('Data tidak ditemukan', 'Data kamu belum ada di database. Minta guru menambahkamu.', 'err');
+      }
       return;
     }
     sesi.siswa = { nis: siswa.nis, nama: siswa.nama, kelasId: siswa.kelasId };
@@ -491,7 +499,9 @@
     muatRekap();
   }
 
- pasangIdentitas();
+ /* Belum sinkron: jangan buru-buru mencari siswa. Cache di perangkat
+     masih kosong, jadi results barulah nanti yang benar. */
+  if (J.state.students.length) pasangIdentitas();
 
   if (!J.isConfigured()) {
     tampilkanStatus('Database belum terhubung. Isi URL Apps Script di assets/js/site-config.js.', 'danger');
@@ -502,6 +512,7 @@
 
   /* Tunggu sinkron pertama agar data siswa & jurnal benar */
   J.syncAll(function (r) {
+    sinkronSelesai = true;
     if (!r.ok) {
       tampilkanStatus('Database belum terbaca: ' + r.msg, 'danger');
       return;
