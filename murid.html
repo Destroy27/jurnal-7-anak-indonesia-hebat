@@ -1,45 +1,57 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Jurnal Saya</title>
-  
-  <!-- Pastikan link CSS ini mengarah ke file style Anda -->
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#134A3B">
+<title>Jurnal Saya - 7 Anak Indonesia Hebat</title>
+
+<!-- FONT BAWAAN APLIKASI (Ini yang bikin teksnya rapi) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<!-- CSS BAWAAN APLIKASI (Ini yang bikin styling kembali normal) -->
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23134A3B'/><text y='69' x='50' text-anchor='middle' font-size='54' fill='%23F0EAD8' font-family='serif' font-weight='bold'>7</text></svg>">
 </head>
 <body>
 
   <!-- STATUS BAR (Offline/Error) -->
   <div id="statusBar" class="banner hidden">
     <span id="statusTeks"></span>
-    <button id="btnPerbaiki" class="btn btn-sm" style="margin-left:10px">Perbaiki</button>
+    <button id="btnPerbaiki" class="btn btn-sm btn-ghost" style="margin-left:10px; border: 1px solid currentColor;">Perbaiki</button>
   </div>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-content">
-      <div class="app-brand">
-        <i class="fa-solid fa-book-open"></i>
-        <h1 id="appName">Jurnal 7 Anak</h1>
+  <!-- NAVBAR ATAS -->
+  <header class="topnav">
+    <div class="container wrap-lg topnav-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div class="brand-text">
+          <h1 id="appName">Jurnal 7 Anak Indonesia Hebat</h1>
+          <p id="identitas" style="font-size:12px; opacity:0.9;">Memuat data...</p>
+        </div>
       </div>
-      <div class="user-menu">
+      <div class="nav-actions">
         <button id="btnSync" class="btn btn-icon" title="Sinkronkan data"><i class="fa-solid fa-rotate"></i></button>
         <button id="btnLogout" class="btn btn-icon text-danger" title="Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
     </div>
-    <div class="user-identity" style="background: rgba(19, 74, 59, 0.1); padding: 8px 16px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-      <i class="fa-solid fa-user-graduate" style="color: var(--primary);"></i>
-      <span id="identitas">Memuat data...</span>
-    </div>
   </header>
 
-  <main class="container" style="padding: 16px; max-width: 600px; margin: 0 auto;">
+  <!-- KONTEN UTAMA -->
+  <main class="container wrap-lg main">
     
     <!-- SAPAAN & RINGKASAN HARI INI -->
-    <section class="card text-center mb-3" style="padding: 20px;">
-      <h2 id="sapaan" style="font-size: 20px; margin-bottom: 4px; color: #111827;">Selamat datang!</h2>
+    <section class="card text-center mb-3">
+      <h2 id="sapaan" style="font-family: 'Playfair Display', serif; font-size: 22px; color: var(--primary);">Selamat datang!</h2>
       <p id="tanggalHari" class="text-muted" style="margin-bottom: 16px; font-size: 14px;"></p>
       
       <div style="display:flex; justify-content:center; gap: 16px; align-items:center;">
@@ -47,8 +59,8 @@
         <div id="chipHari" style="display:flex; flex-direction:column; gap:6px; align-items:flex-start;"></div>
       </div>
       
-      <div class="mt-3" style="margin-top: 20px;">
-        <button id="btnIsi" class="btn btn-primary btn-block" style="width: 100%; padding: 12px; font-size: 16px;">
+      <div class="mt-3">
+        <button id="btnIsi" class="btn btn-primary btn-block btn-lg">
           <i class="fa-solid fa-pen"></i> Isi Jurnal
         </button>
       </div>
@@ -56,45 +68,46 @@
 
     <!-- FORMULIR JURNAL (Tersembunyi secara default) -->
     <div id="bukaForm" style="display:none; margin-bottom: 24px;">
-      <h3 class="mb-2" style="margin-bottom: 12px; font-size: 18px;">Jurnal Hari Ini</h3>
-      <div id="habitGrid" class="habit-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      <div class="card-head mb-2">
+        <h2>Jurnal Hari Ini</h2>
+      </div>
       
-      <div class="card mt-3 text-center" style="margin-top: 16px; padding: 16px;">
-        <button id="btnSimpanSemua" class="btn btn-success btn-block btn-lg" style="width: 100%; padding: 14px; font-size: 16px; margin-bottom: 12px;">
+      <div id="habitGrid" class="habit-grid"></div>
+      
+      <div class="card mt-3 text-center">
+        <button id="btnSimpanSemua" class="btn btn-success btn-block btn-lg mb-1">
           <i class="fa-solid fa-floppy-disk"></i> Simpan
         </button>
-        <button id="btnTutupForm" class="btn btn-ghost btn-block" style="width: 100%;">Tutup Formulir</button>
+        <button id="btnTutupForm" class="btn btn-ghost btn-block">Tutup Formulir</button>
       </div>
     </div>
 
     <!-- AREA REKAPITULASI -->
     <div id="areaRekap">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 style="font-size: 18px;">Rekapitulasi</h3>
-        <div id="chipRentang" style="display: flex; gap: 4px;">
-          <button class="chip active" data-hari="7" style="padding: 4px 12px; border-radius: 16px; border: 1px solid #ddd; background: #fff; cursor: pointer;">7 Hari</button>
-          <button class="chip" data-hari="30" style="padding: 4px 12px; border-radius: 16px; border: 1px solid #ddd; background: #fff; cursor: pointer;">30 Hari</button>
+      <div class="flex justify-between items-center mb-2">
+        <h2>Rekapitulasi</h2>
+        <div id="chipRentang" class="flex gap-1">
+          <button class="badge badge-soft chip active" data-hari="7" style="cursor:pointer; border:1px solid transparent;">7 Hari</button>
+          <button class="badge badge-soft chip" data-hari="30" style="cursor:pointer; border:1px solid transparent;">30 Hari</button>
         </div>
       </div>
 
-      <!-- KALENDER / HEATMAP (DIPERBARUI) -->
-      <section class="card mb-3" style="padding: 16px; margin-bottom: 16px;">
-        <div class="card-head" style="margin-bottom: 8px;">
+      <!-- KALENDER / HEATMAP YANG SUDAH DIPERJELAS -->
+      <section class="card mb-3">
+        <div class="card-head" style="margin-bottom: 16px;">
           <div>
-            <h2 style="font-size: 18px; color: #111827;">
-              <i class="fa-regular fa-calendar-check" style="color: var(--primary);"></i> Kalender Kebiasaanku
-            </h2>
-            <p style="font-size: 13.5px; color: #4b5563; margin-top: 6px; line-height: 1.4;">
+            <h2 style="color: var(--primary);"><i class="fa-regular fa-calendar-check"></i> Kalender Kebiasaanku</h2>
+            <p style="font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.5;">
               Pantau terus kemajuanmu! Semakin hijau kotak kalendernya, semakin banyak kebiasaan hebat yang kamu lakukan hari itu. <strong>Jangan biarkan ada hari yang kosong!</strong>
             </p>
           </div>
         </div>
 
         <!-- Tempat Kalender Heatmap Dirender -->
-        <div id="heatmap" style="margin-top: 16px;"></div>
+        <div id="heatmap"></div>
 
         <!-- Legenda Warna -->
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; font-size: 12px; color: #6b7280;">
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 16px; font-size: 12px; color: var(--muted);">
           <span>Kosong</span>
           <div style="display: flex; gap: 4px;">
             <span style="width: 12px; height: 12px; border-radius: 3px; background: #ebedf0;"></span>
@@ -107,59 +120,67 @@
         </div>
       </section>
 
-      <!-- STATISTIK KOTAK -->
+      <!-- STATISTIK KOTAK (Grid 2 Kolom) -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-        <div class="card text-center" style="padding: 12px;">
-          <div id="statHariAktif" style="font-size: 24px; font-weight: bold; color: var(--primary);">0</div>
-          <div style="font-size: 13px; font-weight: 600;">Hari Aktif</div>
-          <div id="statHariAktifHint" style="font-size: 11px; color: #6b7280; margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 16px 12px;">
+          <div id="statHariAktif" style="font-size: 24px; font-weight: 800; color: var(--primary);">0</div>
+          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Hari Aktif</div>
+          <div id="statHariAktifHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
         </div>
-        <div class="card text-center" style="padding: 12px;">
-          <div id="statPoin" style="font-size: 24px; font-weight: bold; color: var(--primary);">0</div>
-          <div style="font-size: 13px; font-weight: 600;">Rata-rata Poin</div>
-          <div id="statPoinHint" style="font-size: 11px; color: #6b7280; margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 16px 12px;">
+          <div id="statPoin" style="font-size: 24px; font-weight: 800; color: var(--primary);">0</div>
+          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Rata-rata Poin</div>
+          <div id="statPoinHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
         </div>
-        <div class="card text-center" style="padding: 12px;">
-          <div id="statStreak" style="font-size: 24px; font-weight: bold; color: #d97706;">0</div>
-          <div style="font-size: 13px; font-weight: 600;">Streak Terjaga</div>
-          <div id="strekTeks" style="font-size: 11px; color: #6b7280; margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 16px 12px;">
+          <div id="statStreak" style="font-size: 24px; font-weight: 800; color: var(--gold-600);">0</div>
+          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Streak Terjaga</div>
+          <div id="strekTeks" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
         </div>
-        <div class="card text-center" style="padding: 12px;">
-          <div id="statBangun" style="font-size: 24px; font-weight: bold; color: #2563eb;">-</div>
-          <div style="font-size: 13px; font-weight: 600;">Rata-rata Bangun</div>
-          <div id="statBangunHint" style="font-size: 11px; color: #6b7280; margin-top: 4px;"></div>
+        <div class="card text-center" style="padding: 16px 12px;">
+          <div id="statBangun" style="font-size: 24px; font-weight: 800; color: #2563eb;">-</div>
+          <div style="font-size: 13px; font-weight: 600; margin-top: 4px;">Rata-rata Bangun</div>
+          <div id="statBangunHint" style="font-size: 11px; color: var(--muted); margin-top: 4px;"></div>
         </div>
       </div>
 
       <!-- LENCANA PENGHARGAAN -->
-      <section class="card mb-3" style="padding: 16px; margin-bottom: 16px;">
-        <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-medal" style="color: gold;"></i> Lencana Penghargaan</h3>
+      <section class="card mb-3">
+        <div class="card-head mb-2">
+          <h2><i class="fa-solid fa-medal" style="color: var(--gold-500);"></i> Lencana Penghargaan</h2>
+        </div>
         <div id="lencanaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px;"></div>
       </section>
 
       <!-- GRAFIK JAM BANGUN -->
-      <section class="card mb-3" style="padding: 16px; margin-bottom: 16px;">
-        <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-chart-line" style="color: #2563eb;"></i> Grafik Jam Bangun Pagi</h3>
-        <div id="grafikBangun" style="height: 140px; margin-top:16px;"></div>
+      <section class="card mb-3">
+        <div class="card-head mb-2">
+          <h2><i class="fa-solid fa-chart-line" style="color: #2563eb;"></i> Grafik Jam Bangun Pagi</h2>
+        </div>
+        <div id="grafikBangun" style="height: 140px; margin-top: 16px;"></div>
       </section>
 
       <!-- PROGRES PER KEBIASAAN -->
-      <section class="card mb-3" style="padding: 16px; margin-bottom: 16px;">
-        <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Progres per Kebiasaan</h3>
+      <section class="card mb-3">
+        <div class="card-head mb-2">
+          <h2><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Progres per Kebiasaan</h2>
+        </div>
         <div id="rekapList" style="display: flex; flex-direction: column; gap: 12px;"></div>
       </section>
 
       <!-- CATATAN DARI GURU -->
-      <section class="card mb-3" id="cardCatatan" style="display:none; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary); background: #f0fdf4;">
-        <h3 style="margin-bottom: 12px; font-size: 16px;"><i class="fa-solid fa-envelope-open-text"></i> Pesan dari Guru</h3>
+      <section class="card mb-3" id="cardCatatan" style="display:none; border-left: 4px solid var(--primary); background: #f0fdf4;">
+        <div class="card-head mb-2">
+          <h2><i class="fa-solid fa-envelope-open-text"></i> Pesan dari Guru</h2>
+        </div>
         <div id="catatanList" style="display: flex; flex-direction: column; gap: 8px;"></div>
       </section>
 
       <!-- RIWAYAT HARIAN -->
-      <section class="card" style="padding: 16px; margin-bottom: 32px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <h3 style="font-size: 16px;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Terakhir</h3>
-          <button id="btnRiwayat" class="btn btn-sm btn-ghost" style="font-size: 12px;"><i class="fa-solid fa-rotate"></i> Perbarui</button>
+      <section class="card mb-3">
+        <div class="flex justify-between items-center mb-2">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Terakhir</h2>
+          <button id="btnRiwayat" class="btn btn-sm btn-ghost"><i class="fa-solid fa-rotate"></i> Perbarui</button>
         </div>
         <div id="riwayatList" style="display: flex; flex-direction: column; gap: 12px;"></div>
       </section>
@@ -167,8 +188,18 @@
     </div>
   </main>
 
+  <!-- TOAST NOTIFIKASI -->
+  <div id="toast" role="status" aria-live="polite">
+    <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
+    <div class="t-content">
+      <div class="t-title"></div>
+      <div class="t-msg"></div>
+    </div>
+  </div>
+
   <!-- SCRIPT APLIKASI -->
   <script src="assets/js/site-config.js"></script>
+  <script src="assets/js/habits.js"></script>
   <script src="assets/js/core.js"></script>
   <script src="assets/js/murid.js"></script>
 </body>
