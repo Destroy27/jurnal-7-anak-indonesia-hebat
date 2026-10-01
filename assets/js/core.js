@@ -1,0 +1,945 @@
+/* ============================================================
+   Jurnal 7 Anak Indonesia Hebat — core.js
+   ------------------------------------------------------------
+   Dipakai oleh: index.html · murid.html · guru.html · ortu.html
+
+   Arsitektur:
+   - Google Spreadsheet (via Apps Script) = sumber kebenaran
+   - localStorage = cache ringan supaya halaman cepat dibuka
+   - Baca data  = JSONP via GET  (?action=get_all)
+   - Tulis data = POST mode no-cors + verifikasi ulang (garansi data masuk)
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  var H = root.HABITS7;
+
+  /* ---------------- Kunci penyimpanan lokal ---------------- */
+  var KEYS = {
+    cache:  'j7_cache_v1',
+    script: 'j7_script_url',
+    sesi:   'j7_sesi',
+    kelas:  'j7_kelas_terpilih'
+  };
+  var PENDING_KEY = 'j7_pending';
+
+  /* ---------------- State global ---------------- */
+  var state = {
+    config: { appName: 'Jurnal 7 Anak Indonesia Hebat', teachers: [], habitOverrides: {}, notes: [] },
+    students: [],   /* { kelasId, nis, nama, pin, kodeOrtu, kelas } */
+    entries: []     /* { id, kelasId, nis, nama, tanggal, kode, nilai, catatan, tsISO, tsDisplay } */
+  };
+  var onExternalChange = null;
+  var _syncBusy = false;
+  var _configLoaded = false;
+
+  var _pending = [];
+  try { _pending = JSON.parse(localStorage.getItem(PENDING_KEY)) || []; } catch (e) { _pending = []; }
+  var _pendBusy = false;
+  var _pendTimer = null;
+  var _onPendingConfirm = null;
+
+  /* ---------------- URL Apps Script ----------------
+     Sumber urutan:
+     1. site-config.js  (diisi sekali oleh guru -> berlaku untuk semua perangkat)
+     2. localStorage    (diubah dari Panel Admin saat/runtime)
+  ------------------------------------------------------------ */
+  function siteScriptURL() {
+    var sc = root.SITECONFIG || {};
+    return String(sc.scriptUrl || '').trim();
+  }
+  var scriptURL = (function () {
+    try { return localStorage.getItem(KEYS.script) || siteScriptURL(); } catch (e) { return siteScriptURL(); }
+  })();
+  function isConfigured() {
+    /* Terima URL http(s) apa pun yang berakhiran /exec - milik Google
+       Apps Script maupun proxy sendiri. Local testing pun jadi mungkin. */
+    return /^https?:\/\/[^\s?#]+\/exec\/?$/i.test(String(scriptURL || '').trim());
+  }
+  /* Peringatan halus kalau URL tidak terlihat seperti Google Apps Script */
+  function peringatanUrl() {
+    var u = String(scriptURL || '').trim();
+    if (!u) return 'URL Apps Script belum diisi.';
+    if (!/script\.google\.com/i.test(u)) {
+      return 'URL ini bukan dari script.google.com. Pastikan deployment disetel "Anyone" dan URL berakhiran /exec.';
+    }
+    return '';
+  }
+
+  /* ================= CACHE LOKAL ================= */
+  function loadCache() {
+    try {
+      var raw = localStorage.getItem(KEYS.cache);
+      if (!raw) return;
+      var c = JSON.parse(raw);
+      if (c && c.config) {
+        state.config = Object.assign({ appName: 'Jurnal 7 Anak Indonesia Hebat', teachers: [], habitOverrides: {}, notes: [] }, c.config);
+        state.students = c.students || [];
+        state.entries = c.entries || [];
+        _configLoaded = true;
+      }
+    } catch (e) { /* abaikan cache rusak */ }
+  }
+  function saveCache() {
+    try {
+      localStorage.setItem(KEYS.cache, JSON.stringify(state));
+      return true;
+    } catch (e) { return false; }
+  }
+  function saveScriptURL() {
+    try { localStorage.setItem(KEYS.script, scriptURL); } catch (e) { /* mode privat */ }
+  }
+
+  /* ================= HELPER UMUM ================= */
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function uid() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+  function inisial(nama) {
+    var parts = String(nama || '?').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  /* ================= TANGGAL (selalu waktu lokal) ================= */
+  function todayISO() { return toISO(new Date()); }
+
+  function toISO(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function fromISO(iso) {
+    var p = String(iso || '').split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  function addDays(iso, n) {
+    var d = fromISO(iso);
+    d.setDate(d.getDate() + n);
+    return toISO(d);
+  }
+  function daysBetween(a, b) {
+    return Math.round((fromISO(b) - fromISO(a)) / 86400000);
+  }
+  /* Rentang tanggal mundur: [kemarin, ..., hari ini] */
+  function lastDays(n) {
+    var out = [], t = todayISO();
+    for (var i = n - 1; i >= 0; i--) out.push(addDays(t, -i));
+    return out;
+  }
+  function fmtTanggal(iso) {
+    var d = fromISO(iso);
+    if (isNaN(d)) return iso;
+    return d.getDate() + ' ' + ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][d.getMonth()] + ' ' + d.getFullYear();
+  }
+  function fmtTanggalPendek(iso) {
+    var d = fromISO(iso);
+    if (isNaN(d)) return iso;
+    return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1);
+  }
+  function fmtHari(iso) {
+    var d = fromISO(iso);
+    if (isNaN(d)) return '';
+    return H.HARI[d.getDay()];
+  }
+  function fmtWaktu() {
+    var d = new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function fmtTanggalPendekJam(iso) {
+    var d = fromISO(iso);
+    if (isNaN(d)) return '';
+    return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' +
+      pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  /* ================= SHA-256 (login) ================= */
+  function sha256(text) {
+    if (root.crypto && root.crypto.subtle && root.TextEncoder) {
+      return root.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+        .then(function (buf) {
+          return Array.prototype.map.call(new Uint8Array(buf), function (b) {
+            return ('0' + b.toString(16)).slice(-2);
+          }).join('');
+        });
+    }
+    return Promise.resolve(null);
+  }
+
+  /* ================= SELEKTOR DATA ================= */
+  function getKelas(id) {
+    var list = state.config.classes || [];
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+  function getSiswa(nis) {
+    var n = String(nis == null ? '' : nis).trim();
+    for (var i = 0; i < state.students.length; i++) if (String(state.students[i].nis) === n) return state.students[i];
+    return null;
+  }
+  function getSiswaKelas(kelasId) {
+    return state.students
+      .filter(function (s) { return String(s.kelasId) === String(kelasId); })
+      .sort(function (a, b) {
+        if (a.nama !== b.nama) return String(a.nama).localeCompare(String(b.nama), 'id');
+        return String(a.nis).localeCompare(String(b.nis), 'en', { numeric: true });
+      });
+  }
+  function entriesOf(nis) {
+    var n = String(nis);
+    return state.entries.filter(function (e) { return String(e.nis) === n; });
+  }
+  function entryOf(nis, tanggal, kode) {
+    var n = String(nis);
+    return state.entries.find(function (e) {
+      return String(e.nis) === n && String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode);
+    }) || null;
+  }
+  /* Target jam bangun bisa diatur guru per kelas */
+  function targetBangun() {
+    var ov = (state.config.habitOverrides || {}).bangun;
+    return (ov && ov.targetTime) || (H.byKey('bangun').targetTime || '05:30');
+  }
+
+  /* ================= MESIN REKAP ================= */
+
+  /* Ringkasan satu hari: jumlah kebiasaan terisi + skor rata-rata */
+  function ringkasHari(entriesHari) {
+    var byKey = {};
+    entriesHari.forEach(function (e) { byKey[String(e.kode)] = e; });
+    var jumlah = Object.keys(byKey).length;
+    var totalSkor = 0;
+    Object.keys(byKey).forEach(function (k) {
+      totalSkor += H.scoreEntry(k, byKey[k].nilai);
+    });
+    return {
+      tanggal: entriesHari.length ? entriesHari[0].tanggal : '',
+      byKey: byKey,
+      jumlah: jumlah,
+      lengkap: jumlah >= H.total(),
+      skor: jumlah ? Math.round(totalSkor / jumlah) : 0,
+      poin: jumlah ? Math.round(totalSkor / H.total()) : 0
+    };
+  }
+
+  /* Deret berurutan hari berisi jurnal (untuk heatmap & streak) */
+  function deretHari(entries) {
+    var map = {};
+    entries.forEach(function (e) {
+      if (!map[e.tanggal]) map[e.tanggal] = [];
+      map[e.tanggal].push(e);
+    });
+    var out = {};
+    Object.keys(map).forEach(function (k) { out[k] = ringkasHari(map[k]); });
+    return out;
+  }
+
+  /* Berapa hari berturut-turut isi jurnal, berakhir di hari ini (atau kemarin) */
+  function hitungStreak(harianMap) {
+    var t = todayISO();
+    var cursor = harianMap[t] ? t : addDays(t, -1);
+    if (!harianMap[cursor]) return 0;
+    var n = 0;
+    while (harianMap[cursor]) { n++; cursor = addDays(cursor, -1); }
+    return n;
+  }
+  function streakTerpanjang(entries) {
+    var hari = Object.keys(deretHari(entries)).sort();
+    var terbaik = 0, berjalan = 0, prev = null;
+    hari.forEach(function (d) {
+      if (prev && daysBetween(prev, d) === 1) berjalan++;
+      else berjalan = 1;
+      if (berjalan > terbaik) terbaik = berjalan;
+      prev = d;
+    });
+    return terbaik;
+  }
+
+  /* Rekap lengkap satu siswa dalam rentang hari */
+  function rekapSiswa(nis, jumlahHari) {
+    var n = Number(jumlahHari) || 30;
+    var semua = entriesOf(nis);
+    var harian = deretHari(semua);
+    var rentang = lastDays(n);
+    var hariAktif = Object.keys(harian).filter(function (d) { return harian[d].jumlah > 0; });
+
+    var totalSlot = rentang.length * H.total();
+    var totalIsi = semua.filter(function (e) { return rentang.indexOf(e.tanggal) !== -1; }).length;
+    var poin = 0;
+    semua.forEach(function (e) { if (rentang.indexOf(e.tanggal) !== -1) poin += H.scoreEntry(e.kode, e.nilai); });
+
+    /* Per kebiasaan */
+    var perHabit = H.list.map(function (h) {
+      var rows = semua.filter(function (e) {
+        return e.kode === h.key && rentang.indexOf(e.tanggal) !== -1;
+      }).sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); });
+
+      var skorTotal = 0;
+      rows.forEach(function (r) { skorTotal += H.scoreEntry(h.key, r.nilai); });
+
+      var rataWaktu = null;
+      if (h.type === 'time' && rows.length) {
+        var jumlahMenit = 0, valid = 0;
+        rows.forEach(function (r) {
+          var m = H.parseHM(r.nilai);
+          if (m !== null) { jumlahMenit += m; valid++; }
+        });
+        if (valid) rataWaktu = H.toHM(jumlahMenit / valid);
+      }
+
+      return {
+        key: h.key, no: h.no, title: h.title, sub: h.sub, icon: h.icon, color: h.color, type: h.type,
+        jumlah: rows.length,
+        persen: Math.round((rows.length / n) * 100),
+        rataSkor: rows.length ? Math.round(skorTotal / rows.length) : 0,
+        terakhir: rows.length ? rows[rows.length - 1].nilai : '',
+        catatanTerakhir: rows.length ? rows[rows.length - 1].catatan : '',
+        tanggalTerakhir: rows.length ? rows[rows.length - 1].tanggal : '',
+        rataWaktu: rataWaktu
+      };
+    });
+
+    return {
+      nis: String(nis),
+      hariRentang: rentang,
+      harian: harian,
+      hariAktif: hariAktif,
+      hariAktifJml: hariAktif.length,
+      /* Poin = kualitas isian yang terisi (0-100).
+         Kelengkapan = berapa persen dari slot rentang yang terisi.
+         Dua hal sengaja dipisah supaya anak yang baru mulai tidak
+         terlihat nilainya kecil. */
+      kelengkapan: totalSlot ? Math.round((totalIsi / totalSlot) * 100) : 0,
+      rataPoin: totalIsi ? Math.round(poin / totalIsi) : 0,
+      streak: hitungStreak(harian),
+      streakTerpanjang: streakTerpanjang(semua),
+      perHabit: perHabit,
+      lencana: lencanaTerbuka(harian, semua)
+    };
+  }
+
+  /* Lencana yang sudah syarat */
+  function lencanaTerbuka(harian, semuaEntries) {
+    var hariAktif = Object.keys(harian).filter(function (d) { return harian[d].jumlah > 0; }).length;
+    var bangunTelat = semuaEntries.filter(function (e) {
+      if (e.kode !== 'bangun') return false;
+      var m = H.parseHM(e.nilai);
+      return m !== null && m <= (H.parseHM(targetBangun()) || 330);
+    }).length;
+    var hariLengkap = Object.keys(harian).filter(function (d) { return harian[d].lengkap; }).length;
+
+    return H.lencana.filter(function (l) {
+      if (l.key === 'bangunkecil') return bangunTelat >= l.butuh;
+      if (l.key === 'lengkap') return hariLengkap >= l.butuh;
+      return hariAktif >= l.butuh;
+    });
+  }
+
+  /* Rekap satu kelas: ringkasan per siswa + agregat kelas */
+  function rekapKelas(kelasId, jumlahHari) {
+    var n = Number(jumlahHari) || 7;
+    var siswa = getSiswaKelas(kelasId);
+    var baris = siswa.map(function (s) {
+      var r = rekapSiswa(s.nis, n);
+      var harianTerisi = r.hariAktifJml;
+      return {
+        siswa: s,
+        rekap: r,
+        nama: s.nama,
+        nis: s.nis,
+        poin: r.rataPoin,
+        kelengkapan: r.kelengkapan,
+        streak: r.streak,
+        hariAktif: harianTerisi,
+        hariRentang: r.hariRentang,
+        harian: r.harian,
+      };
+    });
+    baris.sort(function (a, b) { return b.poin - a.poin; });
+
+    var total = baris.length;
+    var aktif = baris.filter(function (b) { return b.hariAktif > 0; }).length;
+    var hariIni = todayISO();
+    var isiHariIni = baris.filter(function (b) { return b.harian[hariIni] && b.harian[hariIni].jumlah > 0; }).length;
+    /* Rata-rata hanya dari siswa yang sudah mengisi, supaya siswa yang
+       belum mulai tidak menjatuhkan nilai kelas. */
+    var yangTerisi = baris.filter(function (b) { return b.hariAktif > 0; });
+    var rataKelas = yangTerisi.length
+      ? Math.round(yangTerisi.reduce(function (a, b) { return a + b.poin; }, 0) / yangTerisi.length)
+      : 0;
+    var best = baris[0] || null;
+    var perluBantu = baris.filter(function (b) { return b.hariAktifJml <= 1; });
+
+    return {
+      kelas: getKelas(kelasId),
+      kelasId: kelasId,
+      jumlahSiswa: total,
+      hariRentang: lastDays(n),
+      baris: baris,
+      statistik: {
+        total: total,
+        aktif: aktif,
+        tidakAktif: total - aktif,
+        isiHariIni: isiHariIni,
+        persenHariIni: total ? Math.round((isiHariIni / total) * 100) : 0,
+        rataKelas: rataKelas,
+        rataKelasDari: yangTerisi.length,
+        streakTertinggi: total ? Math.max.apply(null, baris.map(function (b) { return b.streak; })) : 0,
+        terbaik: best,
+        perluBantu: perluBantu
+      }
+    };
+  }
+
+  /* ================= AUTENTIKASI =================
+     Pola arsitektur tanpa server: data tersinkron ke perangkat,
+     sehingga verifikasi dilakukan di sisi klien. Sama seperti
+     aplikasi absensi sebelumnya. Lihat catatan keamanan di README.
+  ------------------------------------------------------------ */
+  function loginGuru(user, password) {
+    var u = String(user || '').trim().toLowerCase();
+    var daftar = state.config.teachers || [];
+    var cocok = daftar.find(function (t) { return String(t.user).toLowerCase() === u; }) || null;
+    if (!cocok) return Promise.resolve({ ok: false, msg: 'Akun guru tidak ditemukan.' });
+    return sha256(String(password || '')).then(function (hash) {
+      if (!hash) return { ok: false, msg: 'Browser tidak mendukung SHA-256 (butuh HTTPS).' };
+      if (hash !== cocok.pass) return { ok: false, msg: 'Password salah.' };
+      return { ok: true, role: 'guru', guru: cocok };
+    });
+  }
+  function loginSiswa(nis, pin) {
+    var s = getSiswa(String(nis || '').trim());
+    if (!s) return Promise.resolve({ ok: false, msg: 'NIS tidak terdaftar. Hubungi guru.' });
+    return sha256(String(pin || '')).then(function (hash) {
+      if (!hash) return { ok: false, msg: 'Browser tidak mendukung SHA-256 (butuh HTTPS).' };
+      if (hash !== s.pin) return { ok: false, msg: 'PIN salah.' };
+      return { ok: true, role: 'siswa', siswa: s };
+    });
+  }
+  function loginOrtu(kode) {
+    var k = String(kode || '').trim().toUpperCase();
+    var s = state.students.find(function (x) { return String(x.kodeOrtu || '').toUpperCase() === k; });
+    if (!s) return Promise.resolve({ ok: false, msg: 'Kode akses tidak ditemukan. Hubungi guru.' });
+    return Promise.resolve({ ok: true, role: 'ortu', siswa: s });
+  }
+
+  /* Sesi login */
+  function simpanSesi(sesi) {
+    try { localStorage.setItem(KEYS.sesi, JSON.stringify(sesi)); } catch (e) {}
+  }
+  function ambilSesi() {
+    try { return JSON.parse(localStorage.getItem(KEYS.sesi)) || null; } catch (e) { return null; }
+  }
+  function hapusSesi() {
+    try { localStorage.removeItem(KEYS.sesi); } catch (e) {}
+  }
+
+  /* ================= HTTP: JSONP (baca) ================= */
+  function fetchJSONP(action, params, cb, timeoutMs) {
+    if (!isConfigured()) {
+      cb({ ok: false, msg: 'URL Apps Script belum diatur. Buka menu Pengaturan.' });
+      return;
+    }
+    var qs = '?action=' + encodeURIComponent(action);
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
+          qs += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
+      });
+    }
+    var prefix = '_j7_' + Math.random().toString(36).slice(2, 10);
+    var s = document.createElement('script');
+    var done = false;
+    function bersihkan() {
+      done = true;
+      try { delete root[prefix]; } catch (e) { root[prefix] = undefined; }
+      try { if (s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
+    }
+    root[prefix] = function (data) { bersihkan(); cb(data); };
+    s.onerror = function () {
+      if (done) return;
+      bersihkan();
+      cb({ ok: false, msg: 'Gagal menghubungi database. Cek URL & versi deployment Apps Script.' });
+    };
+    s.src = scriptURL.trim() + qs + '&prefix=' + prefix;
+    setTimeout(function () {
+      if (!done) { bersihkan(); cb({ ok: false, msg: 'Waktu tunggu habis. Periksa koneksi & URL Apps Script.' }); }
+    }, timeoutMs || 25000);
+    document.head.appendChild(s);
+  }
+
+  /* ================= HTTP: POST (tulis) ================= */
+  function postToSheet(payload, retries) {
+    if (!isConfigured()) return Promise.resolve({ ok: false, msg: 'URL Apps Script belum diatur.' });
+    retries = retries == null ? 2 : Math.max(0, retries);
+    var attempt = 0;
+    var TIMEOUT_MS = 18000;
+
+    function coba() {
+      attempt++;
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS) : null;
+      return fetch(scriptURL.trim(), {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload),
+        signal: ctrl ? ctrl.signal : undefined
+      }).then(function () {
+        if (timer) clearTimeout(timer);
+        return { ok: true };
+      }).catch(function (err) {
+        if (timer) clearTimeout(timer);
+        if (attempt <= retries) {
+          var wait = 700 * Math.pow(2, attempt - 1);
+          return new Promise(function (res) { setTimeout(function () { res(coba()); }, wait); });
+        }
+        return { ok: false, msg: 'Koneksi gagal - periksa jaringan lalu coba lagi.' };
+      });
+    }
+    return coba();
+  }
+
+  /* ================= SYNC ================= */
+  function syncAll(onDone) {
+    if (!isConfigured()) { if (onDone) onDone({ ok: false, msg: 'URL Apps Script belum diatur.' }); return; }
+    if (_syncBusy) return;
+    _syncBusy = true;
+
+    fetchJSONP('get_all', null, function (r) {
+      _syncBusy = false;
+      if (r && r.ok && r.config) {
+        state.config = r.config;
+        state.students = r.students || [];
+        state.entries = r.entries || [];
+        _configLoaded = true;
+        saveCache();
+        jadwalkanTuangAntrean();
+        if (onDone) onDone({ ok: true, jumlahSiswa: state.students.length, jumlahEntri: state.entries.length });
+      } else {
+        if (onDone) onDone({ ok: false, msg: (r && r.msg) || 'Gagal mengambil data.' });
+      }
+    });
+  }
+
+  function mulaiAutoSync(onDone, ms) {
+    ms = ms || 90000;
+    syncAll(onDone);
+    setInterval(function () {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      syncAll(onDone);
+    }, ms);
+  }
+
+  /* ================= SIMPAN JURNAL (GARANSI MASUK) =================
+     Alur: POST -> tunggu -> verifikasi ke database -> bila belum
+     masuk, simpan ke antrean lokal & kirim ulang otomatis.
+     Inilah yang mencegah catatan hilang saat sinyaljelek.
+  ------------------------------------------------------------ */
+  function idEntri(e) {
+    return [e.kelasId, e.nis, e.tanggal, e.kode].join('__');
+  }
+  function entriSudahDiServer(item) {
+    return state.entries.some(function (e) { return idEntri(e) === idEntri(item); });
+  }
+
+  function buildEntry(siswa, tanggal, kode, nilai, catatan) {
+    var h = H.byKey(kode);
+    return {
+      action: 'save_entries',
+      kelasId: String(siswa.kelasId || ''),
+      nis: String(siswa.nis || ''),
+      nama: String(siswa.nama || ''),
+      tanggal: tanggal,
+      kode: kode,
+      nilai: String(nilai == null ? '' : nilai).trim(),
+      catatan: String(catatan == null ? '' : catatan).trim(),
+      tsISO: new Date().toISOString(),
+      tsDisplay: fmtTanggalPendekJam(todayISO())
+    };
+  }
+
+  function simpanEntries(items, cb) {
+    items = items.filter(function (x) { return x && x.nilai !== '' && x.nilai != null; });
+    if (!items.length) { if (cb) cb({ ok: true, msg: 'Tidak ada isian baru.' }); return Promise.resolve({ ok: true }); }
+
+    /* Tampilkan langsung di layar (cache lokal) supaya respons */
+    var baru = items.map(function (it) {
+      return {
+        id: idEntri(it), kelasId: it.kelasId, nis: it.nis, nama: it.nama,
+        tanggal: it.tanggal, kode: it.kode, nilai: it.nilai, catatan: it.catatan,
+        tsISO: it.tsISO, tsDisplay: it.tsDisplay, pending: true
+      };
+    });
+    baru.forEach(function (b) {
+      var i = state.entries.findIndex(function (e) { return e.id === b.id; });
+      if (i === -1) state.entries.push(b); else state.entries[i] = b;
+    });
+    saveCache();
+    if (typeof onExternalChange === 'function') onExternalChange();
+
+    /* Kirim satu paket (efisien: 7 kebiasaan = 1 request) */
+    var paket = {
+      action: 'save_entries',
+      items: items.map(function (it) {
+        return {
+          kelasId: it.kelasId, nis: it.nis, nama: it.nama, tanggal: it.tanggal,
+          kode: it.kode, nilai: it.nilai, catatan: it.catatan,
+          tsISO: it.tsISO, tsDisplay: it.tsDisplay
+        };
+      })
+    };
+
+    return postToSheet(paket, 0).then(function () {
+      return new Promise(function (r) { setTimeout(r, 6500); });
+    }).then(function () {
+      return verifikasi(items);
+    }).then(function (semuaMasuk) {
+      if (semuaMasuk) {
+        if (cb) cb({ ok: true, msg: 'Tersimpan & terverifikasi.' });
+        return { ok: true, confirmed: true };
+      }
+      masukkanAntrean(items);
+      if (cb) cb({ ok: true, msg: 'Tersimpan di perangkat - dikirim ulang otomatis.' });
+      return { ok: true, confirmed: false, queued: true };
+    }).catch(function () {
+      masukkanAntrean(items);
+      if (cb) cb({ ok: true, msg: 'Tersimpan di perangkat - dikirim ulang otomatis.' });
+      return { ok: true, confirmed: false, queued: true };
+    });
+  }
+
+  /* Cek ke server: apakah semua isian ini benar-benar sudah masuk? */
+  function verifikasi(items) {
+    return new Promise(function (resolve) {
+      fetchJSONP('get_entries', null, function (r) {
+        if (!r || !r.ok || !r.entries) { resolve(null); return; }
+        var peta = {};
+        r.entries.forEach(function (e) { peta[idEntri(e)] = true; });
+        var hilang = items.filter(function (it) { return !peta[idEntri(it)]; });
+        /* null = ragu (server lambat) -> tahan antrean saja */
+        if (r.entries.length === 0 && state.entries.length > 0) { resolve(null); return; }
+        resolve(hilang.length === 0);
+      }, 20000);
+    });
+  }
+
+  /* ---------- Antrean offline ---------- */
+  function simpanAntrean() { try { localStorage.setItem(PENDING_KEY, JSON.stringify(_pending)); } catch (e) {} }
+  function masukkanAntrean(items) {
+    items.forEach(function (it) {
+      if (!_pending.some(function (x) { return idEntri(x) === idEntri(it); })) _pending.push(it);
+    });
+    simpanAntrean();
+    jadwalkanTuangAntrean();
+  }
+  function jadwalkanTuangAntrean() {
+    clearTimeout(_pendTimer);
+    if (!_pending.length) return;
+    _pendTimer = setTimeout(function () { kurasAntrean(); }, 20000);
+  }
+  function kurasAntrean() {
+    if (_pendBusy || !_pending.length || !isConfigured()) return Promise.resolve();
+    _pendBusy = true;
+    var items = _pending.slice();
+    return new Promise(function (resolve) {
+      fetchJSONP('get_entries', null, function (r) {
+        if (!r || !r.ok || !r.entries) { _pendBusy = false; jadwalkanTuangAntrean(); resolve(); return; }
+        var peta = {};
+        r.entries.forEach(function (e) { peta[idEntri(e)] = true; });
+        var terkonfirmasi = [], kirimLagi = [];
+        items.forEach(function (p) {
+          if (peta[idEntri(p)]) terkonfirmasi.push(p); else kirimLagi.push(p);
+        });
+
+        /* Yang sudah masuk: tandai pending=false di cache lokal */
+        terkonfirmasi.forEach(function (p) {
+          var it = state.entries.find(function (e) { return e.id === idEntri(p); });
+          if (it) it.pending = false;
+          if (typeof _onPendingConfirm === 'function') _onPendingConfirm(p);
+        });
+        saveCache();
+        if (terkonfirmasi.length) {
+          _pending = _pending.filter(function (x) { return !terkonfirmasi.some(function (p) { return idEntri(x) === idEntri(p); }); });
+          simpanAntrean();
+          if (typeof onExternalChange === 'function') onExternalChange();
+        }
+
+        /* Sisanya: kirim ulang berurutan */
+        var chain = Promise.resolve();
+        kirimLagi.forEach(function (p) {
+          chain = chain.then(function () {
+            return postToSheet({ action: 'save_entries', items: [stripAction(p)] }, 0);
+          });
+        });
+        chain.then(function () {
+          _pendBusy = false;
+          jadwalkanTuangAntrean();
+          resolve();
+        });
+      }, 15000);
+    });
+  }
+  function stripAction(p) {
+    return {
+      kelasId: p.kelasId, nis: p.nis, nama: p.nama, tanggal: p.tanggal,
+      kode: p.kode, nilai: p.nilai, catatan: p.catatan,
+      tsISO: p.tsISO, tsDisplay: p.tsDisplay
+    };
+  }
+
+  /* ================= ADMIN: KELOLA DATA ================= */
+  function simpanConfig(cfg, cb) {
+    if (!_configLoaded) {
+      if (cb) cb({ ok: false, msg: 'Tunggu sinkron pertama selesai, lalu coba lagi.' });
+      return Promise.resolve({ ok: false });
+    }
+    state.config = cfg;
+    saveCache();
+    return postToSheet({
+      action: 'save_config',
+      appName: cfg.appName,
+      teachers: cfg.teachers,
+      classes: cfg.classes,
+      habitOverrides: cfg.habitOverrides
+    }).then(function (r) {
+      setTimeout(function () { syncAll(function () { if (cb) cb(r); }); }, 500);
+      return r;
+    });
+  }
+
+  function simpanSiswa(kelasId, daftar, cb) {
+    state.students = state.students.filter(function (s) { return s.kelasId !== kelasId; })
+      .concat(daftar.map(function (s) {
+        return {
+          kelasId: kelasId, nis: String(s.nis).trim(), nama: String(s.nama).trim(),
+          kelas: s.kelas || '', pin: s.pin || '', kodeOrtu: String(s.kodeOrtu || '').trim()
+        };
+      }));
+    saveCache();
+    return postToSheet({ action: 'save_students', kelasId: kelasId, students: state.students.filter(function (s) { return s.kelasId === kelasId; }) })
+      .then(function (r) {
+        setTimeout(function () { syncAll(function () { if (cb) cb(r); }); }, 500);
+        return r;
+      });
+  }
+
+  function hapusEntry(kelasId, nis, tanggal, kode, cb) {
+    state.entries = state.entries.filter(function (e) {
+      return !(String(e.kelasId) === String(kelasId) && String(e.nis) === String(nis) &&
+        String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode));
+    });
+    saveCache();
+    return postToSheet({ action: 'delete_entry', kelasId: kelasId, nis: nis, tanggal: tanggal, kode: kode })
+      .then(function (r) { if (cb) cb(r); return r; });
+  }
+
+  function hapusSemuaEntries(kelasId, cb) {
+    state.entries = state.entries.filter(function (e) { return String(e.kelasId) !== String(kelasId); });
+    saveCache();
+    return postToSheet({ action: 'clear_entries', kelasId: kelasId })
+      .then(function (r) { setTimeout(function () { syncAll(cb); }, 500); return r; });
+  }
+
+  /* ================= CATATAN GURU UNTUK SISWA ================= */
+  /* Disimpan di sheet CATATAN agar guru bisa menulis pesan untuk orang tua. */
+  function simpanCatatan(catatanBaru, cb) {
+    return postToSheet({ action: 'save_note', note: catatanBaru })
+      .then(function (r) {
+        setTimeout(function () { syncAll(function () { if (cb) cb(r); }); }, 500);
+        return r;
+      });
+  }
+  function catatanUntuk(nis) {
+    return (state.config.notes || [])
+      .filter(function (n) { return String(n.nis) === String(nis); })
+      .sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)); });
+  }
+
+  /* ================= RENDER: RING / BAR / HEATMAP ================= */
+  var GRAD_ID = 'j7ringGrad';
+  function svgDefs() {
+    return '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
+      '<defs><linearGradient id="' + GRAD_ID + '" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#A82249"/><stop offset="100%" stop-color="#5C1126"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="#A82249"/><stop offset="100%" stop-color="#A82249" stop-opacity="0"/>' +
+      '</linearGradient></defs></svg>';
+  }
+
+  function ring(persen, size, tebal, warna) {
+    persen = Math.max(0, Math.min(100, Math.round(persen || 0)));
+    size = size || 96; tebal = tebal || 9;
+    var r = (size - tebal) / 2;
+    var keliling = 2 * Math.PI * r;
+    var isi = keliling * persen / 100;
+    return '<div class="ring" style="width:' + size + 'px;height:' + size + 'px">' +
+      '<svg width="' + size + '" height="' + size + '">' +
+      '<circle class="ring-track" cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" stroke-width="' + tebal + '"/>' +
+      '<circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" stroke-width="' + tebal + '"' +
+      ' stroke="url(#' + GRAD_ID + ')" stroke-dasharray="' + keliling.toFixed(1) + '"' +
+      ' stroke-dashoffset="' + (keliling - isi).toFixed(1) + '" fill="none" stroke-linecap="round"' +
+      (warna ? ' style="stroke:' + warna + '"' : '') + '/>' +
+      '</svg>' +
+      '<div class="ring-label"><strong>' + persen + '%</strong></div>' +
+      '</div>';
+  }
+
+  /* Bar chart sederhana (data: [{label, value, max, warna}]) */
+  function barChart(data, opsi) {
+    opsi = opsi || {};
+    if (!data.length) return '<div class="empty"><p>Belum ada data.</p></div>';
+    var max = opsi.max || Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1]));
+    return '<div class="bars">' + data.map(function (d) {
+      var tinggi = max ? Math.round((d.value / max) * 100) : 0;
+      if (d.value <= 0) return '<div class="bar-col"><div class="bar-track"><div class="bar-fill empty" style="height:5px"></div></div><div class="bar-label">' + esc(d.label) + '</div></div>';
+      return '<div class="bar-col">' +
+        '<div class="bar-track"><div class="bar-fill' + (d.kelas || '') + '" style="height:' + Math.max(4, tinggi) + '%">' +
+        (opsi.tampilkanNilai === false ? '' : '<span class="bar-value">' + esc(d.teks != null ? d.teks : d.value) + '</span>') +
+        '</div></div>' +
+        '<div class="bar-label">' + esc(d.label) + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* Heatmap 7 kolom (Minggu..Sabtu) */
+  function heatmap(harian, tanggalList) {
+    var out = '';
+    /* baris kosong pembuka agar kolom hari/weekday sejajar */
+    if (tanggalList.length) {
+      var d0 = fromISO(tanggalList[0]).getDay();
+      for (var i = 0; i < d0; i++) out += '<div></div>';
+    }
+    var hariIni = todayISO();
+    tanggalList.forEach(function (t) {
+      var h = harian[t];
+      var jumlah = h ? h.jumlah : 0;
+      var lv = H.levelDariJumlah(jumlah);
+      var label = fmtHari(t) + ' ' + fmtTanggalPendek(t) + ' - ' + jumlah + '/' + H.total() + ' kebiasaan';
+      out += '<div class="heat-cell lv' + lv + (t === hariIni ? ' today' : '') + '" title="' + esc(label) + '">' +
+        fromISO(t).getDate() + '</div>';
+    });
+    return out;
+  }
+
+  /* ================= TOAST ================= */
+  var _toastTimer = null;
+  function toast(judul, pesan, tipe) {
+    var t = document.getElementById('toast');
+    if (!t) { console.log('[' + judul + '] ' + pesan); return; }
+    tipe = tipe || 'ok';
+    var ikon = { ok: 'fa-solid fa-circle-check', warn: 'fa-solid fa-triangle-exclamation', err: 'fa-solid fa-circle-xmark' };
+    t.querySelector('.t-icon').className = 't-icon ' + (tipe === 'ok' ? 'ok' : tipe === 'warn' ? 'warn' : 'err');
+    t.querySelector('.t-icon').innerHTML = '<i class="' + ikon[tipe] + '"></i>';
+    t.querySelector('.t-title').textContent = judul;
+    t.querySelector('.t-msg').textContent = pesan || '';
+    t.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 4200);
+  }
+
+  /* ================= MODAL ================= */
+  function modal(opsi) {
+    tutupModal();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.id = 'modalJ7';
+    backdrop.innerHTML =
+      '<div class="modal' + (opsi.lebar ? ' modal-lg' : '') + '" role="dialog" aria-modal="true">' +
+      '<div class="modal-head"><h3>' + esc(opsi.judul || '') + '</h3>' +
+      '<button class="icon-btn" data-tutup aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>' +
+      '<div class="modal-body">' + (opsi.isi || '') + '</div>' +
+      (opsi.footer === null ? '' : '<div class="modal-foot">' + (opsi.footer || '') + '</div>') +
+      '</div>';
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop || e.target.hasAttribute('data-tutup')) tutupModal();
+    });
+    document.body.style.overflow = 'hidden';
+    return backdrop;
+  }
+  function tutupModal() {
+    var m = document.getElementById('modalJ7');
+    if (m) m.remove();
+    document.body.style.overflow = '';
+  }
+
+  /* ================= EKSPOR / CETAK ================= */
+  function exportCSV(rows, namaFile) {
+    var csv = rows.map(function (r) {
+      return r.map(function (c) {
+        c = String(c == null ? '' : c);
+        return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+      }).join(',');
+    }).join('\r\n');
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = namaFile || 'jurnal.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+  }
+
+  /* ================= KONTEN UTAMA (API PUBLIK) ================= */
+  var api = {
+    KEYS: KEYS,
+    get state() { return state; },
+    get config() { return state.config; },
+    get classes() { return state.config.classes || []; },
+    get teachers() { return state.config.teachers || []; },
+    get scriptURL() { return scriptURL; },
+    set scriptURL(v) { scriptURL = String(v || '').trim(); saveScriptURL(); },
+    get siteScriptURL() { return siteScriptURL(); },
+    get pendingCount() { return _pending.length; },
+
+    isConfigured: isConfigured,
+    peringatanUrl: peringatanUrl,
+    loadCache: loadCache,
+    saveCache: saveCache,
+    setOnExternalChange: function (fn) { onExternalChange = fn; },
+    setOnPendingConfirm: function (fn) { _onPendingConfirm = fn; },
+
+    esc: esc, pad2: pad2, uid: uid, inisial: inisial, sha256: sha256,
+    todayISO: todayISO, toISO: toISO, fromISO: fromISO, addDays: addDays,
+    daysBetween: daysBetween, lastDays: lastDays,
+    fmtTanggal: fmtTanggal, fmtTanggalPendek: fmtTanggalPendek, fmtHari: fmtHari,
+    fmtWaktu: fmtWaktu, fmtTanggalPendekJam: fmtTanggalPendekJam,
+
+    getKelas: getKelas, getSiswa: getSiswa, getSiswaKelas: getSiswaKelas,
+    entriesOf: entriesOf, entryOf: entryOf, targetBangun: targetBangun,
+
+    rekapSiswa: rekapSiswa, rekapKelas: rekapKelas, deretHari: deretHari,
+    hitungStreak: hitungStreak, streakTerpanjang: streakTerpanjang,
+
+    loginGuru: loginGuru, loginSiswa: loginSiswa, loginOrtu: loginOrtu,
+    simpanSesi: simpanSesi, ambilSesi: ambilSesi, hapusSesi: hapusSesi,
+
+    fetchJSONP: fetchJSONP, postToSheet: postToSheet,
+    syncAll: syncAll, mulaiAutoSync: mulaiAutoSync,
+    simpanEntries: simpanEntries, kurasAntrean: kurasAntrean,
+
+    simpanConfig: simpanConfig, simpanSiswa: simpanSiswa,
+    hapusEntry: hapusEntry, hapusSemuaEntries: hapusSemuaEntries,
+    simpanCatatan: simpanCatatan, catatanUntuk: catatanUntuk,
+    buildEntry: buildEntry, idEntri: idEntri,
+
+    svgDefs: svgDefs, ring: ring, barChart: barChart, heatmap: heatmap,
+    toast: toast, modal: modal, tutupModal: tutupModal, exportCSV: exportCSV
+  };
+
+  /* Sinkron antar-tab */
+  root.addEventListener('storage', function (e) {
+    if (e.key === KEYS.cache || e.key === KEYS.script) {
+      loadCache();
+      if (typeof onExternalChange === 'function') onExternalChange();
+    }
+  });
+  root.addEventListener('online', function () { jadwalkanTuangAntrean(); });
+
+  root.Jurnal = api;
+  loadCache();
+})(typeof window !== 'undefined' ? window : this);

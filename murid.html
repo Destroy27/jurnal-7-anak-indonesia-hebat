@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#75162F">
+<meta name="description" content="Isi jurnal 7 kebiasaan anak Indonesia hebat harian dan lihat rek pribahimu.">
+<title>Jurnal Saya - 7 Anak Indonesia Hebat</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2375162F'/><text y='68' x='50' text-anchor='middle' font-size='52' fill='%23E3C15C' font-family='serif' font-weight='bold'>7</text></svg>">
+</head>
+<body class="kids">
+
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- ================= NAVBAR ================= -->
+<header class="topnav no-print">
+  <div class="container wrap-lg topnav-inner">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-book-open"></i></div>
+      <div class="brand-text">
+        <h1 id="appName">Jurnal Saya</h1>
+        <p id="identitas">Memuat...</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="nav-role" id="chipStreak"><i class="fa-solid fa-fire"></i> <span id="strekTeks">0 hari</span></span>
+      <button class="icon-btn" id="btnSync" title="Sinkron sekarang"><i class="fa-solid fa-rotate"></i></button>
+      <button class="icon-btn" id="btnLogout" title="Keluar"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="container wrap-lg main">
+
+  <!-- Sambol status sinkron -->
+  <div class="banner hidden" id="statusBar">
+    <i class="fa-solid fa-circle-info"></i>
+    <span id="statusTeks"></span>
+    <button class="btn btn-sm btn-ghost" id="btnPerbaiki" style="margin-left:auto">Perbaiki</button>
+  </div>
+
+  <!-- ================= SAPUAN HARIAN ================= -->
+  <section class="day-summary anim-in" id="daySummary">
+    <div id="ringHari"></div>
+    <div class="grow">
+      <h2 id="sapaan" style="font-size:20px">Selamat pagi!</h2>
+      <p class="text-sm text-muted" id="tanggalHari"></p>
+      <div class="flex gap-1 flex-wrap mt-1" id="chipHari"></div>
+    </div>
+    <div class="flex gap-1 flex-wrap no-print">
+      <button class="btn btn-ghost btn-sm" id="btnSimpanSemua"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+      <button class="btn btn-primary" id="btnIsi"><i class="fa-solid fa-pen"></i> Isi Jurnal</button>
+    </div>
+  </section>
+
+  <!-- Formulir jurnal -->
+  <section class="anim-in anim-in-1" id="bukaForm" style="display:none">
+    <div class="card-head">
+      <div>
+        <h2>Jurnal Hari Ini</h2>
+        <p>Isi yang bisa kamu. Semua tersimpan otomatis ke spreadsheet sekolah.</p>
+      </div>
+      <button class="icon-btn" id="btnTutupForm" title="Tutup formulir"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="habit-grid" id="habitGrid"></div>
+  </section>
+
+  <!-- ================= REKAP ================= -->
+  <section class="anim-in anim-in-2">
+    <div class="flex justify-between items-center gap-2 flex-wrap mb-2">
+      <h2 style="font-size:20px"><i class="fa-solid fa-chart-line" style="color:var(--maroon-600)"></i> Rekap Kebiasaan Saya</h2>
+      <div class="chip-row no-print" id="chipRentang">
+        <button class="chip active" data-hari="7">7 Hari</button>
+        <button class="chip" data-hari="14">14 Hari</button>
+        <button class="chip" data-hari="30">30 Hari</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid-4">
+    <div class="stat anim-in anim-in-1">
+      <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+      <div class="stat-value" id="statHariAktif">0</div>
+      <div class="stat-label">Hari Terisi</div>
+      <div class="stat-hint" id="statHariAktifHint">dalam 7 hari terakhir</div>
+    </div>
+    <div class="stat gold anim-in anim-in-2">
+      <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+      <div class="stat-value" id="statPoin">0</div>
+      <div class="stat-label">Poin Rata-rata</div>
+      <div class="stat-hint" id="statPoinHint">dari 100 poin</div>
+    </div>
+    <div class="stat green anim-in anim-in-3">
+      <div class="stat-icon"><i class="fa-solid fa-sun"></i></div>
+      <div class="stat-value" id="statBangun">-</div>
+      <div class="stat-label">Rata-rata Bangun</div>
+      <div class="stat-hint" id="statBangunHint">target <span id="targetBangun">05:30</span></div>
+    </div>
+    <div class="stat anim-in anim-in-4">
+      <div class="stat-icon"><i class="fa-solid fa-fire"></i></div>
+      <div class="stat-value" id="statStreak">0</div>
+      <div class="stat-label">Beruntun</div>
+      <div class="stat-hint">hari journaling</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <!-- Kalender kebiasaan -->
+    <section class="card anim-in anim-in-2">
+      <div class="card-head">
+        <div>
+          <h3>Kalender Kebiasaan</h3>
+          <p>Makin gelap warnanya, makin lengkap jurnalnya.</p>
+        </div>
+      </div>
+      <div class="heatmap" id="heatmap"></div>
+      <div class="heat-legend">
+        <span>Lebih sedikit</span>
+        <div class="heat-cell"></div>
+        <div class="heat-cell lv1"></div>
+        <div class="heat-cell lv2"></div>
+        <div class="heat-cell lv3"></div>
+        <div class="heat-cell lv4"></div>
+        <span>Lebih lengkap</span>
+      </div>
+    </section>
+
+    <!-- Grafik per kebiasaan -->
+    <section class="card anim-in anim-in-3">
+      <div class="card-head">
+        <div>
+          <h3>Kelengkapan per Kebiasaan</h3>
+          <p>Persentase hari kamu mengisi tiap kebiasaan.</p>
+        </div>
+      </div>
+      <div class="rekap-list" id="rekapList"></div>
+    </section>
+  </div>
+
+  <div class="grid grid-2">
+    <!-- Grafik bangun pagi -->
+    <section class="card anim-in anim-in-3">
+      <div class="card-head">
+        <div>
+          <h3>Grafik Jam Bangun</h3>
+          <p>Makin rendah bar, makin bagus kebiasaannya.</p>
+        </div>
+      </div>
+      <div id="grafikBangun"></div>
+    </section>
+
+    <!-- Lencana -->
+    <section class="card anim-in anim-in-4">
+      <div class="card-head">
+        <div>
+          <h3>Lencana Pencapaian</h3>
+          <p>Kumpulkan semua lencana untuk jadi Anak Indonesia Hebat.</p>
+        </div>
+      </div>
+      <div class="grid grid-2" id="lencanaGrid" style="gap:10px"></div>
+    </section>
+  </div>
+
+  <!-- Riwayat -->
+  <section class="card anim-in anim-in-4">
+    <div class="card-head">
+      <div>
+        <h3>Riwayat Jurnal Terakhir</h3>
+        <p>Isi dari jurnal yang tersimpan di database.</p>
+      </div>
+      <button class="btn btn-ghost btn-sm no-print" id="btnRiwayat"><i class="fa-solid fa-rotate"></i> Muat ulang</button>
+    </div>
+    <div id="riwayatList"></div>
+  </section>
+
+  <!-- Catatan guru -->
+  <section class="card anim-in anim-in-4" id="cardCatatan" style="display:none">
+    <div class="card-head">
+      <div>
+        <h3><i class="fa-solid fa-comment-dots" style="color:var(--gold-500)"></i> Catatan dari Guru</h3>
+        <p>Pesan guru untuk kamu dan orang tuamu.</p>
+      </div>
+    </div>
+    <div id="catatanList"></div>
+  </section>
+
+</main>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite">
+  <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
+  <div class="t-content">
+    <div class="t-title"></div>
+    <div class="t-msg"></div>
+  </div>
+</div>
+
+<script src="assets/js/site-config.js"></script>
+<script src="assets/js/habits.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/murid.js"></script>
+</body>
+</html>

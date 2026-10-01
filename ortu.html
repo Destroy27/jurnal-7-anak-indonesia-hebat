@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#75162F">
+<meta name="description" content="Pantau kemajuan jurnal 7 kebiasaan anak dari rumah.">
+<title>Pantau Anak - Jurnal 7 Anak Indonesia Hebat</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2375162F'/><text y='68' x='50' text-anchor='middle' font-size='52' fill='%23E3C15C' font-family='serif' font-weight='bold'>7</text></svg>">
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<header class="topnav no-print">
+  <div class="container wrap-lg topnav-inner">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-people-roof"></i></div>
+      <div class="brand-text">
+        <h1 id="appName">Pantau Anak</h1>
+        <p id="identitas">Memuat...</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="nav-role"><i class="fa-solid fa-eye"></i> Mode Pantau</span>
+      <button class="icon-btn" id="btnSync" title="Sinkron sekarang"><i class="fa-solid fa-rotate"></i></button>
+      <button class="icon-btn" id="btnLogout" title="Keluar"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="container wrap-lg main">
+
+  <div class="banner hidden" id="statusBar">
+    <i class="fa-solid fa-circle-info"></i><span id="statusTeks"></span>
+  </div>
+
+  <!-- Ringkasan utama -->
+  <section class="ortu-hero anim-in">
+    <span class="eyebrow" style="color:var(--gold-400)">Laporan Kebiasaan Harian</span>
+    <h2 id="sapaan" style="margin-top:10px">Memuat...</h2>
+    <p id="subJudul">-</p>
+    <div class="ortu-hero-grid">
+      <div><strong id="hAktif">0</strong><span>Hari Terisi</span></div>
+      <div><strong id="hPoin">0</strong><span>Rata-rata Poin</span></div>
+      <div><strong id="hBangun">-</strong><span>Rata-rata Bangun</span></div>
+      <div><strong id="hStreak">0</strong><span>Beruntun</span></div>
+    </div>
+  </section>
+
+  <div class="flex justify-between items-center gap-2 flex-wrap">
+    <h2 style="font-size:19px"><i class="fa-solid fa-chart-line" style="color:var(--maroon-600)"></i> Kemajuan Kebiasaan</h2>
+    <div class="chip-row no-print" id="chipRentang">
+      <button class="chip active" data-hari="7">7 Hari</button>
+      <button class="chip" data-hari="14">14 Hari</button>
+      <button class="chip" data-hari="30">30 Hari</button>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <section class="card anim-in anim-in-1">
+      <div class="card-head">
+        <div>
+          <h3>Kelengkapan per Kebiasaan</h3>
+          <p>Berapa persen hari anak mengisi tiap kebiasaan.</p>
+        </div>
+      </div>
+      <div class="rekap-list" id="rekapList"></div>
+    </section>
+
+    <section class="card anim-in anim-in-2">
+      <div class="card-head">
+        <div>
+          <h3>Kalender Kebiasaan</h3>
+          <p>Makin gelap, makin lengkap jurnalnya.</p>
+        </div>
+      </div>
+      <div class="heatmap" id="heatmap"></div>
+      <div class="heat-legend">
+        <span>Lebih sedikit</span>
+        <div class="heat-cell"></div>
+        <div class="heat-cell lv1"></div>
+        <div class="heat-cell lv2"></div>
+        <div class="heat-cell lv3"></div>
+        <div class="heat-cell lv4"></div>
+        <span>Lebih lengkap</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid grid-2">
+    <section class="card anim-in anim-in-3">
+      <div class="card-head">
+        <div>
+          <h3>Jam Bangun</h3>
+          <p>Perbandingan dengan target sekolah.</p>
+        </div>
+      </div>
+      <div id="grafikBangun"></div>
+    </section>
+
+    <section class="card anim-in anim-in-4">
+      <div class="card-head">
+        <div>
+          <h3>Lencana yang Diraih</h3>
+          <p>Penghargaan atas konsistensi anaknya.</p>
+        </div>
+      </div>
+      <div class="grid grid-2" id="lencanaGrid" style="gap:10px"></div>
+    </section>
+  </div>
+
+  <section class="card anim-in anim-in-4">
+    <div class="card-head">
+      <div>
+        <h3>Rincian Jurnal Terakhir</h3>
+        <p>Apa saja yang ditulis anak setiap hari.</p>
+      </div>
+    </div>
+    <div id="riwayatList"></div>
+  </section>
+
+  <section class="card anim-in anim-in-4" id="cardCatatan" style="display:none">
+    <div class="card-head">
+      <div>
+        <h3><i class="fa-solid fa-comment-dots" style="color:var(--gold-500)"></i> Catatan dari Guru</h3>
+        <p>Pesan wali kelas untuk keluarga.</p>
+      </div>
+    </div>
+    <div id="catatanList"></div>
+  </section>
+
+  <div class="banner banner-maroon no-print" style="font-size:12.5px">
+    <i class="fa-solid fa-circle-info"></i>
+    <span>Halaman ini hanya untuk melihat. Untuk mengubah jurnal, anak mengisi sendiri di sekolah.</span>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite">
+  <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
+  <div class="t-content"><div class="t-title"></div><div class="t-msg"></div></div>
+</div>
+
+<script src="assets/js/site-config.js"></script>
+<script src="assets/js/habits.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/ortu.js"></script>
+</body>
+</html>

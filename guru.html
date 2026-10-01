@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#75162F">
+<meta name="description" content="Panel guru - rekap jurnal 7 kebiasaan anak Indonesia hebat seluruh kelas.">
+<title>Panel Guru - Jurnal 7 Anak Indonesia Hebat</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2375162F'/><text y='68' x='50' text-anchor='middle' font-size='52' fill='%23E3C15C' font-family='serif' font-weight='bold'>7</text></svg>">
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- ================= NAVBAR ================= -->
+<header class="topnav no-print">
+  <div class="container wrap-lg topnav-inner">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <div class="brand-text">
+        <h1 id="appName">Panel Guru</h1>
+        <p id="identitas">Memuat...</p>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <span class="nav-role"><i class="fa-solid fa-circle-user"></i> <span id="namaGuru">-</span></span>
+      <button class="icon-btn" id="btnSync" title="Sinkron sekarang"><i class="fa-solid fa-rotate"></i></button>
+      <button class="icon-btn" id="btnLogout" title="Keluar"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="container wrap-lg main">
+
+  <div class="banner hidden" id="statusBar">
+    <i class="fa-solid fa-circle-info"></i><span id="statusTeks"></span>
+  </div>
+
+  <!-- Tab utama -->
+  <div class="tabs no-print" id="tabs">
+    <button class="tab active" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard</button>
+    <button class="tab" data-tab="kelas"><i class="fa-solid fa-users"></i> Kelas &amp; Siswa</button>
+    <button class="tab" data-tab="catatan"><i class="fa-solid fa-comment-dots"></i> Catatan</button>
+    <button class="tab" data-tab="pengaturan"><i class="fa-solid fa-gear"></i> Pengaturan</button>
+  </div>
+
+  <!-- ============ TAB: DASHBOARD ============ -->
+  <section id="tab-dashboard">
+    <!-- Pilih kelas -->
+    <div class="card anim-in">
+      <div class="card-head">
+        <div>
+          <h2>Pilih Kelas</h2>
+          <p>Klik kelas untuk melihat rekap jurnal siswanya.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm no-print" id="btnTambahKelas"><i class="fa-solid fa-plus"></i> Kelas Baru</button>
+      </div>
+      <div class="class-picker" id="classPicker"></div>
+    </div>
+
+    <div id="isiDashboard"></div>
+  </section>
+
+  <!-- ============ TAB: KELAS & SISWA ============ -->
+  <section id="tab-kelas" class="hidden">
+    <div class="card anim-in">
+      <div class="card-head">
+        <div>
+          <h2>Kelola Siswa</h2>
+          <p id="subKelas">Pilih kelas di tab Dashboard dulu.</p>
+        </div>
+        <div class="flex gap-1 flex-wrap no-print">
+          <button class="btn btn-ghost btn-sm" id="btnTempelSiswa"><i class="fa-solid fa-paste"></i> Tempel Massal</button>
+          <button class="btn btn-primary btn-sm" id="btnTambahSiswa"><i class="fa-solid fa-user-plus"></i> Tambah Siswa</button>
+        </div>
+      </div>
+
+      <div class="banner banner-info mb-3" style="font-size:12.5px">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span>Setiap siswa punya <b>NIS</b> (untuk login murid), <b>PIN</b> (sandi 4-6 angka), dan
+        <b>Kode Akses</b> untuk orang tuanya. Berikan kode ortu kepada masing-masing wali.</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Siswa</th><th>NIS</th><th>PIN</th><th>Kode Orang Tua</th>
+              <th>Terisi (14h)</th><th class="text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tabelSiswa"></tbody>
+        </table>
+      </div>
+
+      <div class="flex gap-1 flex-wrap mt-3 no-print">
+        <button class="btn btn-ghost btn-sm" id="btnUnduhSiswa"><i class="fa-solid fa-file-csv"></i> Unduh Template CSV</button>
+        <button class="btn btn-danger btn-sm" id="btnKosongkan"><i class="fa-solid fa-trash"></i> Kosongkan Jurnal Kelas Ini</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: CATATAN ============ -->
+  <section id="tab-catatan" class="hidden">
+    <div class="card anim-in">
+      <div class="card-head">
+        <div>
+          <h2>Catatan untuk Siswa</h2>
+          <p>Pesan ini akan terlihat oleh murid dan orang tuanya di halaman masing-masing.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-3">
+        <div class="field">
+          <label for="catSiswa"><i class="fa-solid fa-user"></i> Siswa <span class="req">*</span></label>
+          <select class="select" id="catSiswa"></select>
+        </div>
+        <div class="field">
+          <label for="catJenis"><i class="fa-solid fa-tag"></i> Jenis</label>
+          <select class="select" id="catJenis">
+            <option value="catatan">Catatan biasa</option>
+            <option value="pujian">Apresiasi / Pujian</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="catTanggal"><i class="fa-solid fa-calendar"></i> Tanggal</label>
+          <input class="input" id="catTanggal" type="date">
+        </div>
+      </div>
+      <div class="field mt-2">
+        <label for="catIsi"><i class="fa-solid fa-pen-to-square"></i> Isi Catatan <span class="req">*</span></label>
+        <textarea class="textarea" id="catIsi" rows="4" maxlength="500"
+          placeholder="Contoh: Ananda bangun pukul 04.45 selama seminggu berturut-turut. Pertahankan!"></textarea>
+      </div>
+      <button class="btn btn-primary mt-2" id="btnSimpanCatatan"><i class="fa-solid fa-paper-plane"></i> Kirim Catatan</button>
+
+      <div class="rule-gold mt-4 mb-3"></div>
+
+      <h3 style="font-size:16px;margin-bottom:12px">Catatan Terkirim</h3>
+      <div id="daftarCatatan"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB: PENGATURAN ============ -->
+  <section id="tab-pengaturan" class="hidden">
+    <div class="grid grid-2">
+      <div class="card anim-in">
+        <div class="card-head"><div><h3>Identitas Aplikasi</h3><p>Nama yang tampil di seluruh halaman.</p></div></div>
+        <div class="field">
+          <label for="setNamaApp"><i class="fa-solid fa-signature"></i> Nama Aplikasi</label>
+          <input class="input" id="setNamaApp" type="text" maxlength="60">
+        </div>
+        <div class="field mt-2">
+          <label for="setTarget"><i class="fa-solid fa-bullseye"></i> Target Jam Bangun</label>
+          <input class="input" id="setTarget" type="time" step="300">
+          <p class="field-hint">Digunakan untuk menghitung skor kebiasaan nomor 1.</p>
+        </div>
+        <button class="btn btn-primary mt-3" id="btnSimpanIdentitas"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+      </div>
+
+      <div class="card anim-in">
+        <div class="card-head"><div><h3>Akun Guru</h3><p>Multi-guru. Password disimpan sebagai hash SHA-256.</p></div></div>
+        <div id="daftarGuru" class="mb-3"></div>
+        <div class="grid grid-2" style="gap:10px">
+          <input class="input" id="gNama" type="text" placeholder="Nama guru">
+          <input class="input" id="gUser" type="text" placeholder="username">
+        </div>
+        <input class="input mt-2" id="gPass" type="password" placeholder="password (min. 6 karakter)" autocomplete="new-password">
+        <button class="btn btn-soft btn-block mt-2" id="btnTambahGuru"><i class="fa-solid fa-user-plus"></i> Tambah Guru</button>
+        <div class="banner banner-warn mt-3" style="font-size:11.5px">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Hapus akun default <b>guru</b> setelah membuat akun pribadi Anda.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card anim-in anim-in-1 mt-3">
+      <div class="card-head"><div><h3>Database &amp; Koneksi</h3><p>Informasi teknis untuk pemeliharaan.</p></div></div>
+      <div class="field">
+        <label for="setUrl"><i class="fa-solid fa-link"></i> Google Apps Script Web App URL</label>
+        <input class="input mono" id="setUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+        <p class="field-hint">
+          Disimpan di perangkat ini. Agar berlaku untuk semua perangkat, tempel juga di
+          <b class="mono">assets/js/site-config.js</b> lalu unggah ulang ke repository.
+        </p>
+      </div>
+      <div class="flex gap-1 flex-wrap mt-3">
+        <button class="btn btn-primary btn-sm" id="btnSimpanUrl"><i class="fa-solid fa-floppy-disk"></i> Simpan URL</button>
+        <button class="btn btn-ghost btn-sm" id="btnTesUrl"><i class="fa-solid fa-plug-circle-check"></i> Tes Koneksi</button>
+        <button class="btn btn-ghost btn-sm" id="btnMuatTemplate"><i class="fa-solid fa-download"></i> Unduh Code.gs</button>
+      </div>
+      <div class="table-wrap mt-3">
+        <table class="table">
+          <tbody>
+            <tr><td class="text-muted">Status koneksi</td><td id="infoStatus">-</td></tr>
+            <tr><td class="text-muted">Jumlah siswa</td><td id="infoSiswa">-</td></tr>
+            <tr><td class="text-muted">Jumlah entri jurnal</td><td id="infoEntri">-</td></tr>
+            <tr><td class="text-muted">Sinkron terakhir</td><td id="infoWaktu">-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite">
+  <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
+  <div class="t-content"><div class="t-title"></div><div class="t-msg"></div></div>
+</div>
+
+<script src="assets/js/site-config.js"></script>
+<script src="assets/js/habits.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/guru.js"></script>
+</body>
+</html>

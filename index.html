@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#75162F">
+<meta name="description" content="Jurnal 7 Anak Indonesia Hebat - aplikasi jurnal kebiasaan harian untuk siswa SD. Dipantau guru dan orang tua.">
+<title>Jurnal 7 Anak Indonesia Hebat</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/pages.css">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2375162F'/><text y='68' x='50' text-anchor='middle' font-size='52' fill='%23E3C15C' font-family='serif' font-weight='bold'>7</text></svg>">
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<div class="login-page">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="topnav">
+    <div class="container wrap-lg topnav-inner">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa-solid fa-book-open"></i></div>
+        <div class="brand-text">
+          <h1 id="namaAppNav">Jurnal 7 Anak Indonesia Hebat</h1>
+          <p>Mencetak Anak Indonesia Hebat</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <span class="nav-role hidden" id="navRole"><i class="fa-solid fa-circle-user"></i> <span id="navRoleText"></span></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= ISI ================= -->
+  <main class="container wrap-lg main">
+
+    <!-- Hero -->
+    <section class="card card-hero anim-in" id="setupCard">
+      <div class="card-head" style="margin-bottom:12px">
+        <div>
+          <span class="eyebrow" style="color:var(--gold-400)">Mulai di Sini</span>
+          <h2 style="margin-top:10px">Hubungkan Database dulu</h2>
+          <p style="max-width:640px;margin-top:8px">
+            Aplikasi ini menyimpan jurnal ke Google Spreadsheet lewat Google Apps Script.
+            Untuk mencoba, isi URL deployment di file <b class="mono">assets/js/site-config.js</b>.
+          </p>
+        </div>
+        <div class="ring" style="flex-shrink:0" id="setupRing"></div>
+      </div>
+
+      <ol style="font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.86);padding-left:20px;list-style:decimal">
+        <li>Buat spreadsheet baru di <b>https://sheets.new</b> lalu beri nama, misal "Jurnal 7 Kebiasaan SD".</li>
+        <li>Menu <b>Ekstensi &rarr; Apps Script</b>, hapus isi <b class="mono">Code.gs</b>, lalu tempel seluruh isi file
+            <b class="mono">apps-script/Code.gs</b> dari repository ini.</li>
+        <li><b>Deploy &rarr; New deployment &rarr; Web app</b>: Execute as <b>Me</b>, Who has access <b>Anyone</b>.</li>
+        <li>Salin URL yang berakhiran <b class="mono">/exec</b>, lalu tempel ke
+            <b class="mono">assets/js/site-config.js</b> pada baris <b class="mono">scriptUrl</b>.</li>
+        <li>Login sebagai guru dengan <b class="mono">guru</b> / <b class="mono">guru123</b>, lalu segera ganti password.</li>
+      </ol>
+
+      <div class="flex gap-1 flex-wrap mt-3">
+        <button class="btn btn-gold" id="btnCekKoneksi"><i class="fa-solid fa-plug-circle-check"></i> Sudah Diisi, Coba Lagi</button>
+        <a class="btn btn-ghost" href="https://github.com" target="_blank" rel="noopener"
+           style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff">
+          <i class="fa-brands fa-github"></i> Panduan di Repository
+        </a>
+      </div>
+    </section>
+
+    <!-- Login + hero -->
+    <section class="login-wrap" id="loginWrap">
+
+      <!-- Kolom kiri: 7 kebiasaan -->
+      <div class="login-intro">
+        <span class="eyebrow">7 Kebiasaan Anak Indonesia Hebat</span>
+        <h1>Bangun kebiasaan <em>luar biasa</em> sejak dini.</h1>
+        <p>
+          Anak mengisi jurnal setiap hari untuk 7 kebiasaan sederhana. Guru melihat rekapnya,
+          orang tua memantau tanpa perlu datang ke sekolah.
+        </p>
+
+        <div class="habit-strip" id="habitStrip"></div>
+
+        <div class="flex gap-2 flex-wrap mt-4" style="font-size:12.5px;color:var(--muted)">
+          <span class="badge badge-maroon"><i class="fa-solid fa-mobile-screen"></i> Cukup dari HP</span>
+          <span class="badge badge-gold"><i class="fa-solid fa-shield-halved"></i> Data di Spreadsheet kamu sendiri</span>
+          <span class="badge badge-success"><i class="fa-solid fa-chart-line"></i> Rekap otomatis</span>
+        </div>
+      </div>
+
+      <!-- Kolom kanan: panel login -->
+      <div class="login-panel">
+        <h2>Masuk</h2>
+        <p>Pilih peran, lalu isi identitas.</p>
+
+        <div class="role-tabs mt-3" role="tablist">
+          <button class="role-tab active" data-role="siswa" role="tab" aria-selected="true">
+            <i class="fa-solid fa-child"></i><span>Murid</span>
+          </button>
+          <button class="role-tab" data-role="guru" role="tab" aria-selected="false">
+            <i class="fa-solid fa-chalkboard-user"></i><span>Guru</span>
+          </button>
+          <button class="role-tab" data-role="ortu" role="tab" aria-selected="false">
+            <i class="fa-solid fa-people-roof"></i><span>Orang Tua</span>
+          </button>
+        </div>
+
+        <form class="login-form" id="formLogin" autocomplete="on" novalidate>
+          <!-- Murid -->
+          <div data-panel="siswa">
+            <div class="field">
+              <label for="nis"><i class="fa-solid fa-id-card"></i> NIS</label>
+              <div class="input-group">
+                <i class="fa-solid fa-id-card"></i>
+                <input class="input" id="nis" name="nis" type="text" inputmode="numeric" placeholder="contoh: 24001" autocomplete="username">
+              </div>
+            </div>
+            <div class="field">
+              <label for="pin"><i class="fa-solid fa-key"></i> PIN</label>
+              <div class="input-group">
+                <i class="fa-solid fa-key"></i>
+                <input class="input" id="pin" name="pin" type="password" inputmode="numeric" placeholder="PIN dari guru" autocomplete="current-password">
+                <button type="button" class="toggle" data-toggle="pin" aria-label="Lihat PIN"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+            <p class="field-hint">Belum punya NIS atau PIN? Minta ke guru kelasmu.</p>
+          </div>
+
+          <!-- Guru -->
+          <div data-panel="guru" class="hidden">
+            <div class="field">
+              <label for="gUser"><i class="fa-solid fa-user-tie"></i> Username</label>
+              <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input class="input" id="gUser" name="gUser" type="text" placeholder="username guru" autocomplete="username">
+              </div>
+            </div>
+            <div class="field">
+              <label for="gPass"><i class="fa-solid fa-lock"></i> Password</label>
+              <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input class="input" id="gPass" name="gPass" type="password" placeholder="password guru" autocomplete="current-password">
+                <button type="button" class="toggle" data-toggle="gPass" aria-label="Lihat password"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orang tua -->
+          <div data-panel="ortu" class="hidden">
+            <div class="field">
+              <label for="kode"><i class="fa-solid fa-ticket"></i> Kode Akses</label>
+              <div class="input-group">
+                <i class="fa-solid fa-ticket"></i>
+                <input class="input" id="kode" name="kode" type="text" placeholder="contoh: ORTU-A1B2" autocomplete="off">
+              </div>
+            </div>
+            <p class="field-hint">
+              Kode akses diberikan guru. Satu kode hanya untuk satu anak.
+              Halaman ini hanya bisa dilihat, tidak bisa diubah.
+            </p>
+          </div>
+
+          <div class="field-error hidden" id="loginError"></div>
+
+          <button class="btn btn-primary btn-lg btn-block mt-1" type="submit" id="btnLogin">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk
+          </button>
+        </form>
+
+        <div class="banner banner-maroon mt-3" style="font-size:12px">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Satu aplikasi untuk banyak kelas. Guru mengatur siswa, NIS, PIN, dan kode akses orang tua dari Panel Guru.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="login-foot">
+    <div class="container wrap-lg flex justify-between items-center gap-2 flex-wrap">
+      <span>&copy; <span id="tahun"></span> <span id="namaAppFoot">Jurnal 7 Anak Indonesia Hebat</span></span>
+      <span class="flex gap-1 flex-wrap">
+        <a href="murid.html">Murid</a>
+        <span>&middot;</span>
+        <a href="guru.html">Guru</a>
+        <span>&middot;</span>
+        <a href="ortu.html">Orang Tua</a>
+      </span>
+    </div>
+  </footer>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite">
+  <div class="t-icon ok"><i class="fa-solid fa-circle-check"></i></div>
+  <div class="t-content">
+    <div class="t-title"></div>
+    <div class="t-msg"></div>
+  </div>
+</div>
+
+<script src="assets/js/site-config.js"></script>
+<script src="assets/js/habits.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/login.js"></script>
+</body>
+</html>
