@@ -54,6 +54,56 @@
     var sc = root.SITECONFIG || {};
     return String(sc.namaSekolah || '').trim();
   }
+  /* ---------------- Gambar kebiasaan ----------------
+     Guru bebas menyiapkan foto untuk tiap kebiasaan. Isi
+     SITECONFIG.gambarKebiasaan (lihat site-config.js):
+       { bangun: 'assets/img/habits/bangun.jpg', ... }
+     Kalau dikosongkan atau file-nya tidak ada, kartu otomatis
+     memakai ikon + warna kebiasaan, jadi tidak pernah rusak. */
+  function gambarHabit(key) {
+    var sc = root.SITECONFIG || {};
+    var peta = sc.gambarKebiasaan || {};
+    return String(peta[key] || '').trim();
+  }
+  /* ---------------- Logo aplikasi ----------------
+     Semua halaman (depan, murid, guru, orang tua) memakai logo
+     yang sama. Logo utama dibaca dari  assets/img/logo.png;
+     kalau file itu belum diunggah, browser otomatis turun ke
+     assets/img/logo.svg (logo bawaan), jadi halaman tidak pernah
+     rusak. Kalau SITECONFIG.logo diisi, path itulah yang dipakai
+     sehingga logo bisa diganti tanpa menyentuh file HTML. */
+  var LOGO_UTAMA = 'assets/img/logo.png';
+  var LOGO_CADANGAN = 'assets/img/logo.svg';
+
+  function logoURL() {
+    var sc = root.SITECONFIG || {};
+    var dari = String(sc.logo || '').trim();
+    return dari || LOGO_UTAMA;
+  }
+  /* Satu tempat untuk semua <img data-logo>. Dua catatan penting:
+     1) onerror HAPUS BARU di hop terakhir. Kalau dilepas sejak
+        hop pertama, logo.svg yang hilang tidak akan pernah
+        tertangani dan yang muncul hanya gambar rusak.
+     2) pakai style.display, BUKAN .hidden, karena reset di
+        base.css (`img { display:block }`) mengalahkan atribut
+        [hidden]. */
+  function terapkanLogo() {
+    var url = logoURL();
+    var imgs = document.querySelectorAll('img[data-logo]');
+    for (var i = 0; i < imgs.length; i++) {
+      (function (img) {
+        img.onerror = function () {
+          if (String(img.getAttribute('src') || '') === LOGO_CADANGAN) {
+            img.onerror = null;
+            img.style.display = 'none';
+            return;
+          }
+          img.src = LOGO_CADANGAN;
+        };
+        img.src = url;
+      })(imgs[i]);
+    }
+  }
   var scriptURL = (function () {
     try { return localStorage.getItem(KEYS.script) || siteScriptURL(); } catch (e) { return siteScriptURL(); }
   })();
@@ -922,6 +972,8 @@
     set scriptURL(v) { scriptURL = String(v || '').trim(); saveScriptURL(); },
     get siteScriptURL() { return siteScriptURL(); },
     get sekolah() { return namaSekolah(); },
+    gambarHabit: gambarHabit,
+    logoURL: logoURL,
     get pendingCount() { return _pending.length; },
 
     isConfigured: isConfigured,
@@ -970,5 +1022,6 @@
   root.addEventListener('online', function () { jadwalkanTuangAntrean(); });
 
   root.Jurnal = api;
+  terapkanLogo();
   loadCache();
 })(typeof window !== 'undefined' ? window : this);

@@ -25,14 +25,45 @@
     if (foot) foot.textContent = sekolah;
   }
 
-  /* ---------- Kartu 7 kebiasaan di panel kiri ----------
-     Hanya judul, tanpa subjudul: supaya kartu ringkas dan tidak
-     penuh. Warna kotak memakai warna habit yang sudah gelap. */
+  /* ---------- Kartu 7 kebiasaan (bagian paling atas) ----------
+     Tiap kartu: slot gambar + nomor + judul + deskripsi singkat +
+     info kecil (target jam, atau cara mengisinya).
+     Gambar diambil dari SITECONFIG.gambarK Biasaan (lihat
+     site-config.js). Kalau kosong / file tidak ada, kartu
+     otomatis memakai ikon + warna kebiasaan. */
   function gambarKebiasaan() {
-    document.getElementById('habitStrip').innerHTML = H.list.map(function (h) {
-      return '<div class="habit-chip">' +
-        '<span class="hc-no" style="background:' + h.color + '">' + h.no + '</span>' +
-        '<span class="hc-txt"><strong>' + J.esc(h.title) + '</strong></span></div>';
+    var wadah = document.getElementById('habitCards');
+    if (!wadah) return;
+
+    wadah.innerHTML = H.list.map(function (h) {
+      var gambar = J.gambarHabit(h.key);
+      var foto = gambar
+        ? '<img src="' + J.esc(gambar) + '" alt="' + J.esc(h.title) + '" loading="lazy" onerror="this.remove()">'
+        : '';
+
+      /* Info kecil: kebiasaan jam tampil targetnya, kebiasaan
+         centang tampil caranya mengisi. */
+      var target = H.targetOf(h.key);
+      var meta = target
+        ? '<i class="fa-regular fa-clock"></i> ' + J.esc(h.targetLabel || 'Target') + ' ' + J.esc(target)
+        : '<i class="fa-solid fa-check"></i> Cukup centang';
+
+      /* Halaman depan ruangnya cukup untuk penjelasan lengkap;
+         kalau suatu kebiasaan belum punya `deskripsi`, turun ke
+         teks satu baris `sub`. */
+      var cerita = h.deskripsi || h.sub || '';
+
+      return '<article class="show-card" style="--hc:' + h.color + '">' +
+        '<div class="show-media">' +
+          '<span class="show-no">' + h.no + '</span>' +
+          '<i class="' + h.icon + '"></i>' + foto +
+        '</div>' +
+        '<div class="show-body">' +
+          '<h3>' + J.esc(h.title) + '</h3>' +
+          '<p>' + J.esc(cerita) + '</p>' +
+          '<span class="show-meta">' + meta + '</span>' +
+        '</div>' +
+      '</article>';
     }).join('');
   }
 

@@ -208,6 +208,10 @@ jurnal-7-anak-indonesia-hebat/
 │   │   ├── base.css        → token desain, reset, layout
 │   │   ├── components.css  → tombol, kartu, tabel, toast, grafik
 │   │   └── pages.css       → login, kartu kebiasaan, dashboard
+│   ├── img/
+│   │   ├── logo.png         → 🖼️ LOGO APLIKASI (letakkan logomu di sini)
+│   │   ├── logo.svg         → logo bawaan (dipakai kalau logo.png belum ada)
+│   │   └── habits/         → 🖼️ FOTO 7 KEBIASAAN (opsional, lihat README di dalamnya)
 │   └── js/
 │       ├── site-config.js  → ⚙️ TEMPEL URL APPS SCRIPT DI SINI
 │       ├── habits.js       → definisi 7 kebiasaan + mesin skor
@@ -257,19 +261,70 @@ Sesuai arsitektur tanpa server, ada hal yang perlu diketahui:
 
 ---
 
+## 🎨 Logo Aplikasi
+
+Seluruh halaman memakai **satu logo yang sama**: di navbar (kotak 42 px) dan di
+kotak logo pada kartu login.
+
+### Cara memasang logo (paling mudah)
+
+1. Siapkan logomu dalam bentuk **persegi** (ideal 512 × 512 px, PNG transparan
+   atau JPG, di bawah 200 KB).
+2. Salin ke folder `assets/img/` dengan nama **`logo.png`** (atau `logo.jpg` —
+   ubah satu kata `png` → `jpg` di empat file HTML).
+3. Commit & push. Logo langsung muncul di semua halaman.
+
+Tidak ada kode yang perlu diubah, dan **kalau logomu belum diunggah**, aplikasi
+otomatis memakai `assets/img/logo.svg` (logo bawaan) supaya tidak pernah tampil
+gambar rusak.
+
+> Kalau logo belum ada, tiap navbar menampilkan ikon bawaannya (buku / papan
+> tulis / rumah) seperti sebelumnya — jadi halaman tetap rapi.
+
+### Kalau logo disimpan di tempat lain
+
+Isi satu baris di [`assets/js/site-config.js`](assets/js/site-config.js):
+
+```js
+logo: 'assets/img/logo-sekolah.png',   // boleh kosong (default)
+```
+
+Satu baris ini berlaku untuk **semua** halaman — navbar, halaman depan, sampai
+kartu login. Kalau file yang ditunjuk tidak ada, sistem otomatis mundur ke
+`assets/img/logo.svg`.
+
+### Ukuran & tampilan
+
+| Bagian | Ukuran kotak | Perilaku |
+|---|---|---|
+| Navbar | 42 × 42 px | Logo tidak dipotong (`object-fit: contain`),latar putih, ikon jadi cadangan |
+| Kartu login | 76 × 76 px (62 px di HP) | Logo tidak dipotong, kotak putih dengan garis tipis |
+
+Logo berbentuk **persegi** paling aman. Kalau logo berupa tulisan panjang
+(wordmark) yang terlalu melebar, tampilannya tetap utuh tapi ukurannya jadi
+kecil di navbar.
+
+---
+
 ## 🎨 Tema Warna
 
-Nuansa **merah marun gelap** dengan aksen emas, dipadukan **abu-abu netral** untuk
-seluruh latar, tombol, badge, dan garis. Semua latar merah muda (pink) sengaja
-dihilangkan supaya merah marun hanya muncul sebagai teks dan isian — warnanya jadi
-lebih bersih dan mudah ditukar tema.
+Nuansa **hijau botol + krem**, dipadukan abu-abu netral untuk seluruh latar,
+tombol, badge, dan garis. Semua latar merah muda (pink) dan merah marun
+sengaja dibuang supaya hijau botol hanya muncul sebagai teks, isian, dan
+tombol — warnanya jadi lebih bersih dan mudah ditukar tema.
 
 ```
-Maroon utama   #5E0F1D   Aksen emas    #B08D1C
-Maroon gelap   #33070F   Emas terang   #D2AE4A
-Maroon mid     #8B1826   Latar         #F4F4F3
-Netral teks    #1A1A1C   Kartu         #FFFFFF
+Hijau gelap    #04201B   Krem aksen    #F0EAD8
+Hijau bottle   #134A3B   Krem muda     #F8F5EC
+Hijau mid      #175C49   Emas/krem    #E2D3A9
+Teks netral    #14231F   Kartu        #FFFFFF
+Latar halaman  #F8F6EF   Garis         #E4E0D3
 ```
+
+> Nama variabel CSS masih `—maroon—` (misal `--maroon-700`) demi kompatibilitas
+> dengan seluruh CSS yang sudah tertulis, **nilainya sekarang hijau botol**.
+> Kalau ingin mengganti tema, cukup ubah blok `:root` di
+> [`assets/css/base.css`](assets/css/base.css).
 
 Tujuh kebiasaan memakai **warna berbeda** yang gelap dan pekat, supaya mudah
 dibedakan di grafik rekap guru.
@@ -278,4 +333,4 @@ dibedakan di grafik rekap guru.
 
 ## 📄 Lisensi
 
-Bebas dipakai dan dimodifikasi untuk kebutuhan pendidikan masing-masing sekolah.g-masing sekolah.
+Bebas dipakai dan dimodifikasi untuk kebutuhan pendidikan masing-masing sekolah.

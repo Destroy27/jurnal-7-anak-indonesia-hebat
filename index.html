@@ -32,7 +32,10 @@
   <header class="topnav">
     <div class="container wrap-lg topnav-inner">
       <div class="brand">
-        <div class="brand-icon"><i class="fa-solid fa-book-open"></i></div>
+        <div class="brand-icon">
+          <i class="fa-solid fa-book-open"></i>
+          <img class="brand-logo" data-logo src="assets/img/logo.png" alt="">
+        </div>
         <div class="brand-text">
           <h1 id="namaAppNav">Jurnal 7 Anak Indonesia Hebat</h1>
           <p id="namaSekolahNav">SD N 4 Jehem</p>
@@ -80,37 +83,59 @@
       </div>
     </section>
 
-    <!-- Login + hero -->
-    <section class="login-wrap" id="loginWrap">
-
-      <!-- Kolom kiri: 7 kebiasaan -->
-      <div class="login-intro">
+    <!-- ============ KARTU 7 KEBIASAAN (paling atas) ============ -->
+    <section class="showcase" id="showcase">
+      <div class="showcase-head">
         <span class="eyebrow">7 Kebiasaan Anak Indonesia Hebat</span>
         <h1>Tujuh kebiasaan <em>luar biasa</em> setiap hari.</h1>
         <p>
-          Jurnal harian sederhana untuk anak SD: bangun pagi, beribadah, berolahraga, makan sehat,
-          gemar belajar, bermasyarakat, dan tidur cepat. Guru melihat rekap kelas,
-          orang tua memantau anak dari rumah.
+          Inilah yang diisi setiap anak setiap hari, dari bangun pagi sampai tidur cepat.
+          Tinggal centang atau tulis jamnya - cukup satu menit dari HP.
         </p>
+      </div>
 
-        <div class="habit-strip" id="habitStrip"></div>
+      <div class="show-cards" id="habitCards"></div>
+
+      <p class="sumber-note">
+        <i class="fa-solid fa-book-open-reader"></i>
+        G7KAIH adalah gerakan pendidikan karakter Kementerian Pendidikan Dasar dan
+        Menengah (Kemendikdasmen), diluncurkan 27 Desember 2024 di Jakarta.
+        Buku Panduannya terbit 11 April 2025.
+      </p>
+    </section>
+
+    <!-- Login -->
+    <section class="login-wrap" id="loginWrap">
+
+      <div class="login-intro">
+        <span class="eyebrow">Masuk ke Jurnal</span>
+        <h2>Tempat masing-masing peran.</h2>
+        <p>
+          Guru melihat rekap kelas dan catatan harian. Orang tua memantau kemajuan anak
+          dari rumah. Murid cukup mengisi jurnal sendiri setiap pagi.
+        </p>
 
         <div class="flex gap-2 flex-wrap mt-4" style="font-size:12.5px;color:var(--muted)">
           <span class="badge badge-maroon"><i class="fa-solid fa-mobile-screen"></i> Cukup dari HP</span>
           <span class="badge badge-gold"><i class="fa-solid fa-shield-halved"></i> Data di Spreadsheet kamu sendiri</span>
           <span class="badge badge-success"><i class="fa-solid fa-chart-line"></i> Rekap otomatis</span>
         </div>
-
-        <p class="sumber-note">
-          <i class="fa-solid fa-book-open-reader"></i>
-          G7KAIH adalah gerakan pendidikan karakter Kementerian Pendidikan Dasar dan
-          Menengah (Kemendikdasmen), diluncurkan 27 Desember 2024 di Jakarta.
-          Buku Panduannya terbit 11 April 2025.
-        </p>
       </div>
 
-      <!-- Kolom kanan: panel login -->
+      <!-- Kolom kanan: KARTU LOGIN (ala Jarco: kartu putih + kotak logo) -->
       <div class="login-panel">
+
+        <!-- Gelombang tipis di tepi atas kartu -->
+        <svg class="login-wave" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M0,28 C70,6 130,40 200,24 C270,8 330,32 400,14 L400,0 L0,0 Z"></path>
+        </svg>
+
+        <!-- Kotak logo: ganti assets/img/logo.png dengan logomu -->
+        <div class="login-logo-box">
+          <i class="fa-solid fa-book-open"></i>
+          <img data-logo src="assets/img/logo.png" alt="Logo Jurnal 7 Kebiasaan">
+        </div>
+
         <h2>Masuk</h2>
         <p>Pilih peran, lalu isi identitas.</p>
 

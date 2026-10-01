@@ -6,6 +6,128 @@
 /* ================= LOGIN / LANDING ================= */
 .login-page { display: flex; flex-direction: column; min-height: 100vh; }
 
+/* ===== Bagian atas: judul + 7 kartu kebiasaan =====
+   Kartu ini yang paling pertama dilihat pengunjung, jadiUkuran
+   kartu besar, ada slot gambar, ada deskripsi singkat.
+   Warna tiap kartu mengikuti warna kebiasaannya supaya mudah
+   dibedakan saat guru menjelaskan di depan kelas. */
+.showcase { padding-block: 34px 6px; }
+.showcase-head { max-width: 720px; }
+.showcase-head h1 {
+  font-size: clamp(30px, 4.4vw, 46px);
+  line-height: 1.14;
+  margin-top: 14px;
+  letter-spacing: -0.028em;
+}
+.showcase-head h1 em {
+  font-style: normal;
+  background: linear-gradient(120deg, var(--maroon-600), var(--gold-600));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.showcase-head > p {
+  font-size: 15.5px;
+  color: var(--ink-2);
+  margin-top: 14px;
+  line-height: 1.68;
+}
+
+.show-cards {
+  display: grid;
+  /* auto-fill (bukan auto-fit) supaya baris terakhir tidak melebar
+     berlebihan ketika jumlahnya 7 dan kolomnya 4. */
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.show-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.show-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--maroon-300);
+}
+
+/* Slot gambar PERSGI (1:1). Gambar kebiasaan sekarang berukuran
+   900 x 900, jadi slotnya ikut persegi supaya tidak ada gambar
+   yang terpotong. Kalau guru belum menaruh gambar, yang tampil
+   adalah warna kebiasaan + ikon, jadi kartu tetap rapi. */
+.show-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--hc);
+  background-image: linear-gradient(158deg, rgba(255, 255, 255, 0.30), rgba(0, 0, 0, 0.20));
+  overflow: hidden;
+}
+.show-media > i {
+  font-size: 36px;
+  color: rgba(255, 255, 255, 0.94);
+}
+.show-media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.show-no {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--hc);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: var(--shadow-xs);
+}
+
+.show-body { padding: 13px 15px 15px; display: flex; flex-direction: column; flex: 1; }
+.show-body h3 {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  color: var(--maroon-900);
+}
+.show-body > p {
+  font-size: 12.8px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-top: 5px;
+}
+/* Baris info kecil: untuk kebiasaan jam tampil targetnya,
+   untuk kebiasaan centang tampil(fill only) caranya mengisi. */
+.show-meta {
+  margin-top: auto;
+  padding-top: 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--hc);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .login-wrap {
   flex: 1;
   display: grid;
@@ -16,79 +138,68 @@
 }
 
 .login-intro { min-width: 0; }
-.login-intro h1 {
-  font-size: clamp(30px, 4.6vw, 50px);
-  line-height: 1.12;
-  margin-top: 16px;
-  letter-spacing: -0.025em;
-}
-.login-intro h1 em {
-  font-style: normal;
-  background: linear-gradient(120deg, var(--maroon-600), var(--gold-500));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.login-intro h2 {
+  font-size: clamp(22px, 2.6vw, 29px);
+  line-height: 1.2;
+  margin-top: 13px;
+  letter-spacing: -0.022em;
+  color: var(--maroon-900);
 }
 .login-intro > p {
-  font-size: 15.5px;
+  font-size: 15px;
   color: var(--ink-2);
-  margin-top: 16px;
-  max-width: 520px;
-  line-height: 1.65;
+  margin-top: 13px;
+  max-width: 480px;
+  line-height: 1.66;
 }
 
-/* ===== Kartu 7 kebiasaan =====
-   Bukan daftar (bukan chip horizontal), tapi grid kartu.
-   Tampilan simple: kotak krem, nomor kecil di kiri, tanpa
-   subjudul yang panjang supaya tidak penuh. */
-.habit-strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 26px;
-  max-width: 560px;
-}
-.habit-chip {
-  display: flex; align-items: center; gap: 12px;
-  padding: 13px 15px;
+/* Panel login — sekarang berupa KARTU SOLID, bukan kaca buram.
+   Bentuknya mengikuti kartu di halaman login Jarco: kotak putih
+   bersih, garis tipis, sudut besar, bayangan lembut, dan kotak
+   logo sendiri di atas. Gelombang tipis di tepi atas kartu
+   memakai bahasa visual yang sama dengan Jarco. */
+.login-panel {
+  position: relative;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-.habit-chip:hover {
-  border-color: var(--maroon-300);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
-}
-.habit-chip .hc-no {
-  width: 30px; height: 30px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700;
-  color: #fff;
-  flex-shrink: 0;
-}
-.habit-chip .hc-txt { min-width: 0; }
-.habit-chip .hc-txt strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-}
-
-/* Panel login */
-.login-panel {
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(22px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   padding: 30px;
   animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
+/* Semua isi kartu naik satu lapis di atas gelombang. */
+.login-panel > *:not(.login-wave) { position: relative; z-index: 1; }
+
+/* Gelombang tipis di tepi atas kartu (penanda visual ala Jarco) */
+.login-wave {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 44px;
+  color: var(--maroon-100);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Kotak logo di atas kartu — sama sikat bentuknya dengan kotak
+   logo di login Jarco: kotak putih, garis tipis, sudut besar. */
+.login-logo-box {
+  width: 76px; height: 76px;
+  border-radius: 22px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  padding: 8px;
+  margin-bottom: 18px;
+}
+.login-logo-box img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+.login-logo-box > i { font-size: 27px; color: var(--maroon-700); }
+
 .login-panel h2 { font-size: 23px; }
 .login-panel > p { font-size: 13px; color: var(--muted); margin-top: 5px; }
 .login-form { display: flex; flex-direction: column; gap: 15px; margin-top: 22px; }
@@ -96,10 +207,17 @@
 @media (max-width: 960px) {
   .login-wrap { grid-template-columns: 1fr; gap: 30px; padding-block: 26px; }
   .login-intro > p { font-size: 14.5px; }
+  .showcase { padding-block: 24px 2px; }
 }
 @media (max-width: 520px) {
-  .habit-strip { grid-template-columns: 1fr; }
+  .show-cards { grid-template-columns: 1fr; gap: 12px; }
+  /* Di HP kolomnya jadi satu, Persegi 1:1 akan memakan tinggi
+     layar. Dikecilkan jadi 4:3 supaya tidak perlu scroll jauh;
+     gambar tetap utuh karena dipotong dari tengah. */
+  .show-media { aspect-ratio: 4 / 3; }
   .login-panel { padding: 22px; border-radius: var(--radius-lg); }
+  .login-logo-box { width: 62px; height: 62px; border-radius: 18px; padding: 6px; margin-bottom: 15px; }
+  .login-logo-box > i { font-size: 22px; }
 }
 
 /* Footer login */

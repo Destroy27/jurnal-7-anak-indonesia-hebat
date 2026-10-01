@@ -25,12 +25,22 @@
 (function (root) {
   'use strict';
 
+  /* ------------------------------------------------------------
+     DUA JENIS TEKS per kebiasaan:
+       sub        -> versi SATU BARIS. Dipakai di kartu jurnal
+                     harian (murid) yang sempit, jadi harus pendek.
+       deskripsi  -> penjelasan LENGKAP. Dipakai di halaman
+                     depan (kartu 7 kebiasaan) yang ruangnya cukup.
+                     Kalau deskripsi tidak diisi, halaman depan
+                     otomatis memakai `sub`.
+     ------------------------------------------------------------ */
   var HABITS = [
     {
       key: 'bangun',
       no: 1,
       title: 'Bangun Pagi',
       sub: 'Bangun pagi dan mulai hari dengan tenang',
+      deskripsi: 'Bangun Pagi mengajarkan nilai-nilai disiplin, keseimbangan, produktivitas, dan menghargai waktu yang berkontribusi pada kualitas hidup yang lebih baik.',
       type: 'time',
       unit: 'jam',
       targetTime: '05:30',
@@ -45,6 +55,7 @@
       no: 2,
       title: 'Beribadah / Berdoa',
       sub: 'Beribadah dan berdoa sesuai keyakinanmu',
+      deskripsi: 'Beribadah bukan hanya sekadar ritual, tetapi juga menyimpan makna spiritual dan moral yang membentuk kepribadian, pencarian makna hidup, serta membentuk hubungan yang harmonis seseorang dengan Tuhan, alam, dan sesama.',
       type: 'check',
       label: 'Sudah beribadah dan berdoa hari ini',
       icon: 'fa-solid fa-hands-praying',
@@ -56,6 +67,7 @@
       no: 3,
       title: 'Berolahraga',
       sub: 'Badan sehat, tebal menghadapi tantangan',
+      deskripsi: 'Berolahraga lebih dari sekadar menjaga kesehatan fisik, tetapi mengandung makna mendalam yang berhubungan dengan disiplin, keseimbangan, ketahanan mental, dan bahkan kehidupan yang lebih terarah atau bermakna.',
       type: 'check',
       label: 'Sudah olahraga hari ini',
       icon: 'fa-solid fa-person-running',
@@ -67,6 +79,7 @@
       no: 4,
       title: 'Makan Sehat dan Bergizi',
       sub: 'Jaga tubuh dengan makanan sehat',
+      deskripsi: 'Makan Sehat dan bergizi berkaitan dengan prinsip dan nilai tentang pentingnya memenuhi kebutuhan nutrisi tubuh untuk mendukung kehidupan yang sehat, seimbang, dan bermakna.',
       type: 'check',
       label: 'Sudah makan sehat dan bergizi',
       icon: 'fa-solid fa-bowl-food',
@@ -78,6 +91,7 @@
       no: 5,
       title: 'Gemar Belajar',
       sub: 'Suka belajar dan bertambah pengetahuan',
+      deskripsi: 'Gemar belajar mengajak seseorang untuk tumbuh dalam pemahaman, karakter, dan kearifan.',
       type: 'check',
       label: 'Sudah belajar hari ini',
       icon: 'fa-solid fa-book-open',
@@ -89,6 +103,7 @@
       no: 6,
       title: 'Bermasyarakat',
       sub: 'Sopan santun dan ramah terhadap sesama',
+      deskripsi: 'Bermasyarakat didasarkan pada nilai-nilai prinsip yang mendorong individu untuk hidup bersama secara harmonis dan berkontribusi terhadap kesejahteraan kolektif.',
       type: 'check',
       label: 'Sudah bersikap baik kepada sesama',
       icon: 'fa-solid fa-people-group',
@@ -100,6 +115,7 @@
       no: 7,
       title: 'Tidur Cepat',
       sub: 'Istirahat cukup, tidur sebelum jam 9 malam',
+      deskripsi: 'Tidur cepat adalah aspek penting dari kehidupan yang berdampak pada kesehatan fisik, kesejahteraan mental, serta kehidupan spiritual dan sosial.',
       type: 'time',
       unit: 'jam',
       targetTime: '21:00',
@@ -157,7 +173,7 @@
      halaman tetap bisa render walau isi jurnal tidak dikenali. */
   function safe(key) {
     return BY_KEY[key] || {
-      key: String(key || ''), no: 99, title: 'Kebiasaan', sub: '',
+      key: String(key || ''), no: 99, title: 'Kebiasaan', sub: '', deskripsi: '',
       type: 'text', icon: 'fa-solid fa-circle-question', color: '#9C9CA2',
       tip: '', label: ''
     };

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================
+     LOGO PLACEHOLDER — Jurnal 7 Kebiasaan Anak Indonesia Hebat
+     ------------------------------------------------------------
+     File ini hanya PENGGANTI sementara. Begitu logo asli disalin
+     ke  assets/img/logo.png  (atau .jpg), logo.svg tidak pernah
+     dipakai lagi karena browser memilih logo.png yang lebih dulu.
+
+     Ganti file ini kalau mau memakai logo SVG sebagai logo utama:
+     1. simpan logomu sebagai  assets/img/logo.svg  (timpa file ini)
+     2. ubah satu baris di setiap halaman HTML:
+        src="assets/img/logo.png"  ->  src="assets/img/logo.svg"
+        (atau isi  logo: 'assets/img/logo.svg'  di site-config.js)
+
+     Saran ukuran logo utama: kotak persegi 512 x 512 px,
+     PNG transparan atau JPG, di bawah 200 KB.
+     ============================================================ -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Jurnal 7 Kebiasaan">
+  <defs>
+    <linearGradient id="logoBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#175C49"/>
+      <stop offset="1" stop-color="#0A2E26"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="244" height="244" rx="58" fill="url(#logoBg)"/>
+  <rect x="19" y="19" width="218" height="218" rx="49" fill="none" stroke="#E2D3A9" stroke-opacity="0.45" stroke-width="3"/>
+  <text x="128" y="174" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="146" font-weight="700" fill="#E2D3A9">7</text>
+  <rect x="86" y="192" width="84" height="9" rx="4.5" fill="#BEA972"/>
+</svg>
