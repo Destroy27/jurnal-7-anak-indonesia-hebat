@@ -33,21 +33,31 @@
   line-height: 1.68;
 }
 
+/* ============================================================
+   KARTU 7 KEBIASAAN (halaman depan)
+   Tata letak: lingkaran gambar di tengah -> judul -> panel
+   deskripsi -> chip info. Grid otomatis supaya rapi dari HP
+   kecil sampai layar lebar.
+   ============================================================ */
 .show-cards {
   display: grid;
   /* auto-fill (bukan auto-fit) supaya baris terakhir tidak melebar
      berlebihan ketika jumlahnya 7 dan kolomnya 4. */
-  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(212px, 100%), 1fr));
   gap: 16px;
   margin-top: 26px;
 }
 
 .show-card {
+  position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  padding: 20px 14px 14px;
   overflow: hidden;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
@@ -56,23 +66,66 @@
   box-shadow: var(--shadow-md);
   border-color: var(--maroon-300);
 }
+/* Bola warna lembut di belakang lingkaran gambar, biar kartu
+   tidak terasa kosong. */
+.show-card::before {
+  content: "";
+  position: absolute;
+  top: -78px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: var(--hc, var(--maroon-600));
+  opacity: 0.07;
+  pointer-events: none;
+}
 
-/* Slot gambar PERSGI (1:1). Gambar kebiasaan sekarang berukuran
-   900 x 900, jadi slotnya ikut persegi supaya tidak ada gambar
-   yang terpotong. Kalau guru belum menaruh gambar, yang tampil
-   adalah warna kebiasaan + ikon, jadi kartu tetap rapi. */
+.show-top {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Cincin: pemisah tipis antara lingkaran gambar dan kartu. */
+.show-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+}
+.show-ring::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  /* Fallback untuk browser lama (tidak bisa color-mix). */
+  border: 1.5px dashed var(--border);
+  border-color: color-mix(in srgb, var(--hc, #134A3B) 42%, transparent);
+}
+
+/* Lingkaran gambar. Gambar kebiasaan 900 x 900 (persegi) jadi
+   bulat tanpa terpotong karena object-fit: cover + 1:1.
+   Kalau file gambarnya belum ada, yang tampil ikon + warna
+   kebiasaan, jadi kartu tetap rapi. */
 .show-media {
   position: relative;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--hc);
-  background-image: linear-gradient(158deg, rgba(255, 255, 255, 0.30), rgba(0, 0, 0, 0.20));
+  background-color: var(--hc, var(--maroon-600));
+  background-image: linear-gradient(158deg, rgba(255, 255, 255, 0.28), rgba(0, 0, 0, 0.18));
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 4.5px var(--hc, var(--maroon-600));
   overflow: hidden;
 }
 .show-media > i {
-  font-size: 36px;
+  font-size: 32px;
   color: rgba(255, 255, 255, 0.94);
 }
 .show-media img {
@@ -83,49 +136,70 @@
   object-fit: cover;
   display: block;
 }
+/* Nomor kebiasaan, menempel di kanan atas lingkaran. */
 .show-no {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: -4px;
+  right: -12px;
   z-index: 2;
-  width: 27px;
-  height: 27px;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--hc);
+  background: var(--maroon-700);
+  color: #fff;
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
+  border: 2px solid var(--card);
   box-shadow: var(--shadow-xs);
 }
 
-.show-body { padding: 13px 15px 15px; display: flex; flex-direction: column; flex: 1; }
-.show-body h3 {
+.show-title {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.012em;
   color: var(--maroon-900);
+  line-height: 1.28;
+  margin-top: 14px;
 }
-.show-body > p {
-  font-size: 12.8px;
-  line-height: 1.55;
-  color: var(--muted);
-  margin-top: 5px;
+
+.show-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+  margin-top: 9px;
+}
+/* Panel deskripsi: kotak bening di dalam kartu supaya teks
+   penjelasan tidak langsung menempel ke kartu utama. */
+.show-desc {
+  width: 100%;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12.2px;
+  line-height: 1.6;
+  color: var(--ink-2);
 }
 /* Baris info kecil: untuk kebiasaan jam tampil targetnya,
-   untuk kebiasaan centang tampil(fill only) caranya mengisi. */
+   untuk kebiasaan centang tampil caranya mengisi. */
 .show-meta {
   margin-top: auto;
-  padding-top: 11px;
-  font-size: 11.5px;
+  padding-top: 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--hc);
+  color: var(--hc, var(--maroon-700));
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
 }
 
 .login-wrap {
@@ -153,71 +227,97 @@
   line-height: 1.66;
 }
 
-/* Panel login — sekarang berupa KARTU SOLID, bukan kaca buram.
-   Bentuknya mengikuti kartu di halaman login Jarco: kotak putih
-   bersih, garis tipis, sudut besar, bayangan lembut, dan kotak
-   logo sendiri di atas. Gelombang tipis di tepi atas kartu
-   memakai bahasa visual yang sama dengan Jarco. */
+/* Panel login — KARTU SOLID yang sederhana: kotak putih bersih,
+   garis tipis, sudut besar, bayangan lembut, kepala berisi logo
+   + judul dalam satu baris. Aksen cahaya di tepi atas dibuat
+   dengan CSS saja (tanpa gambar/SVG tambahan). */
 .login-panel {
   position: relative;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
-  padding: 30px;
+  padding: 28px;
   animation: fadeUp 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  overflow: hidden;
 }
-/* Semua isi kartu naik satu lapis di atas gelombang. */
-.login-panel > *:not(.login-wave) { position: relative; z-index: 1; }
-
-/* Gelombang tipis di tepi atas kartu (penanda visual ala Jarco) */
-.login-wave {
+/* Cahaya lembut di tepi atas kartu. */
+.login-panel::before {
+  content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 44px;
-  color: var(--maroon-100);
-  z-index: 0;
+  top: -120px; left: 50%;
+  transform: translateX(-50%);
+  width: 340px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(23, 92, 73, 0.10), rgba(23, 92, 73, 0) 70%);
   pointer-events: none;
 }
+/* Semua isi kartu naik satu lapis di atas cahaya. */
+.login-panel > * { position: relative; z-index: 1; }
 
-/* Kotak logo di atas kartu — sama sikat bentuknya dengan kotak
-   logo di login Jarco: kotak putih, garis tipis, sudut besar. */
+/* Kepala kartu: logo + teks berdampingan, hemat tinggi layar. */
+.login-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.login-head-txt { min-width: 0; }
+.login-head-txt h2 { font-size: 22px; line-height: 1.2; }
+.login-head-txt p { font-size: 12.8px; color: var(--muted); margin-top: 3px; }
+
+/* Kotak logo — sama sikat bentuknya dengan kotak logo di login
+   Jarco: kotak putih, garis tipis, sudut besar. */
 .login-logo-box {
-  width: 76px; height: 76px;
-  border-radius: 22px;
-  background: var(--card);
+  width: 62px; height: 62px;
+  border-radius: 20px;
+  background: var(--bg-soft);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
   padding: 8px;
-  margin-bottom: 18px;
+  flex-shrink: 0;
 }
 .login-logo-box img {
   width: 100%; height: 100%;
   object-fit: contain;
 }
-.login-logo-box > i { font-size: 27px; color: var(--maroon-700); }
+.login-logo-box > i { font-size: 24px; color: var(--maroon-700); }
 
-.login-panel h2 { font-size: 23px; }
-.login-panel > p { font-size: 13px; color: var(--muted); margin-top: 5px; }
-.login-form { display: flex; flex-direction: column; gap: 15px; margin-top: 22px; }
+.login-form { display: flex; flex-direction: column; gap: 14px; }
 
 @media (max-width: 960px) {
-  .login-wrap { grid-template-columns: 1fr; gap: 30px; padding-block: 26px; }
+  .login-wrap { grid-template-columns: 1fr; gap: 26px; padding-block: 24px; }
+  /* Di HP formulir muncul lebih dulu, teks penjelasan turun
+     ke bawah. Jadi anak tidak perlu scroll jauh untuk masuk. */
+  .login-panel { order: -1; }
   .login-intro > p { font-size: 14.5px; }
   .showcase { padding-block: 24px 2px; }
 }
 @media (max-width: 520px) {
-  .show-cards { grid-template-columns: 1fr; gap: 12px; }
-  /* Di HP kolomnya jadi satu, Persegi 1:1 akan memakan tinggi
-     layar. Dikecilkan jadi 4:3 supaya tidak perlu scroll jauh;
-     gambar tetap utuh karena dipotong dari tengah. */
-  .show-media { aspect-ratio: 4 / 3; }
-  .login-panel { padding: 22px; border-radius: var(--radius-lg); }
-  .login-logo-box { width: 62px; height: 62px; border-radius: 18px; padding: 6px; margin-bottom: 15px; }
-  .login-logo-box > i { font-size: 22px; }
+  /* Di HP: 2 kolom (bukan 1) supaya 7 kartu tidak terlalu panjang
+     untuk di-scroll. Lingkaran, nomor, dan teks ikut mengecil. */
+  .show-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 20px; }
+  .show-card { padding: 15px 10px 11px; border-radius: var(--radius); }
+  .show-card::before { width: 150px; height: 150px; top: -60px; }
+  .show-ring { width: 72px; height: 72px; }
+  .show-ring::before { inset: -5px; }
+  .show-media > i { font-size: 24px; }
+  .show-no { width: 23px; height: 23px; font-size: 11.5px; top: -3px; right: -9px; }
+  .show-title { font-size: 13.2px; margin-top: 11px; }
+  .show-desc { font-size: 11px; line-height: 1.55; padding: 8px 9px; border-radius: var(--radius-xs); }
+  .show-meta { font-size: 10.2px; padding-top: 8px; }
+
+  .login-panel { padding: 20px; border-radius: var(--radius-lg); }
+  .login-head { gap: 12px; margin-bottom: 17px; }
+  .login-logo-box { width: 54px; height: 54px; border-radius: 16px; padding: 6px; }
+  .login-logo-box > i { font-size: 21px; }
+  .login-head-txt h2 { font-size: 20px; }
+}
+/* HP sangat kecil: 1 kolom supaya teks tidak terlalu sempit. */
+@media (max-width: 359px) {
+  .show-cards { grid-template-columns: 1fr; }
 }
 
 /* Footer login */
@@ -233,7 +333,7 @@
 /* ================= KARTU KEBIASAAN (jurnal harian) ================= */
 .habit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -260,17 +360,74 @@
 }
 .habit-card.filled::before { width: 5px; opacity: 1; }
 
-.habit-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-.habit-no {
-  width: 40px; height: 40px;
-  border-radius: 12px;
+/* Keadaan SUDAH DICENTANG: kartu jadi hijau muda, garis kiri
+   lebih tebal, dan pojok lingkaran dapat tanda centang. Berbeda
+   dari kartu "terisi jam" yang tetap netral. */
+.habit-card.centang {
+  border-color: var(--maroon-500);
+  background: linear-gradient(180deg, rgba(23, 92, 73, 0.09), rgba(23, 92, 73, 0.02));
+  box-shadow: 0 8px 24px rgba(23, 92, 73, 0.14);
+}
+.habit-card.centang::before { width: 6px; opacity: 1; }
+
+.habit-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+/* Lingkaran gambar kebiasaan (dipakai juga di kartu depan).
+   Nomor ada di sudut kiri atas lingkaran. */
+.habit-thumb {
+  position: relative;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: var(--hb, var(--maroon-600));
+  box-shadow: 0 0 0 2.5px var(--card), 0 0 0 3.5px var(--hb, var(--maroon-600));
+  transition: box-shadow 0.2s ease;
+}
+.habit-thumb > i { font-size: 18px; color: rgba(255, 255, 255, 0.95); }
+.habit-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+/* Tanda centang di kanan bawah lingkaran — muncul hanya kalau
+   kebiasaan benar-benar sudah dicentang. */
+.habit-thumb::after {
+  content: "\f00c";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 8px;
+  color: #fff;
+  position: absolute;
+  right: -3px; bottom: -3px;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: var(--maroon-700);
+  border: 2px solid var(--card);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+.habit-card.centang .habit-thumb { box-shadow: 0 0 0 2.5px var(--card), 0 0 0 4px var(--maroon-600); }
+.habit-card.centang .habit-thumb::after { opacity: 1; transform: scale(1); }
+
+.habit-no {
+  position: absolute;
+  top: -4px; left: -4px;
+  z-index: 2;
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--maroon-900);
   color: #fff;
   font-family: var(--font-display);
-  font-size: 16px; font-weight: 700;
-  flex-shrink: 0;
-  box-shadow: 0 6px 16px rgba(42, 7, 16, 0.18);
+  font-size: 10.5px; font-weight: 700;
+  border: 2px solid var(--card);
 }
 .habit-meta { min-width: 0; flex: 1; }
 .habit-meta h3 { font-size: 15.5px; line-height: 1.3; }
@@ -369,20 +526,59 @@
   flex-shrink: 0;
   transition: all 0.18s ease;
 }
+/* Keadaan tercentang: tombol jadi hijau pekat + centang putih,
+   jadi langsung jelas bedanya dari yang belum dicentang. */
 .check-row.on {
-  background: var(--maroon-50);
-  border-color: var(--maroon-500);
-  color: var(--maroon-800);
-}
-.check-row.on .box {
   background: var(--maroon-700);
   border-color: var(--maroon-700);
   color: #fff;
+  box-shadow: var(--shadow-maroon);
+}
+.check-row.on:hover { border-color: var(--maroon-800); }
+.check-row.on .box {
+  background: #fff;
+  border-color: #fff;
+  color: var(--maroon-700);
+  animation: popCentang 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popCentang {
+  from { transform: scale(0.4); }
+  to   { transform: scale(1); }
 }
 
 /* Baris aksi bawah */
 .habit-note { margin-top: 11px; }
 .habit-note .input, .habit-note .textarea { font-size: 13px; padding: 10px 12px; }
+
+/* Catatan WAJIB (kebiasaan centang). Bintang merah muncul begitu
+   dicentang; kotak merah + pesan hanya muncul kalau anak pernah
+   mencoba menyimpan tanpa catatan. */
+.note-row { position: relative; }
+.note-star {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--danger);
+  font-size: 9px;
+  pointer-events: none;
+}
+.habit-note.wajib .input { border-color: rgba(179, 38, 30, 0.34); padding-right: 30px; }
+.note-help {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--maroon-600);
+}
+.note-help i { margin-top: 2px; font-size: 10px; }
+.habit-note.galat .input {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.10);
+}
+.habit-note.galat .note-help { color: var(--danger); }
 
 /* Ringkasan harian (sticky bar) */
 .day-summary {

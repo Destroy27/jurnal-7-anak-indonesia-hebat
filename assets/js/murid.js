@@ -74,7 +74,7 @@
     b.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i>';
     J.syncAll(function (r) {
       b.innerHTML = '<i class="fa-solid fa-rotate"></i>';
-      if (r.ok) { pasangIdentitas(); muatSemua(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
+      if (r.ok) { pasangIdentitas(); muatSemua(); perbaruiAntrean(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
       else J.toast('Gagal sinkron', r.msg, 'err');
     });
   });
@@ -108,6 +108,124 @@
     });
   }
 
+  /* ---------- Badge status ---------- */
+  /* Centang tampil "Sudah", jam tampil "Terisi", kosong "Kosong".
+     Dipakai saat form pertama kali digambar DAN setiap kali isian
+     berubah, supaya tidak ada dua versi teks yang berbeda. */
+  function badgeStatus(h, terisi) {
+    if (!terisi) return '<span class="badge badge-soft"><i class="fa-solid fa-pen"></i> Kosong</span>';
+    if (h && h.type === 'check') return '<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Sudah</span>';
+    return '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Terisi</span>';
+  }
+
+  /* ---------- Kolom catatan ---------- */
+  /* Aturan "wajib" berasal dari habits.js (wajibCatatan: true).
+     begitu kebiasaan centang aktif, kolomnya ditandai wajib:
+     bintang merah + petunjuk. Pesan error baru muncul kalau
+     sekali simpan ditolak (lihat validasiCatatan). */
+  function kolomCatatan(h, v) {
+    if (h.type === 'text') return '';
+
+    var wajib = !!h.wajibCatatan;
+    var terisi = String(v.nilai || '').trim() !== '';
+    var aktif = wajib && terisi;
+
+    /* Placeholder menyesuaikan keadaan: sebelum dicentang anak
+       diberi tahu bahwa catatan akan jadi wajib, sesudahnya
+       diminta langsung menulis. */
+    var placeholder = aktif ? 'Tulis catatan singkat...'
+      : (wajib ? 'Catatan (wajib setelah dicentang)' : 'Catatan (opsional)');
+
+    return '<div class="habit-note' + (aktif ? ' wajib' : '') + '" data-note="' + h.key + '">' +
+      '<div class="note-row">' +
+        '<input class="input" id="cat-' + h.key + '" data-habit="' + h.key + '" data-jenis="catatan"' +
+        ' maxlength="200" placeholder="' + placeholder + '"' +
+        ' aria-label="Catatan ' + J.esc(h.title) + '"' +
+        (aktif ? ' aria-required="true"' : '') +
+        ' value="' + J.esc(v.catatan) + '">' +
+        (aktif ? '<span class="note-star" aria-hidden="true"><i class="fa-solid fa-asterisk"></i></span>' : '') +
+      '</div>' +
+      (wajib
+        ? '<p class="note-help"><i class="fa-solid fa-circle-info"></i> <span>Catatan wajib diisi setelah dicentang.</span></p>'
+        : '') +
+    '</div>';
+  }
+
+  /* Pasang / lepas tanda wajib tanpa menggambar ulang seluruh
+     form (dipanggil setiap kali nilai kebiasaan berubah). */
+  function bungkusCatatan(key) {
+    return document.querySelector('[data-note="' + key + '"]');
+  }
+  function tandaiCatatanWajib(key) {
+    var bungkus = bungkusCatatan(key);
+    if (!bungkus) return;
+    var h = H.byKey(key) || {};
+    var v = isian[key] || {};
+    var wajib = !!h.wajibCatatan && String(v.nilai || '').trim() !== '';
+    var input = bungkus.querySelector('input');
+
+    bungkus.classList.toggle('wajib', wajib);
+    if (input) {
+      var bintang = bungkus.querySelector('.note-star');
+      if (wajib && !bintang) {
+        bungkus.querySelector('.note-row').insertAdjacentHTML('beforeend',
+          '<span class="note-star" aria-hidden="true"><i class="fa-solid fa-asterisk"></i></span>');
+        input.setAttribute('aria-required', 'true');
+      } else if (wajib) {
+        input.setAttribute('aria-required', 'true');
+      } else {
+        if (bintang) bintang.parentNode.removeChild(bintang);
+        input.removeAttribute('aria-required');
+      }
+    }
+    /* Tanda galat hilang begitu catatan terisi atau centang dilepas. */
+    if (!wajib || String(v.catatan || '').trim() !== '') bungkus.classList.remove('galat');
+  }
+
+  /* ---------- Validasi catatan wajib ---------- */
+  /* Mengembalikan daftar kebiasaan yang sudah dicentang tapi
+     catatannya masih kosong. */
+  function validasiCatatan() {
+    var salah = [];
+    H.list.forEach(function (h) {
+      if (!h.wajibCatatan) return;
+      var v = isian[h.key] || {};
+      if (String(v.nilai || '').trim() === '') return;      /* belum dicentang */
+      if (String(v.catatan || '').trim() !== '') return;     /* sudah diisi */
+      salah.push(h);
+    });
+    return salah;
+  }
+  function tandaiGalat(kunci) {
+    H.list.forEach(function (h) {
+      var bungkus = bungkusCatatan(h.key);
+      if (!bungkus) return;
+      bungkus.classList.toggle('galat', kunci.indexOf(h.key) > -1);
+    });
+  }
+  /* Tolak simpan + jelaskan ke anak kebiasaan mana yang catatan
+     '-nya belum ada. Return true kalau simpan dibatalkan. */
+  function tolakCatatanKosong(salah) {
+    tandaiGalat(salah.map(function (h) { return h.key; }));
+    if (!salah.length) return false;
+
+    var nama = salah.map(function (h) { return h.title; });
+    var pesan = nama.length === 1
+      ? 'Catatan untuk ' + nama[0] + ' belum diisi.'
+      : 'Catatan belum diisi untuk: ' + nama.join(', ') + '.';
+    J.toast('Catatan wajib diisi', pesan, 'warn');
+
+    var fokus = document.querySelector('[data-note="' + salah[0].key + '"] input');
+    if (fokus) {
+      fokus.focus();
+      /* Dinaikkan sedikit supaya tidak tertutup bar simpan
+         yang menempel di atas. */
+      var atas = fokus.getBoundingClientRect().top + window.pageYOffset - 150;
+      if (atas > 0) window.scrollTo({ top: atas, behavior: 'smooth' });
+    }
+    return true;
+  }
+
   function gambarFormulir() {
     var t = J.todayISO();
 
@@ -139,18 +257,26 @@
           '" placeholder="' + J.esc(h.placeholder || 'Tulis di sini...') + '">' + J.esc(v.nilai) + '</textarea>';
       }
 
-      return '<article class="habit-card' + (terisi ? ' filled' : '') + '" style="--hb:' + h.color + '" data-kartu="' + h.key + '">' +
+      /* Gambar kebiasaan (lingkaran) dipakai juga di halaman ini,
+         dibaca dari SITECONFIG.gambarKebiasaan. Kalau file-nya
+         belum ada, otomatis turun ke ikon + warna kebiasaan. */
+      var gambar = J.gambarHabit(h.key);
+      var foto = gambar
+        ? '<img src="' + J.esc(gambar) + '" alt="" loading="lazy" onerror="this.remove()">'
+        : '';
+      var centang = h.type === 'check' && String(v.nilai) === '1';
+
+      return '<article class="habit-card' + (terisi ? ' filled' : '') + (centang ? ' centang' : '') + '" style="--hb:' + h.color + '" data-kartu="' + h.key + '">' +
         '<div class="habit-head">' +
-        '<div class="habit-no">' + h.no + '</div>' +
+        '<div class="habit-thumb">' +
+        '<i class="' + h.icon + '"></i>' + foto +
+        '<span class="habit-no">' + h.no + '</span>' +
+        '</div>' +
         '<div class="habit-meta"><h3>' + J.esc(h.title) + '</h3><p>' + J.esc(h.sub) + '</p></div>' +
-        '<div class="habit-state">' +
-        (terisi ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Terisi</span>'
-                : '<span class="badge badge-soft"><i class="fa-solid fa-pen"></i> Kosong</span>') +
-        '</div></div>' +
+        '<div class="habit-state">' + badgeStatus(h, terisi) + '</div>' +
+        '</div>' +
         kontrol +
-        (h.type !== 'text' ?
-          '<div class="habit-note"><input class="input" data-habit="' + h.key + '" data-jenis="catatan"' +
-          ' maxlength="200" placeholder="Catatan (opsional)" value="' + J.esc(v.catatan) + '"></div>' : '') +
+        kolomCatatan(h, v) +
         (h.tip ? '<div class="habit-tip"><i class="fa-solid fa-lightbulb"></i><span>' + J.esc(h.tip) + '</span></div>' : '') +
         '</article>';
     }).join('');
@@ -203,6 +329,8 @@
         var kartu = document.querySelector('[data-kartu="' + k + '"]');
         var terisi = (isian[k].nilai !== '' && isian[k].nilai != null) || el.value.trim() !== '';
         if (kartu) kartu.classList.toggle('filled', terisi);
+        /* Menghapus pesan "wajib diisi" begitu anak mulai mengetik. */
+        tandaiCatatanWajib(k);
       });
     });
   }
@@ -211,21 +339,34 @@
     if (!isian[k]) isian[k] = { nilai: '', catatan: '' };
     isian[k].nilai = nilai == null ? '' : String(nilai);
 
+    var h = H.byKey(k) || H.safe(k);
     var kartu = document.querySelector('[data-kartu="' + k + '"]');
     var badge = document.querySelector('[data-kartu="' + k + '"] .habit-state');
     var terisi = isian[k].nilai !== '';
+    var centang = !!(h && h.type === 'check' && isian[k].nilai === '1');
     if (kartu) {
       kartu.classList.toggle('filled', terisi || isian[k].catatan !== '');
+      kartu.classList.toggle('centang', centang);
       if (terisi && !kartu.classList.contains('just-filled')) {
         kartu.classList.add('just-filled');
         setTimeout(function () { kartu.classList.remove('just-filled'); }, 700);
       }
     }
     if (badge) {
-      badge.innerHTML = terisi
-        ? '<span class="badge badge-success"><i class="fa-solid fa-check"></i> Terisi</span>'
-        : '<span class="badge badge-soft"><i class="fa-solid fa-pen"></i> Kosong</span>';
+      badge.innerHTML = badgeStatus(h, terisi);
     }
+
+    /* Tombol centang harus ikut berubah display saat diklik.
+       Dulu hanya badge status yang berubah, jadi kotak centangnya
+       tetap terlihat kosong sampai form digambar ulang. */
+    var barisCentang = kartu ? kartu.querySelector('.check-row') : null;
+    if (barisCentang) {
+      barisCentang.classList.toggle('on', centang);
+      barisCentang.setAttribute('aria-pressed', centang ? 'true' : 'false');
+    }
+
+    /* Tanda "catatan wajib" ikut muncul / hilang. */
+    tandaiCatatanWajib(k);
 
     /* Skor jam langsung diperbarui saat angka jam berubah */
     if (H.byKey(k) && H.byKey(k).type === 'time') {
@@ -264,6 +405,14 @@
   var sedangSimpan = false;
   function simpanSemua(pakaiTombol) {
     if (sedangSimpan) return;
+
+    /* Validasi DULUAN, sebelum tombol dinonaktifkan: kebiasaan yang
+       sudah dicentang wajib punya catatan (aturan wajibCatatan di
+       habits.js). Kalau belum, simpan dibatalkan dan kursor
+       langsung diarahkan ke kolom catatan pertama. */
+    var salah = validasiCatatan();
+    if (tolakCatatanKosong(salah)) return;
+
     sedangSimpan = true;
 
     var btn = document.getElementById('btnSimpanSemua');
@@ -517,6 +666,15 @@
     }
     pasangIdentitas();
     muatSemua();
+    /* Sambol status harus ikut dibersihkan begitu sinkron
+       pertama BERHASIL. Dulu bar merah "belum terhubung" /
+       "belum terbaca" tetap nempel di layar walaupun database
+       sudah nyambung, dan baru hilang saat sinkron otomatis
+       90 detik kemudian. perbaruiAntrean() menyembunyikan
+       bar kalau antrean kosong, atau menggantinya jadi bar
+       kuning "menunggu dikirim" kalau masih ada isian
+       yang belum masuk database. */
+    perbaruiAntrean();
     J.mulaiAutoSync(function () {
       var lama = document.getElementById('sapaan').textContent;
       pasangIdentitas();

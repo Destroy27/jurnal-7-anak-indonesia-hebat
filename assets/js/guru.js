@@ -62,7 +62,7 @@
     b.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i>';
     J.syncAll(function (r) {
       b.innerHTML = '<i class="fa-solid fa-rotate"></i>';
-      if (r.ok) { gambarSemua(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
+      if (r.ok) { gambarSemua(); sembunyikanStatus(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
       else J.toast('Gagal sinkron', r.msg, 'err');
     });
   });
@@ -941,7 +941,7 @@
     }
     J.scriptURL = u;
     J.syncAll(function (r) {
-      if (r.ok) { gambarSemua(); J.toast('URL disimpan', 'Koneksi berhasil.', 'ok'); }
+      if (r.ok) { gambarSemua(); sembunyikanStatus(); J.toast('URL disimpan', 'Koneksi berhasil.', 'ok'); }
       else J.toast('URL tersimpan, koneksi gagal', r.msg, 'err');
     });
   });
@@ -951,7 +951,7 @@
     b.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i> Menguji...';
     J.syncAll(function (r) {
       b.innerHTML = '<i class="fa-solid fa-plug-circle-check"></i> Tes Koneksi';
-      if (r.ok) { gambarSemua(); J.toast('Koneksi berhasil', r.jumlahSiswa + ' siswa, ' + r.jumlahEntri + ' entri.', 'ok'); }
+      if (r.ok) { gambarSemua(); sembunyikanStatus(); J.toast('Koneksi berhasil', r.jumlahSiswa + ' siswa, ' + r.jumlahEntri + ' entri.', 'ok'); }
       else J.toast('Koneksi gagal', r.msg, 'err');
     });
   });
@@ -999,6 +999,10 @@
       if (!r.ok) { tampilkanStatus('Database belum terbaca: ' + r.msg, 'danger'); return; }
       if (!J.teachers.length) buatGuruBawaan();
       gambarSemua();
+      /* Bar status dibersihkan begitu sinkron berhasil, supaya
+         pesan "belum terhubung" tidak nempel setelah database
+         sebenarnya sudah nyambung. */
+      sembunyikanStatus();
       J.mulaiAutoSync(function () { gambarSemua(); }, 90000);
     });
   } else {
@@ -1008,6 +1012,9 @@
       if (!r.ok) { tampilkanStatus('Gagal sinkron: ' + r.msg, 'warn'); return; }
       if (!J.teachers.length) buatGuruBawaan();
       gambarSemua();
+      /* Sama seperti jalur di atas: bar status dibersihkan
+         setelah sinkron berhasil. */
+      sembunyikanStatus();
       J.mulaiAutoSync(function () { gambarSemua(); }, 90000);
     });
   }

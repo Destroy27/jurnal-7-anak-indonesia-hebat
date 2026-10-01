@@ -103,6 +103,10 @@ body {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   overflow-x: clip;
+  /* Kata panjang / nama tanpa spasi (mis. nama berkas atau kode
+     absen) dipecah baris, bukanitempty dan bikin halaman geser
+     ke samping di HP. */
+  overflow-wrap: break-word;
 }
 
 img, svg { display: block; max-width: 100%; }
@@ -136,6 +140,12 @@ h1, h2, h3, h4 {
 .wrap-sm { max-width: 720px; }
 .wrap { max-width: 1040px; }
 .wrap-lg { max-width: 1220px; }
+
+/* HP kecil: ruang lebih banyak dipakai untuk konten, bukan untuk
+   tepi layar. */
+@media (max-width: 480px) {
+  .container { padding-inline: 15px; }
+}
 
 .main {
   padding-block: 22px 64px;

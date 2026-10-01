@@ -1,34 +1,46 @@
 =========================================================
  FOLDER GAMBAR 7 KEBIASAAN
 =========================================================
-Tujuh file .svg di sini adalah gambar sementara (nomor pada
-warna masing-masing kebiasaan). Ganti dengan foto asli supaya
-halaman depan tampil lebih menarik.
+Ketujuh gambar di sini SUDAH terisi. Semuanya 900 x 900 px
+format .jpg, total hanya sekitar 248 KB untuk 7 gambar,
+jadi tetap ringan dibuka HP murid di jaringan sekolah.
 
-CARA GANTI
+  bangun.jpg  ->  Bangun Pagi          (no. 1)
+  ibadah.jpg  ->  Beribadah / Berdoa   (no. 2)
+  olahraga.jpg->  Berolahraga           (no. 3)
+  makan.jpg   ->  Makan Sehat & Bergizi(no. 4)
+  belajar.jpg ->  Gemar Belajar         (no. 5)
+  masyarakat.jpg -> Bermasyarakat       (no. 6)
+  tidur.jpg   ->  Tidur Cepat          (no. 7)
+
+GAMBAR DIPAKAI DI DUA TEMPAT
 ---------------------------------------------------------
-1. Siapkan 7 foto (boleh sebagian saja):
-     bangun.jpg, ibadah.jpg, olahraga.jpg, makan.jpg,
-     belajar.jpg, masyarakat.jpg, tidur.jpg
+1. Halaman depan (index.html) - gambar ditampilkan
+   LINGKARAN di tengah kartu, dikelilingi cincin tipis
+   warna kebiasaan, dengan nomor di sudutnya.
+2. Halaman murid (murid.html) - lingkaran kecil di sudut
+   kartu jurnal, dan dapat tanda centang kecil di pojok
+   kanan bawah begitu kebiasaan itu dicentang.
 
-   Syarat biar tetap ringan di HP sekolah:
-     - lebar sekitar 800 px, TINGGI bebas (otomatis dipotong)
+CARA MENGGANTI GAMBAR
+---------------------------------------------------------
+1. Siapkan gambar pengganti:
+     - PERSGI (1:1), karena slotnya sudah diatur persegi
+     - lebar sekitar 900 px
      - format .jpg atau .webp
-     - ukuran di bawah 300 KB per file
-     - foto orang / wajah siswa boleh, tapi pastikan sekolah
-       sudah menyetujui. Foto landscape lebih cocok.
+     - ukuran di bawah 150 KB per file
 
-2. Hapus file .svg yang akan diganti, lalu taruh fotomu
-   dengan nama .jpg yang sama di folder ini.
+2. Simpan ke folder ini dengan nama yang sama persis
+   (bangun, ibadah, olahraga, makan, belajar,
+   masyarakat, tidur).
 
-3. Buka  assets/js/site-config.js, ganti satu kata per
-   kebiasaan, dari  .svg  jadi  .jpg  :
+3. Kalau memang mau ganti format (misal .webp), ubah
+   juga extension-nya di  assets/js/site-config.js
+   pada bagian  gambarKebiasaan.
 
-     bangun: 'assets/img/habits/bangun.svg'   ->  .jpg
+4. Commit & push. Kedua halaman langsung berubah.
 
-4. Commit & push. Halaman depan langsung berubah.
-
-Kalau file fotonya belum ada / masih salah nama, kartu
+Kalau file gambarnya dihapus atau namanya salah, lingkaran
 otomatis kembali ke ikon + warna kebiasaan. Jadi tidak
 pernah gagal tampil.
 =========================================================

@@ -915,8 +915,20 @@
     t.querySelector('.t-title').textContent = judul;
     t.querySelector('.t-msg').textContent = pesan || '';
     t.classList.add('show');
+    t.onclick = sembunyikanToast;
     clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(function () { t.classList.remove('show'); }, 4200);
+    _toastTimer = setTimeout(sembunyikanToast, 4200);
+  }
+
+  /* Toast hilang otomatis, tapi juga bisa ditutup dengan satu ketukan.
+     Pesan koneksi ("Gagal sinkron", "Database belum terbaca") kadang
+     muncul lagi dan lagi; tanpa cara dismiss yang cepat, toastnya
+     terasa "nyangkut" di bagian bawah layar. */
+  function sembunyikanToast() {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.classList.remove('show');
+    clearTimeout(_toastTimer);
   }
 
   /* ================= MODAL ================= */

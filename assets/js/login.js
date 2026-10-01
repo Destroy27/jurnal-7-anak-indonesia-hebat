@@ -26,10 +26,14 @@
   }
 
   /* ---------- Kartu 7 kebiasaan (bagian paling atas) ----------
-     Tiap kartu: slot gambar + nomor + judul + deskripsi singkat +
-     info kecil (target jam, atau cara mengisinya).
-     Gambar diambil dari SITECONFIG.gambarK Biasaan (lihat
-     site-config.js). Kalau kosong / file tidak ada, kartu
+     Tata letak kartu:
+       1. LINGKARAN gambar di tengah atas, dikelilingi cincin
+          tipis warna kebiasaan + nomor di sudutnya.
+       2. Judul di bawah lingkaran.
+       3. Panel kecil berisi penjelasan lengkap.
+       4. Chip info: target jam, atau cara mengisinya.
+     Gambar diambil dari SITECONFIG.gambarKebiasaan (lihat
+     site-config.js). Kalau kosong / file tidak ada, lingkaran
      otomatis memakai ikon + warna kebiasaan. */
   function gambarKebiasaan() {
     var wadah = document.getElementById('habitCards');
@@ -38,7 +42,7 @@
     wadah.innerHTML = H.list.map(function (h) {
       var gambar = J.gambarHabit(h.key);
       var foto = gambar
-        ? '<img src="' + J.esc(gambar) + '" alt="' + J.esc(h.title) + '" loading="lazy" onerror="this.remove()">'
+        ? '<img src="' + J.esc(gambar) + '" alt="" loading="lazy" onerror="this.remove()">'
         : '';
 
       /* Info kecil: kebiasaan jam tampil targetnya, kebiasaan
@@ -54,13 +58,17 @@
       var cerita = h.deskripsi || h.sub || '';
 
       return '<article class="show-card" style="--hc:' + h.color + '">' +
-        '<div class="show-media">' +
-          '<span class="show-no">' + h.no + '</span>' +
-          '<i class="' + h.icon + '"></i>' + foto +
+        '<div class="show-top">' +
+          '<div class="show-ring">' +
+            '<span class="show-no">' + h.no + '</span>' +
+            '<div class="show-media">' +
+              '<i class="' + h.icon + '"></i>' + foto +
+            '</div>' +
+          '</div>' +
+          '<h3 class="show-title">' + J.esc(h.title) + '</h3>' +
         '</div>' +
         '<div class="show-body">' +
-          '<h3>' + J.esc(h.title) + '</h3>' +
-          '<p>' + J.esc(cerita) + '</p>' +
+          '<p class="show-desc">' + J.esc(cerita) + '</p>' +
           '<span class="show-meta">' + meta + '</span>' +
         '</div>' +
       '</article>';
@@ -167,6 +175,14 @@
   }
 
   /* ---------- Kartu setup ---------- */
+  /* Pesan merah "Database belum terhubung" di dalam form harus ikut
+     hilang begitu koneksi terbukti berhasil. Dulu hanya hilang saat
+     form dikirim ulang, jadi setelah menekan "Sudah Diisi, Coba Lagi"
+     dan koneksi berhasil, teks merahnya masih nempel di bawah form. */
+  function sembunyikanError() {
+    var err = document.getElementById('loginError');
+    if (err) { err.textContent = ''; err.classList.add('hidden'); }
+  }
   function perbaruiSetup() {
     var sudah = J.isConfigured();
     document.getElementById('setupCard').classList.toggle('hidden', sudah);
@@ -191,6 +207,7 @@
         perbaruiSetup();
         gambarKebiasaan();
         terapkanNamaApp(J.config.appName);
+        sembunyikanError();
         J.toast('Terhubung', 'Database siap dipakai. Silakan masuk.', 'ok');
       } else {
         J.toast('Gagal terhubung', r.msg, 'err');
@@ -209,6 +226,7 @@
       if (r.ok) {
         terapkanNamaApp(J.config.appName);
         gambarKebiasaan();
+        sembunyikanError();
       } else {
         J.toast('Database belum terbaca', r.msg, 'warn');
       }

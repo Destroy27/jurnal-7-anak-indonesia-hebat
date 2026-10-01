@@ -42,7 +42,7 @@
     b.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i>';
     J.syncAll(function (r) {
       b.innerHTML = '<i class="fa-solid fa-rotate"></i>';
-      if (r.ok) { muatSemua(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
+      if (r.ok) { muatSemua(); sembunyikanStatus(); J.toast('Tersinkron', 'Data terbaru berhasil diambil.', 'ok'); }
       else J.toast('Gagal sinkron', r.msg, 'err');
     });
   });
@@ -53,6 +53,7 @@
     document.getElementById('statusTeks').textContent = pesan;
     bar.classList.remove('hidden');
   }
+  function sembunyikanStatus() { document.getElementById('statusBar').classList.add('hidden'); }
 
   /* ---------- Rentang ---------- */
   document.querySelectorAll('#chipRentang .chip').forEach(function (chip) {
@@ -213,6 +214,10 @@
       return;
     }
     muatSemua();
+    /* Sambol status dibersihkan begitu sinkron pertama berhasil,
+       supaya bar merah "belum terhubung" tidak nempel di layar
+       padahal database sudah nyambung. */
+    sembunyikanStatus();
     J.mulaiAutoSync(function () { muatSemua(); }, 120000);
   });
 })();

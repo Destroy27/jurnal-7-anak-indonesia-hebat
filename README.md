@@ -31,7 +31,11 @@ otomatis** terlihat oleh guru di sekolah dan orang tua di rumah.
 Setiap isian diberi **skor 0–100** sehingga bisa langsung dijumlahkan jadi nilai kelas.
 Untuk kebiasaan jam (bangun & tidur), skor 100 bila **paling lambat sesuai target**
 (bawaan bangun 05:30, tidur 21:00), lalu turun 20 poin tiap 30 menit lebih lambat.
-Setiap kebiasaan juga bisa diberi **catatan singkat** opsional.
+Setiap kebiasaan centang juga **wajib** diberi **catatan singkat** begitu sudah dicentang —
+supaya jurnal tidak hanya berisi centang, tapi ada penjelasan apa yang dilakukan anak.
+Untuk kebiasaan jam (bangun & tidur) catatan tetap opsional.
+Aturan ini diatur per kebiasaan di `assets/js/habits.js` (`wajibCatatan: true`),
+jadi bisa diubah tanpa menyentuh kode lain.
 
 > **Sumber daftar:** 7 Kebiasaan Anak Indonesia Hebat (G7KAIH) adalah gerakan pendidikan
 > karakter Kementerian Pendidikan Dasar dan Menengah (Kemendikdasmen), diluncurkan
@@ -211,7 +215,7 @@ jurnal-7-anak-indonesia-hebat/
 │   ├── img/
 │   │   ├── logo.png         → 🖼️ LOGO APLIKASI (letakkan logomu di sini)
 │   │   ├── logo.svg         → logo bawaan (dipakai kalau logo.png belum ada)
-│   │   └── habits/         → 🖼️ FOTO 7 KEBIASAAN (opsional, lihat README di dalamnya)
+│   │   └── habits/         → 🖼️ 7 GAMBAR KEBIASAAN (sudah terisi, lihat README di dalamnya)
 │   └── js/
 │       ├── site-config.js  → ⚙️ TEMPEL URL APPS SCRIPT DI SINI
 │       ├── habits.js       → definisi 7 kebiasaan + mesin skor

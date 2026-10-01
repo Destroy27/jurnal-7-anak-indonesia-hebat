@@ -122,22 +122,21 @@
         </div>
       </div>
 
-      <!-- Kolom kanan: KARTU LOGIN (ala Jarco: kartu putih + kotak logo) -->
+      <!-- Kolom kanan: KARTU LOGIN (kartu putih + kotak logo ala Jarco) -->
       <div class="login-panel">
 
-        <!-- Gelombang tipis di tepi atas kartu -->
-        <svg class="login-wave" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M0,28 C70,6 130,40 200,24 C270,8 330,32 400,14 L400,0 L0,0 Z"></path>
-        </svg>
-
-        <!-- Kotak logo: ganti assets/img/logo.png dengan logomu -->
-        <div class="login-logo-box">
-          <i class="fa-solid fa-book-open"></i>
-          <img data-logo src="assets/img/logo.png" alt="Logo Jurnal 7 Kebiasaan">
+        <!-- Kepala kartu: logo + judul dalam satu baris (hemat tinggi layar) -->
+        <div class="login-head">
+          <!-- Kotak logo: ganti assets/img/logo.png dengan logomu -->
+          <div class="login-logo-box">
+            <i class="fa-solid fa-book-open"></i>
+            <img data-logo src="assets/img/logo.png" alt="Logo Jurnal 7 Kebiasaan">
+          </div>
+          <div class="login-head-txt">
+            <h2>Masuk</h2>
+            <p>Pilih peran, lalu isi identitas.</p>
+          </div>
         </div>
-
-        <h2>Masuk</h2>
-        <p>Pilih peran, lalu isi identitas.</p>
 
         <div class="role-tabs mt-3" role="tablist">
           <button class="role-tab active" data-role="siswa" role="tab" aria-selected="true">
@@ -214,11 +213,6 @@
             <i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk
           </button>
         </form>
-
-        <div class="banner banner-maroon mt-3" style="font-size:12px">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>Satu aplikasi untuk banyak kelas. Guru mengatur no. absen, nama panggilan, dan kode akses orang tua dari Panel Guru.</span>
-        </div>
       </div>
     </section>
   </main>

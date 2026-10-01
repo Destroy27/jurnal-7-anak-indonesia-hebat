@@ -152,7 +152,9 @@
 .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.grid-auto { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+/* min(230px, 100%) supaya di HP sempit kolomnya tetap muat di
+   dalam layar, bukan memaksa halaman geser ke samping. */
+.grid-auto { grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); }
 
 @media (max-width: 900px) {
   .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -614,14 +616,20 @@
   min-width: 290px; max-width: min(92vw, 460px);
   padding: 14px 18px;
   border-radius: var(--radius);
-  background: rgba(42, 7, 16, 0.96);
+  /* Dulu rgba(42,7,16,.96) - sisa warna marun dari tema lama.
+     Toast muncul di bagian bawah layar, jadi warna marunnya kelihatan
+     jelas dan terasa tidak nyambung dengan tema hijau botol. */
+  background: rgba(10, 46, 38, 0.96);
   color: #fff;
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(12px);
   transition: transform 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
   pointer-events: none;
 }
-#toast.show { transform: translate(-50%, 0); }
+/* Toast bisa ditutup dengan satu ketukan (lihat sembunyikanToast di core.js)
+   supaya pesan koneksi tidak "nyangkut" di layar. Pointer hanya aktif
+   saat toast terlihat, jadi tidak pernah menutupi tombol di bawahnya. */
+#toast.show { transform: translate(-50%, 0); pointer-events: auto; cursor: pointer; }
 .t-icon {
   width: 30px; height: 30px;
   border-radius: 9px;
@@ -640,7 +648,8 @@
 .modal-backdrop {
   position: fixed; inset: 0;
   z-index: 150;
-  background: rgba(42, 7, 16, 0.55);
+  /* Dulu rgba(42,7,16,.55) - sisa warna marun dari tema lama. */
+  background: rgba(10, 46, 38, 0.55);
   backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
