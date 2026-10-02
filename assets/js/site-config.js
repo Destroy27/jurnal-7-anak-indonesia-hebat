@@ -42,7 +42,7 @@ window.SITECONFIG = {
      tempat lain / repository lain:
         logo: 'assets/img/logo-sekolah.png',
      ==== */
-  logo: '',
+  logo: 'assets/img/logo-sd.png',
 
   /* ====
      GAMBAR 7 KEBIASAAN (sudah terisi)
