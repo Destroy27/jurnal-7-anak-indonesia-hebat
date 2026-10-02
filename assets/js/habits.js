@@ -208,8 +208,21 @@
   function keys() { return HABITS.map(function (h) { return h.key; }); }
   function total() { return HABITS.length; }
 
-  /* Skor satu isian 0..100 dengan bobot (centang/catatan/dokumen) */
-  function scoreEntry(habitKey, nilai, catatan, foto) {
+  /* Apakah kebiasaan ini punya dokumentasi foto?
+     Datenya sampai dari 3 bentuk: boolean TRUE, string "YA" dari
+     spreadsheet, atau string base64 (versi lama). Semua aman
+     karena nilai FALSE/SIANG/TIDAK ikut dianggap "tidak ada". */
+  function adaDokumentasi(v) {
+    if (v === true) return true;
+    var s = String(v == null ? '' : v).trim().toUpperCase();
+    return s !== '' && s !== 'FALSE' && s !== '0' && s !== 'NO' && s !== 'N' && s !== 'TIDAK';
+  }
+
+  /* Skor satu isian 0..100 dengan bobot:
+       centang saja            -> 33   (1 x)
+       + catatan terisi        -> 67   (2 x)
+       + dokumentasi/foto      -> 100  (3 x) */
+  function scoreEntry(habitKey, nilai, catatan, adaFoto) {
     var h = BY_KEY[habitKey];
     if (!h) return 0;
     var v = String(nilai == null ? '' : nilai).trim();
@@ -225,11 +238,9 @@
       return Math.max(0, 100 - Math.ceil(selisih / 30) * 20);
     }
     // check
-    var adaCat = catatan ? String(catatan).trim() !== '' : false;
-    var adaFoto = foto ? String(foto).trim() !== '' : false;
-    if (adaFoto) return 100;
-    if (adaCat) return 67; // ~2/3
-    return 33; // ~1/3
+    if (adaDokumentasi(adaFoto)) return 100;
+    if (catatan && String(catatan).trim() !== '') return 67;
+    return 33;
   }
 
   /* "05:30" -> 330 (menit sejak 00:00). null bila tidak valid. */
@@ -282,6 +293,7 @@
     setOverrides: setOverrides,
     targetOf: targetOf,
     scoreEntry: scoreEntry,
+    adaDokumentasi: adaDokumentasi,
     parseHM: parseHM,
     toHM: toHM,
     BOBOT: BOBOT,

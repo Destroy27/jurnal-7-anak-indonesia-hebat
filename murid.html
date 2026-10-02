@@ -209,7 +209,7 @@
       <div class="text-xs text-muted mt-1" id="progressText">0/7 (0%)</div>
     </div>
     <div class="flex gap-1 flex-wrap no-print">
-      <button class="btn btn-ghost btn-sm" id="btnSimpanSemua"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
+      <button class="btn btn-ghost btn-sm" id="btnSimpanHeader"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
       <button class="btn btn-primary" id="btnIsi"><i class="fa-solid fa-pen"></i> Isi Jurnal</button>
     </div>
   </section>
@@ -224,66 +224,39 @@
       <button class="icon-btn" id="btnTutupForm" title="Tutup formulir"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="habit-grid" id="habitGrid"></div>
+
+    <div class="card mt-3 text-center">
+      <button id="btnSimpanSemua" class="btn btn-success btn-block btn-lg mb-1" style="border-radius:12px;">
+        <i class="fa-solid fa-floppy-disk"></i> Simpan Jurnal Hari Ini
+      </button>
+      <button id="btnTutupForm2" class="btn btn-ghost btn-block">Tutup Formulir</button>
+      <p class="text-xs text-muted mt-2 no-print">
+        <i class="fa-solid fa-circle-info"></i>
+        Centang saja sudah cukup. Tulis catatan atau unggah foto untuk mendapat poin lebih tinggi
+        (1&nbsp;x&nbsp;centang, 2&nbsp;x&nbsp;+catatan, 3&nbsp;x&nbsp;+foto).
+      </p>
+    </div>
   </section>
 
-  <!-- === REKAP (DISAMARKAN UNTUK MURID) ===
-  <section class="anim-in anim-in-2" style="display:none;">
-    <div class="flex justify-between items-center gap-2 flex-wrap mb-2">
-      <h2 style="font-size:20px"><i class="fa-solid fa-chart-line" style="color:var(--maroon-600)"></i> Rekap Kebiasaan Saya</h2>
-      <div class="chip-row no-print" id="chipRentang">
-        <button class="chip active" data-hari="7">7 Hari</button>
-        <button class="chip" data-hari="14">14 Hari</button>
-        <button class="chip" data-hari="30">30 Hari</button>
+  <!-- === LENCANA (TERLIHAT UNTUK MURID) ===
+       Rekapitulasi sengaja disembunyikan di halaman murid, tapi
+       lencana tetap ditampilkan: inilah yang memotivasi anak
+       journaling setiap hari. -->
+  <section class="card anim-in anim-in-2 mb-3">
+    <div class="card-head mb-2">
+      <div>
+        <h2 style="font-size:17px;"><i class="fa-solid fa-medal" style="color:var(--gold-600)"></i> Lencana Ku</h2>
+        <p class="text-xs text-muted">Kumpulkan lencana dengan journaling setiap hari.</p>
       </div>
+      <span class="badge badge-gold" id="lencanaDimiliki">0 / 9</span>
     </div>
+    <div id="lencanaGrid" class="lencana-grid-v"></div>
   </section>
 
-  <div class="grid grid-4" style="display:none;">
-    <div class="stat anim-in anim-in-1">
-      <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
-      <div class="stat-value" id="statHariAktif">0</div>
-      <div class="stat-label">Hari Terisi</div>
-      <div class="stat-hint" id="statHariAktifHint">dalam 7 hari terakhir</div>
-    </div>
-    <div class="stat gold anim-in anim-in-2">
-      <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
-      <div class="stat-value" id="statPoin">0</div>
-      <div class="stat-label">Poin Rata-rata</div>
-      <div class="stat-hint" id="statPoinHint">dari 100 poin</div>
-    </div>
-    <div class="stat green anim-in anim-in-3">
-      <div class="stat-icon"><i class="fa-solid fa-sun"></i></div>
-      <div class="stat-value" id="statBangun">-</div>
-      <div class="stat-label">Rata-rata Bangun</div>
-      <div class="stat-hint" id="statBangunHint">target <span id="targetBangun">05:30</span></div>
-    </div>
-    <div class="stat anim-in anim-in-4">
-      <div class="stat-icon"><i class="fa-solid fa-fire"></i></div>
-      <div class="stat-value" id="statStreak">0</div>
-      <div class="stat-label">Beruntun</div>
-      <div class="stat-hint">hari journaling</div>
-    </div>
-  </div>
-
-  <div class="grid grid-2">
-    
-
-    <!-- FORMULIR JURNAL -->
-    <div id="bukaForm" style="display:none; margin-bottom: 24px;">
-      <div class="card-head mb-2">
-        <h2 style="font-family: 'Playfair Display', serif; font-size: 20px;">Jurnal Hari Ini</h2>
-      </div>
-      
-      <!-- Tempat render kartu habit -->
-      <div id="habitGrid" class="habit-grid"></div>
-      
-      <div class="card mt-3 text-center">
-        <button id="btnSimpanSemua" class="btn btn-success btn-block btn-lg mb-1" style="border-radius: 12px;">
-          <i class="fa-solid fa-floppy-disk"></i> Simpan
-        </button>
-        <button id="btnTutupForm" class="btn btn-ghost btn-block">Tutup Formulir</button>
-      </div>
-    </div>
+  <!-- === REKAPITULASI (TIDAK DITAMPILKAN UNTUK MURID) ===
+       Semua statistik & rekap ada di sini supaya tetap hidup,
+       tapi disembunyikan. Guru & orang tua punya halaman masing-masing
+       dengan rekap versi lengkap. Lencana tetap terlihat di atas. -->
 
     <!-- AREA REKAPITULASI (DISAMARKAN UNTUK MURID) -->
     <div id="areaRekap" style="display:none;">
@@ -328,14 +301,6 @@
         </div>
       </div>
 
-      <!-- LENCANA PENGHARGAAN -->
-      <section class="card mb-3">
-        <div class="card-head mb-2">
-          <h2><i class="fa-solid fa-medal" style="color: var(--gold-500);"></i> Lencana Penghargaan</h2>
-        </div>
-        <div id="lencanaGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px;"></div>
-      </section>
-
       <!-- PROGRES PER KEBIASAAN -->
       <section class="card mb-3">
         <div class="card-head mb-2">
@@ -352,8 +317,7 @@
         </div>
         <div id="riwayatList" style="display: flex; flex-direction: column; gap: 10px;"></div>
       </section>
-    </div><!-- /.grid-2 (kolom kiri + kolom kanan) -->
-  </div><!-- /.container -->
+    </div><!-- /.areaRekap -->
 </main>
 
   <div id="toast" role="status" aria-live="polite">

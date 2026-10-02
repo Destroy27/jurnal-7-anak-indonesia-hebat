@@ -287,7 +287,7 @@ var rentangHari = 7;
         /* Satu siswa boleh mengisi kebiasaan ini lebih dari sekali
            dalam rentang; setiap isian dihitung sebagai 1 slot. */
         hariTerisi += rows.length;
-        jml += H.scoreEntry(h.key, rows[rows.length - 1].nilai);
+        jml += H.scoreEntry(h.key, rows[rows.length - 1].nilai, rows[rows.length - 1].catatan, rows[rows.length - 1].adaFoto);
       });
       var totalSlot = s.total * rentangHari;
       return {

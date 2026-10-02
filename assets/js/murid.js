@@ -18,6 +18,7 @@
   var formTerbuka = true;
   var bulanAktif = null; // YYYY-MM, null berarti pakai rentang terakhir
   var adaPerubahan = false; /* Penanda agar form tidak keriset saat auto-sync */
+  var sedangSimpan = false; /* Supaya label tombol tidak ditimpa saat request berjalan */
 
   function gerbang() {
     if (!sesi || sesi.role !== 'siswa' || !sesi.siswa) {
@@ -89,7 +90,12 @@
       isian[h.key] = {
         nilai: e ? e.nilai : '',
         catatan: e ? e.catatan : '',
-        foto: e ? (e.foto || '') : ''
+        /* Foto TIDAK ikut di cache jurnal (bikin localStorage penuh).
+           Foto dibaca dari gudang foto lokal. Kalau foto sudah ada di
+           perangkat lain, tetap tampil sebagai "ada dokumentasi"
+           walau gambar pratinjaunya tidak ada. */
+        foto: J.ambilFoto(siswa.nis, t, h.key) || '',
+        adaFoto: !!(e && e.adaFoto)
       };
     });
     adaPerubahan = false; // Reset status perubahan
@@ -118,14 +124,18 @@
 
   function kolomFoto(h, v) {
     if (h.key === 'bangun' || h.key === 'tidur') return '';
-    var adaFoto = !!(v && v.foto);
+    var adaFoto = !!((v && v.foto) || (v && v.adaFoto));
+    var lbl = adaFoto ? 'Ganti Foto Dokumentasi' : 'Unggah Foto Dokumentasi';
+    var pratinjau = (v && v.foto)
+      ? '<img id="img-prev-' + h.key + '" src="' + J.esc(v.foto) + '" alt="Dokumentasi" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #ddd;object-fit:cover;">'
+      : '<div class="text-xs text-muted" id="img-prev-' + h.key + '" style="padding:8px 0;">Dokumentasi tersimpan di perangkat ini.</div>';
     return '<div class="habit-photo-wrap" data-photo="' + h.key + '" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border,#e2e8f0);">' +
       '<label for="input-foto-' + h.key + '" class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;background:rgba(19,74,59,0.06);color:var(--primary,#134A3B);border:1px dashed var(--primary,#134A3B);border-radius:8px;padding:6px 12px;">' +
-        '<i class="fa-solid fa-camera"></i> <span class="lbl-foto-' + h.key + '">' + (adaFoto ? 'Ganti Foto Dokumentasi' : 'Unggah Foto Dokumentasi') + '</span>' +
+        '<i class="fa-solid fa-camera"></i> <span class="lbl-foto-' + h.key + '">' + lbl + '</span>' +
       '</label>' +
       '<input type="file" id="input-foto-' + h.key + '" data-habit="' + h.key + '" data-jenis="foto" accept="image/*" capture="environment" style="display:none">' +
       '<div class="foto-preview-container" id="box-prev-' + h.key + '" style="margin-top:8px;position:relative;display:' + (adaFoto ? 'inline-block' : 'none') + ';">' +
-        '<img id="img-prev-' + h.key + '" src="' + J.esc(v.foto || '') + '" alt="Dokumentasi" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid #ddd;object-fit:cover;">' +
+        pratinjau +
         '<button type="button" class="btn-hapus-foto" data-hapus-foto="' + h.key + '" style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,0.85);color:#fff;border:none;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;" title="Hapus Foto"><i class="fa-solid fa-xmark"></i></button>' +
       '</div>' +
     '</div>';
@@ -181,7 +191,7 @@
   function gambarFormulir() {
     var t = J.todayISO();
     document.getElementById('habitGrid').innerHTML = H.list.map(function (h) {
-      var v = isian[h.key] || { nilai: '', catatan: '', foto: '' };
+      var v = isian[h.key] || { nilai: '', catatan: '', foto: '', adaFoto: false };
       var terisi = String(v.nilai).trim() !== '';
       var kontrol = '';
 
@@ -231,8 +241,10 @@
         if (!file) return;
         bacaDanKompresFoto(file, function (dataUrl) {
           isian[k].foto = dataUrl;
+          isian[k].adaFoto = true;
           adaPerubahan = true;
-          document.getElementById('img-prev-' + k).src = dataUrl;
+          var img = document.getElementById('img-prev-' + k);
+          if (img && img.tagName === 'IMG') img.src = dataUrl;
           document.getElementById('box-prev-' + k).style.display = 'inline-block';
           document.querySelector('.lbl-foto-' + k).textContent = 'Ganti Foto';
           perbaruiRingkasanHari();
@@ -243,6 +255,7 @@
       btn.addEventListener('click', function () {
         var k = btn.dataset.hapusFoto;
         isian[k].foto = '';
+        isian[k].adaFoto = false;
         adaPerubahan = true;
         document.getElementById('box-prev-' + k).style.display = 'none';
         document.querySelector('.lbl-foto-' + k).textContent = 'Unggah Foto';
@@ -251,7 +264,7 @@
   }
 
   function setIsian(k, nilai) {
-    if (!isian[k]) isian[k] = { nilai: '', catatan: '', foto: '' };
+    if (!isian[k]) isian[k] = { nilai: '', catatan: '', foto: '', adaFoto: false };
     isian[k].nilai = nilai == null ? '' : String(nilai);
     adaPerubahan = true; /* Menandai bahwa murid sedang mengetik/mengubah form */
 
@@ -261,7 +274,7 @@
     var terisi = isian[k].nilai !== '';
     var centang = !!(h && h.type === 'check' && isian[k].nilai === '1');
     if (kartu) {
-      kartu.classList.toggle('filled', terisi || isian[k].catatan !== '' || isian[k].foto !== '');
+      kartu.classList.toggle('filled', terisi || isian[k].catatan !== '' || !!isian[k].foto || !!isian[k].adaFoto);
       kartu.classList.toggle('centang', centang);
     }
     if (badge) badge.innerHTML = badgeStatus(h, terisi);
@@ -280,9 +293,16 @@
       '<span class="badge badge-maroon"><i class="fa-solid fa-list-check"></i> ' + n + ' dari ' + H.total() + ' terisi</span>' +
       (persen === 100 ? '<span class="badge badge-gold"><i class="fa-solid fa-star"></i> Jurnal lengkap!</span>' : '<span class="badge badge-soft"><i class="fa-solid fa-hourglass-half"></i> ' + (H.total() - n) + ' lagi</span>');
     
+    /* Tombol simpan TIDAK pernah dikunci: centang satu saja sudah
+       boleh disimpan, tidak perlu menunggu semua 7 terisi. */
+    if (sedangSimpan) return;
+    var label = n > 0
+      ? '<i class="fa-solid fa-floppy-disk"></i> Simpan (' + n + ')'
+      : '<i class="fa-solid fa-floppy-disk"></i> Simpan';
     var btn = document.getElementById('btnSimpanSemua');
-    btn.disabled = false;
-    btn.innerHTML = n > 0 ? '<i class="fa-solid fa-floppy-disk"></i> Simpan (' + n + ')' : '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    if (btn) { btn.disabled = false; btn.innerHTML = label; }
+    var btnH = document.getElementById('btnSimpanHeader');
+    if (btnH) btnH.innerHTML = label;
     // Progress bar yang jelas
     var bar = document.getElementById('progressBar');
     var barText = document.getElementById('progressText');
@@ -298,43 +318,56 @@
     var t = J.todayISO();
     var items = [];
     H.list.forEach(function (h) {
-      var v = isian[h.key] || { nilai: '', catatan: '', foto: '' };
-      if (!v.nilai && !v.catatan && !v.foto) return;
-      var entry = J.buildEntry(siswa, t, h.key, v.nilai, v.catatan, v.foto);
-      items.push(entry);
+      var v = isian[h.key] || { nilai: '', catatan: '', foto: '', adaFoto: false };
+      if (!v.nilai && !v.catatan && !v.adaFoto) return;
+      /* Foto disimpan ke gudang lokal (tidak ikut ke server),
+         ke server cuma terkirim penanda "YA" untuk bobot poin. */
+      if (v.foto) J.simpanFoto(siswa.nis, t, h.key, v.foto);
+      items.push(J.buildEntry(siswa, t, h.key, v.nilai, v.catatan, !!v.adaFoto || !!v.foto));
     });
     if (!items.length) return J.toast('Belum ada isian', 'Isi minimal satu kebiasaan dulu.', 'warn');
 
     var btn = document.getElementById('btnSimpanSemua');
-    var teksAsli = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan!';
-    setTimeout(function() { btn.disabled = false; btn.innerHTML = teksAsli; }, 2000);
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Mengirim...';
+    }
+    sedangSimpan = true;
 
-    J.toast('Tersimpan', 'Data berhasil dicatat.', 'ok');
-    adaPerubahan = false; // Reset penanda setelah save berhasil
+    adaPerubahan = false; // Reset penanda setelah simpan
 
     J.simpanEntries(items, function (r) {
-      if (r.ok) { 
-        muatRekap(false); 
+      sedangSimpan = false;
+      if (btn) btn.disabled = false;
+      if (r.ok) {
+        gambarFormulir();
+        muatRekap(false);
         perbaruiAntrean();
-        // Auto-sync ringan
-        try { if (document.getElementById('btnSync')) { J.syncAll(function(){}); } } catch(e) {}
-      } 
-      else { perbaruiAntrean(); }
+        try { if (document.getElementById('btnSync')) { J.syncAll(function () {}); } } catch (e) {}
+      } else {
+        perbaruiAntrean();
+      }
     });
   }
-  document.getElementById('btnSimpanSemua').addEventListener('click', function () { simpanSemua(); });
-  document.getElementById('btnRiwayat').addEventListener('click', function () { muatRekap(true); });
+  function on(id, ev, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(ev, fn);
+  }
+  on('btnSimpanSemua', 'click', function () { simpanSemua(); });
+  on('btnSimpanHeader', 'click', function () { simpanSemua(); });
+  on('btnRiwayat', 'click', function () { muatRekap(true); });
 
   function setFormTerbuka(v) {
     formTerbuka = v;
-    document.getElementById('bukaForm').style.display = v ? '' : 'none';
-    document.getElementById('btnIsi').innerHTML = v ? '<i class="fa-solid fa-eye-slash"></i> Sembunyikan' : '<i class="fa-solid fa-pen"></i> Isi Jurnal';
-    if (v) setTimeout(function () { document.getElementById('bukaForm').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 40);
+    var f = document.getElementById('bukaForm');
+    if (f) f.style.display = v ? '' : 'none';
+    var b = document.getElementById('btnIsi');
+    if (b) b.innerHTML = v ? '<i class="fa-solid fa-eye-slash"></i> Sembunyikan' : '<i class="fa-solid fa-pen"></i> Isi Jurnal';
+    if (v) setTimeout(function () { if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 40);
   }
-  document.getElementById('btnIsi').addEventListener('click', function () { setFormTerbuka(!formTerbuka); });
-  document.getElementById('btnTutupForm').addEventListener('click', function () { setFormTerbuka(false); });
+  on('btnIsi', 'click', function () { setFormTerbuka(!formTerbuka); });
+  on('btnTutupForm', 'click', function () { setFormTerbuka(false); });
+  on('btnTutupForm2', 'click', function () { setFormTerbuka(false); });
 
   document.querySelectorAll('#chipRentang .chip').forEach(function (chip) {
     chip.addEventListener('click', function () {
@@ -369,14 +402,22 @@
   if (document.getElementById('btnNextBulan')) document.getElementById('btnNextBulan').addEventListener('click', function(){ubahBulan(1);});
   if (document.getElementById('btnSekarang')) document.getElementById('btnSekarang').addEventListener('click', setBulanIni);
 
+  function setTeks(id, nilai) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = nilai;
+  }
+
   function muatRekap(paksaToast) {
     var r = J.rekapSiswa(siswa.nis, rentangHari);
-    document.getElementById('statHariAktif').textContent = r.hariAktifJml;
-    document.getElementById('statPoin').textContent = r.rataPoin;
-    document.getElementById('statStreak').textContent = r.streak;
-    
+    setTeks('statHariAktif', r.hariAktifJml);
+    setTeks('statPoin', r.rataPoin);
+    setTeks('statStreak', r.streak);
+    setTeks('lencanaDimiliki', r.lencana.length + ' / ' + H.lencana.length);
+
     var bangun = r.perHabit.find(function (p) { return p.key === 'bangun'; });
-    document.getElementById('statBangun').textContent = bangun && bangun.rataWaktu ? bangun.rataWaktu : '-';
+    setTeks('statBangun', bangun && bangun.rataWaktu ? bangun.rataWaktu : '-');
+    var tb = document.getElementById('targetBangun');
+    if (tb) tb.textContent = H.toHM(H.parseHM(H.targetOf('bangun')) || 330);
 
     /* Bar chart konsistensi/streak */
     try {
@@ -401,21 +442,33 @@
       }
     } catch(e) {}
 
-    document.getElementById('rekapList').innerHTML = r.perHabit.map(function (p) {
-      return '<div class="rekap-item"><div class="ri-no" style="background:' + p.color + '">' + p.no + '</div><div class="ri-body"><div class="ri-title"><strong>' + J.esc(p.title) + '</strong><span>' + p.persen + '%</span></div><div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div><div class="text-xs text-muted mt-1">' + p.jumlah + ' hari terisi</div></div></div>';
-    }).join('');
+    var rekapList = document.getElementById('rekapList');
+    if (rekapList) {
+      rekapList.innerHTML = r.perHabit.map(function (p) {
+        return '<div class="rekap-item"><div class="ri-no" style="background:' + p.color + '">' + p.no + '</div><div class="ri-body"><div class="ri-title"><strong>' + J.esc(p.title) + '</strong><span>' + p.persen + '%</span></div><div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div><div class="text-xs text-muted mt-1">' + p.jumlah + ' dari 7 hari terisi &middot; skor ' + p.rataSkor + '</div></div></div>';
+      }).join('');
+    }
 
-    var sudah = {}; r.lencana.forEach(function (l) { sudah[l.key] = true; });
-    document.getElementById('lencanaGrid').innerHTML = H.lencana.map(function (l) {
+    var sudah = {};
+    r.lencana.forEach(function (l) { sudah[l.key] = true; });
+    var htmlLencana = H.lencana.map(function (l) {
       var dapat = !!sudah[l.key];
-      return '<div class="lencana' + (dapat ? '' : ' locked') + '" title="' + J.esc(l.desc) + '"><i class="' + l.icon + '"></i><span>' + (dapat ? l.label : 'Terkunci') + '</span></div>';
+      return '<div class="lencana' + (dapat ? '' : ' locked') + '" title="' + J.esc(l.desc) + '">' +
+        '<i class="' + l.icon + '"></i>' +
+        '<span>' + (dapat ? l.label : 'Terkunci') + '</span>' +
+        '<small>' + l.butuh + 'x</small></div>';
     }).join('');
+    var lg = document.getElementById('lencanaGrid');
+    if (lg) lg.innerHTML = htmlLencana;
 
-    var hariAda = Object.keys(r.harian).sort().reverse().slice(0, 5);
-    document.getElementById('riwayatList').innerHTML = hariAda.length ? hariAda.map(function (d) {
-      var hr = r.harian[d];
-      return '<div class="list-row"><div class="list-avatar"><i class="fa-solid fa-calendar-day"></i></div><div class="list-main"><h4>' + J.esc(J.fmtHari(d)) + ', ' + J.esc(J.fmtTanggal(d)) + '</h4><p>Poin: ' + hr.poin + '</p></div></div>';
-    }).join('') : '<div class="empty">Belum ada riwayat</div>';
+    var riwayatList = document.getElementById('riwayatList');
+    if (riwayatList) {
+      var hariAda = Object.keys(r.harian).sort().reverse().slice(0, 5);
+      riwayatList.innerHTML = hariAda.length ? hariAda.map(function (d) {
+        var hr = r.harian[d];
+        return '<div class="list-row"><div class="list-avatar"><i class="fa-solid fa-calendar-day"></i></div><div class="list-main"><h4>' + J.esc(J.fmtHari(d)) + ', ' + J.esc(J.fmtTanggal(d)) + '</h4><p>' + hr.jumlah + '/7 kebiasaan &middot; Poin: ' + hr.poin + '</p></div></div>';
+      }).join('') : '<div class="empty">Belum ada riwayat</div>';
+    }
 
     if (paksaToast) J.toast('Rekap diperbarui', 'Menampilkan data terbaru.', 'ok');
   }

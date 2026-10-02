@@ -173,6 +173,61 @@ function pastikanSheet(nama, header) {
   return sh;
 }
 
+/* ============================================================
+   NORMALISASI TANGGAL & JAM  (PALING PENTING)
+   ------------------------------------------------------------
+   Google Sheets diam-diam mengubah teks "2026-10-02" menjadi
+   TANGGAL sungguhan, dan "05:30" menjadi JAM. Setelah itu
+   getValues() mengembalikan objek Date, dan String(date)
+   menjadi panjang seperti:
+     "Fri Oct 02 2026 00:00:00 GMT+0800 (Waktu Standar Singapura)"
+
+   Padahal seluruh frontend membandingkan tanggal dengan format
+   "YYYY-MM-DD". Akibatnya TIDAK ADA yang cocok => rekap, persen,
+   rata-rata, lencana, dan rekap harian guru semuanya NOL.
+
+   Dua perbaikan di sini:
+     1) jadikanTeks_()  -> kolom JURNAL dijadikan Plain Text
+        supaya data baru tidak dikonversi lagi.
+     2) fmtTanggalISO_() & fmtJamHM_() -> data lama yang sudah
+        terlanjur jadi Date, dinormalkan saat dibaca. Jadi data
+        lama langsung terbaca tanpa perlu diedit manual.
+   ============================================================ */
+function pad2_(n) { return (Number(n) < 10 ? '0' : '') + n; }
+
+function fmtTanggalISO_(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime())) {
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  var s = String(v).trim();
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+  if (m) return m[1] + '-' + pad2_(m[2]) + '-' + pad2_(m[3]);
+  return s;
+}
+
+function fmtJamHM_(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime())) {
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'HH:mm');
+  }
+  var s = String(v).trim();
+  var m = /^(\d{1,2}):(\d{2})/.exec(s);
+  if (m) return pad2_(m[1]) + ':' + m[2];
+  return s;
+}
+
+/* Jadikan semua kolom JURNAL berformat Plain Text. Cukup dicek
+   satu sel supaya tidak memberat setiap kali menyimpan. */
+function jadikanTeks_(sh) {
+  try {
+    if (sh.getRange(2, 4).getNumberFormat() === '@') return false;
+    var baris = Math.max(sh.getMaxRows(), 2);
+    sh.getRange(2, 1, baris - 1, HEADER_JURNAL.length).setNumberFormat('@');
+    return true;
+  } catch (e) { return false; }
+}
+
 function parseJSON_(teks, bawaan) {
   try {
     var v = JSON.parse(String(teks || ''));
@@ -431,9 +486,14 @@ function saveStudents_(body) {
 
 /* ============================================================
    JURNAL  (sheet: JURNAL)
-   Kelas ID | No. Absen | Nama | Tanggal | Kode | Nilai | Catatan | ISO | Tampil
+   Kelas ID | No. Absen | Nama | Tanggal | Kode | Nilai | Catatan | ISO | Tampil | Ada Foto
+   Kolom "Ada Foto" hanya berisi YA / kosong. Foto jpeg-nya sendiri
+   TIDAK disimpan ke spreadsheet (sel Google Sheets cuma bisa
+   50.000 karakter per sel, sedangkan foto base64 jauh lebih besar
+   dan akan menggagalkan seluruh pengiriman). Yang perlu disimpan
+   cuma nyatanya ada foto atau tidak, untuk menghitung bobot poin.
    ============================================================ */
-var HEADER_JURNAL = ['Kelas ID', 'No. Absen', 'Nama', 'Tanggal', 'Kode Kebiasaan', 'Nilai', 'Catatan', 'Waktu ISO', 'Waktu Tampil'];
+var HEADER_JURNAL = ['Kelas ID', 'No. Absen', 'Nama', 'Tanggal', 'Kode Kebiasaan', 'Nilai', 'Catatan', 'Waktu ISO', 'Waktu Tampil', 'Ada Foto'];
 
 function getEntries_() {
   /* Cache 3 detik: saat banyak perangkat sync bersamaan dalam
@@ -447,12 +507,13 @@ function getEntries_() {
 
   var sh = getSS().getSheetByName(SHEET_JURNAL);
   var isi = [];
+  var lebar = Math.min(Math.max(sh ? sh.getLastColumn() : 0, HEADER_JURNAL.length), 10);
   if (sh && sh.getLastRow() > 1) {
-    var data = sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues();
+    var data = sh.getRange(2, 1, sh.getLastRow() - 1, lebar).getValues();
     data.forEach(function (r) {
       var kelasId = String(r[0]).trim();
       var nis = String(r[1]).trim();
-      var tanggal = String(r[3]).trim();
+      var tanggal = fmtTanggalISO_(r[3]);
       var kode = String(r[4]).trim();
       if (!kelasId || !nis || !tanggal || !kode) return;
       isi.push({
@@ -462,10 +523,11 @@ function getEntries_() {
         nama: String(r[2]).trim(),
         tanggal: tanggal,
         kode: kode,
-        nilai: String(r[5]).trim(),
+        nilai: fmtJamHM_(r[5]),
         catatan: String(r[6]).trim(),
         tsISO: String(r[7]).trim(),
-        tsDisplay: String(r[8]).trim()
+        tsDisplay: fmtJamHM_(r[8]),
+        adaFoto: String(r[9] == null ? '' : r[9]).trim().toUpperCase() === 'YA'
       });
     });
   }
@@ -482,19 +544,23 @@ function saveEntries_(body) {
   if (!items.length) return { ok: false, msg: 'Tidak ada isian untuk disimpan' };
 
   var sh = pastikanSheet(SHEET_JURNAL, HEADER_JURNAL);
+  jadikanTeks_(sh);
   var tambah = [];
   var berubah = 0;
 
   /* Peta indeks dibaca SEKALI saja. Kalau tidak, setiap isian akan
      membaca seluruh sheet berulang kali. Saat jurnal menumpuk ribuan
-     baris, satu kiriman 7 isian jadi jauh lebih lambat. */
+     baris, satu kiriman 7 isian jadi jauh lebih lambat.
+     PENTING: tanggal dinormalkan dengan fmtTanggalISO_ supaya baris
+     lama yang sudah jadi Date SULLIT ketemu (dulu selalu salah,
+     sehingga tiap simpan menambah baris duplikat). */
   var last = sh.getLastRow();
   var peta = {};
   if (last > 1) {
     var semua = sh.getRange(2, 1, last - 1, 5).getValues();
     for (var i = 0; i < semua.length; i++) {
       var kunci = String(semua[i][0]).trim() + '||' + String(semua[i][1]).trim() +
-        '||' + String(semua[i][3]).trim() + '||' + String(semua[i][4]).trim();
+        '||' + fmtTanggalISO_(semua[i][3]) + '||' + String(semua[i][4]).trim();
       if (peta[kunci] === undefined) peta[kunci] = i + 2;
     }
   }
@@ -503,7 +569,7 @@ function saveEntries_(body) {
     var kelasId = String(it.kelasId || '').trim();
     var nis = String(it.nis || '').trim();
     var nama = String(it.nama || '').trim();
-    var tanggal = String(it.tanggal || '').trim();
+    var tanggal = fmtTanggalISO_(it.tanggal);
     var kode = String(it.kode || '').trim();
     var nilai = String(it.nilai == null ? '' : it.nilai).trim();
     var catatan = String(it.catatan == null ? '' : it.catatan).trim();
@@ -513,7 +579,8 @@ function saveEntries_(body) {
     var baris = [
       kelasId, nis, nama, tanggal, kode, nilai, catatan,
       String(it.tsISO || new Date().toISOString()),
-      String(it.tsDisplay || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm'))
+      String(it.tsDisplay || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm')),
+      it.adaFoto === true || String(it.adaFoto).toLowerCase() === 'true' ? 'YA' : ''
     ];
 
     var kunci = kelasId + '||' + nis + '||' + tanggal + '||' + kode;
@@ -521,14 +588,14 @@ function saveEntries_(body) {
     if (barisKe > 0) peta[kunci] = 0;   /* kunci dipakai, jangan dipakai lagi di paket ini */
 
     if (barisKe > 0) {
-      sh.getRange(barisKe, 1, 1, 9).setValues([baris]);
+      sh.getRange(barisKe, 1, 1, HEADER_JURNAL.length).setValues([baris]);
       berubah++;
     } else {
       tambah.push(baris);
     }
   });
 
-  if (tambah.length) sh.getRange(sh.getLastRow() + 1, 1, tambah.length, 9).setValues(tambah);
+  if (tambah.length) sh.getRange(sh.getLastRow() + 1, 1, tambah.length, HEADER_JURNAL.length).setValues(tambah);
   sh.setTabColor('#8B1826');
 
   /* Hasil tulis langsung terlihat, tanpa menunggu masa cache */
@@ -546,7 +613,7 @@ function saveEntries_(body) {
 function deleteEntry_(body) {
   var kelasId = String(body.kelasId || '').trim();
   var nis = String(body.nis || '').trim();
-  var tanggal = String(body.tanggal || '').trim();
+  var tanggal = fmtTanggalISO_(body.tanggal);
   var kode = String(body.kode || '').trim();
 
   var sh = getSS().getSheetByName(SHEET_JURNAL);
@@ -556,7 +623,7 @@ function deleteEntry_(body) {
   for (var i = 0; i < data.length; i++) {
     if (String(data[i][0]).trim() === kelasId &&
         String(data[i][1]).trim() === nis &&
-        String(data[i][3]).trim() === tanggal &&
+        fmtTanggalISO_(data[i][3]) === tanggal &&
         String(data[i][4]).trim() === kode) {
       sh.deleteRow(i + 2);
       cacheBuang_(LOGS_CACHE_KEY);
@@ -623,7 +690,7 @@ function onOpen() {
     SpreadsheetApp.getUi()
       .createMenu('Jurnal 7 Kebiasaan')
       .addItem('Cek Isi Database', 'menuCek')
-      .addItem('Siapkan Kolom Tanggal', 'menuFormatTanggal')
+      .addItem('Perbaiki Tanggal & Jam', 'menuFormatTanggal')
       .addToUi();
   } catch (e) {}
 }
@@ -642,11 +709,80 @@ function menuCek() {
   );
 }
 
-/* Ubah kolom Tanggal & Waktu menjadi format tanggal agar rapi
-   saat spreadsheet dibuka langsung oleh guru. */
+/* Perbaiki data jurnal yang rusak. Dua masalah sekaligus:
+     1) kolom Tanggal & Nilai yang sudah dikonversi Google Sheets
+        menjadi objek Date/Time ditulis ulang sebagai TEKS polos
+        ("2026-10-02" & "05:30") supaya frontend bisa membandingkannya;
+     2) BARIS DOBEL dibuang. dulu setiap simpan menambah baris baru
+        (upsert gagal karena tanggalnya sudah jadi objek Date), jadi
+        satu isian bisa terimpan puluhan kali dan kelengkapan naik
+        lebih dari 100%. Yang dipertahankan hanya baris TERBARU. */
 function menuFormatTanggal() {
+  var ui = SpreadsheetApp.getUi();
   var sh = getSS().getSheetByName(SHEET_JURNAL);
-  if (!sh || sh.getLastRow() <= 1) { SpreadsheetApp.getUi().alert('Belum ada data jurnal.'); return; }
-  sh.getRange(2, 4, sh.getLastRow() - 1, 1).setNumberFormat('yyyy-mm-dd');
-  SpreadsheetApp.getUi().alert('Format tanggal sudah dirapikan.');
+  if (!sh || sh.getLastRow() <= 1) { ui.alert('Belum ada data jurnal.'); return; }
+
+  var n = sh.getLastRow() - 1;
+  var lebar = Math.min(Math.max(sh.getLastColumn(), HEADER_JURNAL.length), 10);
+  var data = sh.getRange(2, 1, n, lebar).getValues();
+
+  /* Cari baris terbaik (paling baru) untuk tiap kombinasi
+     kelas + siswa + tanggal + kode */
+  var terbaik = {};
+  var barisBaik = [];
+  for (var i = 0; i < n; i++) {
+    var tgl = fmtTanggalISO_(data[i][3]);
+    if (!tgl) continue;
+    var kunci = String(data[i][0]).trim() + '||' + String(data[i][1]).trim() +
+      '||' + tgl + '||' + String(data[i][4]).trim();
+    var iso = String(data[i][7] == null ? '' : data[i][7]);
+    var stamp = (Object.prototype.toString.call(data[i][7]) === '[object Date]' && !isNaN(data[i][7].getTime()))
+      ? data[i][7].getTime() : iso;
+    if (terbaik[kunci] === undefined || stamp >= terbaik[kunci].stamp) {
+      terbaik[kunci] = { stamp: stamp, row: i + 2 };
+    }
+  }
+  for (var kk in terbaik) barisBaik.push(terbaik[kk].row);
+  barisBaik.sort(function (a, b) { return a - b; });
+
+  var hapus = [];
+  var disimpan = 0;
+  for (var r = n + 1; r >= 2; r--) {
+    if (barisBaik.indexOf(r) === -1) hapus.push(r);
+  }
+
+  var tanggalBaru = [], nilaiBaru = [], jamBaru = [];
+  var bedaTanggal = 0, bedaNilai = 0;
+  for (var j = 0; j < n; j++) {
+    var tgl2 = fmtTanggalISO_(data[j][3]);
+    var nil2 = fmtJamHM_(data[j][5]);
+    var jam2 = fmtJamHM_(data[j][8]);
+    if (Object.prototype.toString.call(data[j][3]) === '[object Date]') bedaTanggal++;
+    if (Object.prototype.toString.call(data[j][5]) === '[object Date]') bedaNilai++;
+    tanggalBaru.push([tgl2]);
+    nilaiBaru.push([nil2]);
+    jamBaru.push([jam2]);
+  }
+
+  sh.getRange(2, 1, n, lebar).setNumberFormat('@');
+  sh.getRange(2, 4, n, 1).setValue(tanggalBaru);
+  sh.getRange(2, 6, n, 1).setValue(nilaiBaru);
+  sh.getRange(2, 9, n, 1).setValue(jamBaru);
+  /* Kolom "Ada Foto" baru: isi ulang dari data lama (semua kosong). */
+  if (sh.getLastColumn() < HEADER_JURNAL.length) {
+    sh.getRange(1, HEADER_JURNAL.length, 1, 1).setValue([HEADER_JURNAL[HEADER_JURNAL.length - 1]]);
+  }
+
+  /* Buang baris dobel (dari bawah ke atas supaya indeks tidak geser) */
+  for (var h = 0; h < hapus.length; h++) sh.deleteRow(hapus[h]);
+  disimpan = barisBaik.length;
+
+  cacheBuang_(LOGS_CACHE_KEY);
+  ui.alert('Selesai diperbaiki.\n\n' +
+    'Baris jurnal sebelum  : ' + n + '\n' +
+    'Baris setelah        : ' + disimpan + '\n' +
+    'Baris dobel dihapus  : ' + hapus.length + '\n\n' +
+    'Tanggal diubah ke teks : ' + bedaTanggal + ' baris\n' +
+    'Jam bangun/tidur      : ' + bedaNilai + ' baris\n\n' +
+    'Semua kolom JURNAL sekarang Plain Text.');
 }

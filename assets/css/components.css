@@ -435,6 +435,22 @@
 .lencana.locked { background: var(--bg); border-color: var(--border); color: var(--muted-2); }
 .lencana.locked i { background: #EFEDE3; color: var(--muted-2); box-shadow: none; }
 
+/* Varian VERTIKAL untuk kartu "Lencana Ku" di halaman murid.
+   Versa .lencana di atas sengaja dibuat pipih-gold (satu baris)
+   supaya tidak bentrok sama sekali dengan gaya ini. */
+.lencana-grid-v {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 10px;
+}
+.lencana-grid-v .lencana {
+  flex-direction: column; align-items: center; text-align: center;
+  gap: 5px; padding: 11px 6px 9px;
+}
+.lencana-grid-v .lencana i { width: 30px; height: 30px; font-size: 13px; }
+.lencana-grid-v .lencana span { font-size: 10.5px; line-height: 1.25; }
+.lencana-grid-v .lencana small { font-size: 9.5px; font-weight: 600; opacity: .65; }
+
 /* === TABEL === */
 .table-wrap {
   overflow-x: auto;

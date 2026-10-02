@@ -249,15 +249,30 @@
         return String(a.nis).localeCompare(String(b.nis), 'en', { numeric: true });
       });
   }
+  /* Jurnal satu siswa.
+     PENTING: versi lama selalu MENAMBAH baris baru tiap kali
+     disimpan (upsert-nya gagal karena tanggal berubah jadi objek
+     Date), sehingga satu isian bisa muncul puluhan kali. Kalau
+     tidak di-rapikan di sini, kelengkapan/daya bisa lebih dari
+     100% dan rata-rata menjadi tidak masuk akal. Yang dipakai
+     selalu baris paling TERBARU per (tanggal + kode). */
   function entriesOf(nis) {
     var n = String(nis);
-    return state.entries.filter(function (e) { return String(e.nis) === n; });
+    var peta = {};
+    state.entries.forEach(function (e) {
+      if (String(e.nis) !== n) return;
+      var k = String(e.tanggal) + '__' + String(e.kode);
+      var lama = peta[k];
+      if (!lama) { peta[k] = e; return; }
+      if (String(e.tsISO || '') > String(lama.tsISO || '')) peta[k] = e;
+    });
+    return Object.keys(peta).map(function (k) { return peta[k]; })
+      .sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); });
   }
   function entryOf(nis, tanggal, kode) {
-    var n = String(nis);
-    return state.entries.find(function (e) {
-      return String(e.nis) === n && String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode);
-    }) || null;
+    return entriesOf(nis).filter(function (e) {
+      return String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode);
+    }).slice(-1)[0] || null;
   }
   /* Target jam bangun & tidur bisa diatur guru lewat tab Pengaturan */
   function targetBangun() { return H.targetOf('bangun') || '05:30'; }
@@ -276,7 +291,7 @@
     var totalSkor = 0;
     Object.keys(byKey).forEach(function (k) {
       var en = byKey[k];
-      totalSkor += H.scoreEntry(k, en.nilai, en.catatan, en.foto);
+      totalSkor += H.scoreEntry(k, en.nilai, en.catatan, en.adaFoto);
     });
     return {
       tanggal: entriesHari.length ? entriesHari[0].tanggal : '',
@@ -332,7 +347,7 @@
     var totalSlot = rentang.length * H.total();
     var totalIsi = semua.filter(function (e) { return rentang.indexOf(e.tanggal) !== -1; }).length;
     var poin = 0;
-    semua.forEach(function (e) { if (rentang.indexOf(e.tanggal) !== -1) poin += H.scoreEntry(e.kode, e.nilai, e.catatan, e.foto); });
+    semua.forEach(function (e) { if (rentang.indexOf(e.tanggal) !== -1) poin += H.scoreEntry(e.kode, e.nilai, e.catatan, e.adaFoto); });
 
     /* Per kebiasaan */
     var hariIni = todayISO();
@@ -342,7 +357,18 @@
       }).sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); });
 
       var skorTotal = 0;
-      rows.forEach(function (r) { skorTotal += H.scoreEntry(h.key, r.nilai, r.catatan, r.foto); });
+      rows.forEach(function (r) { skorTotal += H.scoreEntry(h.key, r.nilai, r.catatan, r.adaFoto); });
+
+      /* Jendela 7 hari terakhir: dipakai untuk PERSEN dan SKOR
+         rata-rata, sehingga begitu anak journaling, angkanya
+         langsung naik di hari yang sama. */
+      var rows7 = semua.filter(function (e) {
+        var d = daysBetween(e.tanggal, hariIni);
+        return e.kode === h.key && d >= 0 && d <= 6;
+      });
+      var count7 = rows7.length;
+      var skor7 = 0;
+      rows7.forEach(function (r) { skor7 += H.scoreEntry(h.key, r.nilai, r.catatan, r.adaFoto); });
 
       var rataWaktu = null;
       if (h.type === 'time' && rows.length) {
@@ -355,11 +381,6 @@
       }
 
       var pembagi = 7;
-      var rows7 = semua.filter(function (e) {
-        var d = daysBetween(e.tanggal, hariIni);
-        return e.kode === h.key && d >= 0 && d <= 6;
-      });
-      var count7 = rows7.length;
       var persen = Math.round((count7 / pembagi) * 100);
       if (persen > 100) persen = 100;
       if (persen < 0) persen = 0;
@@ -367,7 +388,7 @@
         key: h.key, no: h.no, title: h.title, sub: h.sub, icon: h.icon, color: h.color, type: h.type,
         jumlah: count7,
         persen: persen,
-        rataSkor: rows7.length ? Math.round(skorTotal / rows7.length) : 0,
+        rataSkor: count7 ? Math.round(skor7 / count7) : 0,
         terakhir: rows.length ? rows[rows.length - 1].nilai : '',
         catatanTerakhir: rows.length ? rows[rows.length - 1].catatan : '',
         tanggalTerakhir: rows.length ? rows[rows.length - 1].tanggal : '',
@@ -384,8 +405,9 @@
       /* Poin = kualitas isian yang terisi (0-100).
          Kelengkapan = berapa persen dari slot rentang yang terisi.
          Dua hal sengaja dipisah supaya anak yang baru mulai tidak
-         terlihat nilainya kecil. */
-      kelengkapan: totalSlot ? Math.round((totalIsi / totalSlot) * 100) : 0,
+         terlihat nilainya kecil. Dijepit 100% supaya tidak pernah
+         lebih dari 100 walau ada data dobel. */
+      kelengkapan: totalSlot ? Math.min(100, Math.round((totalIsi / totalSlot) * 100)) : 0,
       rataPoin: totalIsi ? Math.round(poin / totalIsi) : 0,
       streak: hitungStreak(harian),
       streakTerpanjang: streakTerpanjang(semua),
@@ -643,7 +665,7 @@ var perluBantu = baris.filter(function (b) {
     return state.entries.some(function (e) { return idEntri(e) === idEntri(item); });
   }
 
-  function buildEntry(siswa, tanggal, kode, nilai, catatan, foto) {
+  function buildEntry(siswa, tanggal, kode, nilai, catatan, adaFoto) {
     return {
       action: 'save_entries',
       kelasId: String(siswa.kelasId || ''),
@@ -653,10 +675,54 @@ var perluBantu = baris.filter(function (b) {
       kode: kode,
       nilai: String(nilai == null ? '' : nilai).trim(),
       catatan: String(catatan == null ? '' : catatan).trim(),
-      foto: String(foto == null ? '' : foto),
+      /* HanyaYA/TIDAK. Foto jpeg-nya sendiri TIDAK dikirim ke
+         spreadsheet: satu sel Google Sheets hanya kuat 50.000
+         karakter, sedangkan foto base64 jauh lebih besar dan
+         kalau ikut terkirim, seluruh jurnal gagal tersimpan.
+         Foto disimpan terpisah di perangkat (lihat simpanFoto). */
+      adaFoto: adaFoto ? 'YA' : '',
       tsISO: new Date().toISOString(),
       tsDisplay: fmtTanggalPendekJam(todayISO())
     };
+  }
+
+  /* ---------- Gudang foto lokal (TERPISAH dari cache jurnal) ----------
+     Base64 foto berukuran besar. Kalau ikut masuk ke j7_cache_v1,
+     localStorage penuh (batas ±5 MB) lalu saveCache gagal diam-diam
+     dan halaman selalu memakai data lama - itu sebabnya jurnal
+     "tidak kesimpen". Karena itu foto disimpan pada kunci sendiri. */
+  var FOTO_KEY = 'j7_foto_v1';
+  var _fotoStore = null;
+  function ambilFotoStore() {
+    if (_fotoStore) return _fotoStore;
+    try { _fotoStore = JSON.parse(localStorage.getItem(FOTO_KEY)) || {}; }
+    catch (e) { _fotoStore = {}; }
+    return _fotoStore;
+  }
+  function simpanFotoStore() {
+    try {
+      localStorage.setItem(FOTO_KEY, JSON.stringify(_fotoStore || {}));
+      return true;
+    } catch (e) {
+      /* Kuota penuh: buang foto paling lama, lalu coba lagi. */
+      try {
+        var k = Object.keys(_fotoStore || {}).sort();
+        while (k.length > 40) { delete _fotoStore[k.shift()]; }
+        localStorage.setItem(FOTO_KEY, JSON.stringify(_fotoStore));
+        return true;
+      } catch (e2) { return false; }
+    }
+  }
+  function kunciFoto(nis, tanggal, kode) {
+    return [nis, tanggal, kode].join('__');
+  }
+  function simpanFoto(nis, tanggal, kode, dataUrl) {
+    if (!dataUrl) return false;
+    ambilFotoStore()[kunciFoto(nis, tanggal, kode)] = dataUrl;
+    return simpanFotoStore();
+  }
+  function ambilFoto(nis, tanggal, kode) {
+    return ambilFotoStore()[kunciFoto(nis, tanggal, kode)] || '';
   }
 
   function simpanEntries(items, cb) {
@@ -667,7 +733,8 @@ var perluBantu = baris.filter(function (b) {
     var baru = items.map(function (it) {
       return {
         id: idEntri(it), kelasId: it.kelasId, nis: it.nis, nama: it.nama,
-        tanggal: it.tanggal, kode: it.kode, nilai: it.nilai, catatan: it.catatan, foto: it.foto,
+        tanggal: it.tanggal, kode: it.kode, nilai: it.nilai, catatan: it.catatan,
+        adaFoto: it.adaFoto === 'YA' || it.adaFoto === true,
         tsISO: it.tsISO, tsDisplay: it.tsDisplay, pending: true
       };
     });
@@ -684,7 +751,7 @@ var perluBantu = baris.filter(function (b) {
       items: items.map(function (it) {
         return {
           kelasId: it.kelasId, nis: it.nis, nama: it.nama, tanggal: it.tanggal,
-          kode: it.kode, nilai: it.nilai, catatan: it.catatan, foto: it.foto,
+          kode: it.kode, nilai: it.nilai, catatan: it.catatan, adaFoto: it.adaFoto,
           tsISO: it.tsISO, tsDisplay: it.tsDisplay
         };
       })
@@ -830,6 +897,9 @@ var perluBantu = baris.filter(function (b) {
       return !(String(e.kelasId) === String(kelasId) && String(e.nis) === String(nis) &&
         String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode));
     });
+    /* Foto lokal ikut dibuang supaya tidak memenuhi kuota localStorage */
+    delete ambilFotoStore()[kunciFoto(nis, tanggal, kode)];
+    simpanFotoStore();
     saveCache();
     return postToSheet({ action: 'delete_entry', kelasId: kelasId, nis: nis, tanggal: tanggal, kode: kode })
       .then(function (r) { if (cb) cb(r); return r; });
@@ -1076,6 +1146,7 @@ var perluBantu = baris.filter(function (b) {
     hapusEntry: hapusEntry, hapusSemuaEntries: hapusSemuaEntries,
     simpanCatatan: simpanCatatan, catatanUntuk: catatanUntuk,
     buildEntry: buildEntry, idEntri: idEntri,
+    simpanFoto: simpanFoto, ambilFoto: ambilFoto,
 
     svgDefs: svgDefs, ring: ring, barChart: barChart, heatmap: heatmap,
     toast: toast, modal: modal, tutupModal: tutupModal, exportCSV: exportCSV
