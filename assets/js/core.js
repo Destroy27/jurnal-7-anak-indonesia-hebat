@@ -353,18 +353,20 @@
         if (valid) rataWaktu = H.toHM(jumlahMenit / valid);
       }
 
-      var pembagi = Math.min(n, 7);
+      var pembagi = 7;
       var rows7 = semua.filter(function (e) {
-        return e.kode === h.key && daysBetween(e.tanggal, hariIni) >= 0 && daysBetween(e.tanggal, hariIni) <= 6;
+        var d = daysBetween(e.tanggal, hariIni);
+        return e.kode === h.key && d >= 0 && d <= 6;
       });
       var count7 = rows7.length;
-      var persen = pembagi <= 0 ? 0 : Math.round((count7 / pembagi) * 100);
+      var persen = Math.round((count7 / pembagi) * 100);
       if (persen > 100) persen = 100;
+      if (persen < 0) persen = 0;
       return {
         key: h.key, no: h.no, title: h.title, sub: h.sub, icon: h.icon, color: h.color, type: h.type,
         jumlah: count7,
         persen: persen,
-        rataSkor: rows7.length ? Math.round(skorTotal / rows7.length) : (rows.length ? Math.round(skorTotal / rows.length) : 0),
+        rataSkor: rows7.length ? Math.round(skorTotal / rows7.length) : 0,
         terakhir: rows.length ? rows[rows.length - 1].nilai : '',
         catatanTerakhir: rows.length ? rows[rows.length - 1].catatan : '',
         tanggalTerakhir: rows.length ? rows[rows.length - 1].tanggal : '',
