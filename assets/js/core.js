@@ -643,7 +643,7 @@ var perluBantu = baris.filter(function (b) {
     return state.entries.some(function (e) { return idEntri(e) === idEntri(item); });
   }
 
-  function buildEntry(siswa, tanggal, kode, nilai, catatan) {
+  function buildEntry(siswa, tanggal, kode, nilai, catatan, foto) {
     return {
       action: 'save_entries',
       kelasId: String(siswa.kelasId || ''),
@@ -653,6 +653,7 @@ var perluBantu = baris.filter(function (b) {
       kode: kode,
       nilai: String(nilai == null ? '' : nilai).trim(),
       catatan: String(catatan == null ? '' : catatan).trim(),
+      foto: String(foto == null ? '' : foto),
       tsISO: new Date().toISOString(),
       tsDisplay: fmtTanggalPendekJam(todayISO())
     };
@@ -666,7 +667,7 @@ var perluBantu = baris.filter(function (b) {
     var baru = items.map(function (it) {
       return {
         id: idEntri(it), kelasId: it.kelasId, nis: it.nis, nama: it.nama,
-        tanggal: it.tanggal, kode: it.kode, nilai: it.nilai, catatan: it.catatan,
+        tanggal: it.tanggal, kode: it.kode, nilai: it.nilai, catatan: it.catatan, foto: it.foto,
         tsISO: it.tsISO, tsDisplay: it.tsDisplay, pending: true
       };
     });
@@ -683,7 +684,7 @@ var perluBantu = baris.filter(function (b) {
       items: items.map(function (it) {
         return {
           kelasId: it.kelasId, nis: it.nis, nama: it.nama, tanggal: it.tanggal,
-          kode: it.kode, nilai: it.nilai, catatan: it.catatan,
+          kode: it.kode, nilai: it.nilai, catatan: it.catatan, foto: it.foto,
           tsISO: it.tsISO, tsDisplay: it.tsDisplay
         };
       })
