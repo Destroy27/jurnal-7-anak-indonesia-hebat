@@ -43,7 +43,7 @@
   display: grid;
   /* auto-fill (bukan auto-fit) supaya baris terakhir tidak melebar
      berlebihan ketika jumlahnya 7 dan kolomnya 4. */
-  grid-template-columns: repeat(auto-fill, minmax(min(212px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(clamp(130px, 45vw, 180px), 1fr));
   gap: 16px;
   margin-top: 26px;
 }
