@@ -352,10 +352,11 @@
         if (valid) rataWaktu = H.toHM(jumlahMenit / valid);
       }
 
+      var pembagi = Math.min(n, 7);
       return {
         key: h.key, no: h.no, title: h.title, sub: h.sub, icon: h.icon, color: h.color, type: h.type,
         jumlah: rows.length,
-        persen: Math.round((rows.length / n) * 100),
+        persen: Math.round((rows.length / pembagi) * 100),
         rataSkor: rows.length ? Math.round(skorTotal / rows.length) : 0,
         terakhir: rows.length ? rows[rows.length - 1].nilai : '',
         catatanTerakhir: rows.length ? rows[rows.length - 1].catatan : '',
