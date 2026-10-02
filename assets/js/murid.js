@@ -14,6 +14,7 @@
   var rentangHari = 7;
   var isian = {};        /* { habitKey: { nilai, catatan } } — isian hari ini */
   var formTerbuka = true;
+  var bulanAktif = null; // YYYY-MM, null berarti pakai rentang terakhir
 
   /* ============================================================
      1. GERBANG: hanya murid yang sudah login boleh masuk
@@ -451,6 +452,28 @@
         } else {
           J.toast('Tersimpan', lengkap + ' dari ' + H.total() + ' kebiasaan tercatat.', 'ok');
         }
+        // Auto-sync setelah simpan untuk memastikan data ter-upload dengan baik
+        try {
+          var btnSyncEl = document.getElementById('btnSync');
+          if (btnSyncEl) {
+            var asliSync = btnSyncEl.innerHTML;
+            btnSyncEl.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i>';
+            J.syncAll(function(sr){
+              btnSyncEl.innerHTML = asliSync;
+              if (sr.ok) {
+                muatRekap();
+                perbaruiAntrean();
+                if (J.pendingCount === 0) {
+                  J.toast('Tersinkron', 'Data berhasil tersimpan ke database.', 'ok');
+                }
+              } else {
+                muatRekap();
+                perbaruiAntrean();
+              }
+            });
+            return;
+          }
+        } catch(e) {}
         muatRekap();
         perbaruiAntrean();
       } else {
@@ -497,9 +520,33 @@
       document.querySelectorAll('#chipRentang .chip').forEach(function (c) { c.classList.remove('active'); });
       chip.classList.add('active');
       rentangHari = parseInt(chip.dataset.hari, 10);
+      bulanAktif = null; // kembali ke mode rentang
       muatRekap();
     });
   });
+  
+  // Navigasi bulan untuk kalender
+  function bulanToYYYYMM(d) {
+    return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2);
+  }
+  function ubahBulan(delta) {
+    if (!bulanAktif) {
+      var t = new Date();
+      bulanAktif = bulanToYYYYMM(new Date(t.getFullYear(), t.getMonth(), 1));
+    }
+    var p = bulanAktif.split('-');
+    var nd = new Date(parseInt(p[0],10), parseInt(p[1],10)-1 + delta, 1);
+    bulanAktif = bulanToYYYYMM(nd);
+    muatRekap();
+  }
+  function setBulanIni() {
+    bulanAktif = null;
+    // aktifkan chip rentang terakhir yg aktif? atau biarkan
+    muatRekap();
+  }
+  if (document.getElementById('btnPrevBulan')) document.getElementById('btnPrevBulan').addEventListener('click', function(){ubahBulan(-1);});
+  if (document.getElementById('btnNextBulan')) document.getElementById('btnNextBulan').addEventListener('click', function(){ubahBulan(1);});
+  if (document.getElementById('btnSekarang')) document.getElementById('btnSekarang').addEventListener('click', setBulanIni);
 
   /* ============================================================
      4. REKAP
@@ -520,8 +567,19 @@
     document.getElementById('statStreak').textContent = r.streak;
     document.getElementById('strekTeks').textContent = r.streak + ' hari beruntun';
 
-    /* Heatmap */
-    document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
+    /* Heatmap - bisa pakai mode bulanan */
+    if (bulanAktif) {
+      document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, [], { bulan: bulanAktif });
+      var partsB = bulanAktif.split('-');
+      var namaBln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      document.getElementById('heatmapHead').innerHTML = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(function(h){return '<span>'+h+'</span>'}).join('');
+      if (document.getElementById('heatmapTitle')) {
+        document.getElementById('heatmapTitle').textContent = namaBln[parseInt(partsB[1])-1] + ' ' + partsB[0];
+      }
+    } else {
+      document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
+      document.getElementById('heatmapHead').innerHTML = '';
+    }
 
     /* Rekap per kebiasaan */
     document.getElementById('rekapList').innerHTML = r.perHabit.map(function (p) {

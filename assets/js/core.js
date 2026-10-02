@@ -883,16 +883,53 @@
     }).join('') + '</div>';
   }
 
-  /* Heatmap 7 kolom (Minggu..Sabtu) */
-  function heatmap(harian, tanggalList) {
+  /* Heatmap 7 kolom (Minggu..Sabtu) - bisa untuk rentang atau kalender bulanan */
+  function heatmap(harian, tanggalList, opsi) {
+    opsi = opsi || {};
     var out = '';
-    /* baris kosong pembuka agar kolom hari/weekday sejajar */
-    if (tanggalList.length) {
-      var d0 = fromISO(tanggalList[0]).getDay();
-      for (var i = 0; i < d0; i++) out += '<div></div>';
-    }
+    var list = tanggalList || [];
     var hariIni = todayISO();
-    tanggalList.forEach(function (t) {
+    
+    // Jika opsi.bulan disediakan (YYYY-MM), render kalender bulanan penuh
+    if (opsi.bulan) {
+      var parts = opsi.bulan.split('-');
+      var tahun = parseInt(parts[0], 10);
+      var bulan = parseInt(parts[1], 10); // 1-12
+      var dAwal = new Date(tahun, bulan - 1, 1);
+      var dAkhir = new Date(tahun, bulan, 0); // hari terakhir bulan
+      var offset = dAwal.getDay(); // 0=minggu di JS?
+      // Di Indonesia biasanya Minggu=0? tapi kita pakai getDay() standar
+      // Tambah sel kosong
+      for (var i = 0; i < offset; i++) {
+        out += '<div class="heat-cell empty"></div>';
+      }
+      for (var tgl = 1; tgl <= dAkhir.getDate(); tgl++) {
+        var d = new Date(tahun, bulan - 1, tgl);
+        var iso = toISO(d);
+        var h = harian[iso];
+        var jumlah = h ? h.jumlah : 0;
+        var lv = H.levelDariJumlah(jumlah);
+        var label = fmtHari(iso) + ' ' + fmtTanggalPendek(iso) + ' - ' + jumlah + '/' + H.total() + ' kebiasaan';
+        var isHariIni = (iso === hariIni);
+        var isLainBulan = false; // semua dalam bulan ini
+        out += '<div class="heat-cell lv' + lv + (isHariIni ? ' today' : '') + (isLainBulan ? ' other' : '') + '" title="' + esc(label) + '">' +
+          tgl + '</div>';
+      }
+      // Tambah sel kosong sisa
+      var totalSel = offset + dAkhir.getDate();
+      var sisa = (7 - (totalSel % 7)) % 7;
+      for (var j = 0; j < sisa; j++) {
+        out += '<div class="heat-cell empty"></div>';
+      }
+      return out;
+    }
+    
+    /* baris kosong pembuka agar kolom hari/weekday sejajar (mode rentang) */
+    if (list.length) {
+      var d0 = fromISO(list[0]).getDay();
+      for (var k = 0; k < d0; k++) out += '<div></div>';
+    }
+    list.forEach(function (t) {
       var h = harian[t];
       var jumlah = h ? h.jumlah : 0;
       var lv = H.levelDariJumlah(jumlah);

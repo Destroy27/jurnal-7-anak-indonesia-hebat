@@ -537,10 +537,25 @@
 .bar-label { font-size: 10.5px; color: var(--muted); font-weight: 700; text-align: center; }
 
 /* ================= HEATMAP (kalenderHabit) ================= */
-.heatmap {
+.heatmap, .heatmap-head {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
+}
+.heatmap-head {
+  margin-top: 8px;
+}
+.heatmap-head span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.heat-cell.empty {
+  background: transparent;
+  border: 1px dashed var(--border);
+  opacity: 0.3;
 }
 .heat-cell {
   aspect-ratio: 1;
