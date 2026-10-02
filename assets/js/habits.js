@@ -143,6 +143,13 @@
   /* Peta cepat: key -> objek kebiasaan */
   var BY_KEY = {};
   HABITS.forEach(function (h) { BY_KEY[h.key] = h; });
+  
+  /* Bobot poin per isian (sesuai permintaan user) */
+  var BOBOT = {
+    centang: 1,      // hanya centang
+    isi: 2,          // centang + catatan terisi
+    dokumentasi: 3   // centang + catatan + dokumentasi/foto
+  };
 
   /* Palet warna lengthwise 7 (untuk bar & sparkline) */
   var PALETTE = HABITS.map(function (h) { return h.color; });
@@ -275,6 +282,7 @@
     scoreEntry: scoreEntry,
     parseHM: parseHM,
     toHM: toHM,
+    BOBOT: BOBOT,
     levelDariJumlah: levelDariJumlah,
     ringkas: ringkas
   };
