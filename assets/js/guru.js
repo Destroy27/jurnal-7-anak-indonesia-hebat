@@ -12,7 +12,10 @@
 
   var sesi = J.ambilSesi();
   var kelasAktif = '';
-  var rentangHari = 1;
+  /* Default 7 hari, danchips di bawah juga 7/14/30. Sebelumnya
+     nilainya 1 sehingga tidak ada chip aktif dan daftar hanya
+     menghitung hari ini saja. */
+var rentangHari = 7;
   var sinkronTerakhir = '-';
 
   /* ====
@@ -32,7 +35,8 @@
 
   document.head.insertAdjacentHTML('beforeend', J.svgDefs());
   document.getElementById('namaGuru').textContent = sesi.guru ? sesi.guru.nama || sesi.guru.user : 'Guru';
-  document.getElementById('identitas').textContent = 'Panel Guru - ' + (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
+  document.getElementById('identitas').textContent =
+    'Panel Guru \u00b7 ' + (J.sekolah || 'SD N 4 Jehem');
 
   /* ====
      2. TAB
@@ -194,19 +198,24 @@
     if (s.perluBantu.length && s.total > 0) {
       html += '<div class="banner banner-warn mb-3">' +
         '<i class="fa-solid fa-triangle-exclamation"></i>' +
-        '<span><b>' + s.perluBantu.length + ' siswa</b> belum mengisi jurnal (maksimal 1 hari dalam ' +
-        rentangHari + ' hari terakhir): ' +
+        '<span><b>' + s.perluBantu.length + ' siswa</b> belum mengisi jurnal hari ini (' +
+        J.fmtTanggal(hariIni) + '): ' +
         s.perluBantu.slice(0, 6).map(function (b) { return J.esc(b.nama); }).join(', ') +
         (s.perluBantu.length > 6 ? ', dan lainnya' : '') + '.</span></div>';
     }
 
     html += '</div>';
 
-    /* Grafik kelas per kebiasaan */
+    /* Grafik kelas per kebiasaan + rekap harian */
     html += '<div class="card anim-in anim-in-2" style="margin-bottom:16px">' +
       '<div class="card-head"><div><h3>Kelengkapan Kelas per Kebiasaan</h3>' +
-      '<p>Rata-rata dari seluruh siswa di kelas ini.</p></div></div>' +
-      '<div class="rekap-list" id="rekapKelasList"></div></div>';
+      '<p>Jumlah siswa yang mengisi tiap kebiasaan, dibanding ' +
+      rentangHari + ' hari terakhir di kelas ini.</p></div>' +
+      '<span class="badge badge-gold">Rata-rata ' + rentangHari + ' hari</span></div>' +
+      '<div class="rekap-list" id="rekapKelasList"></div>' +
+      '<div class="sub-head"><h4><i class="fa-solid fa-calendar-days"></i> Rekap Harian</h4>' +
+      '<span>Berapa siswa yang mengisi jurnal tiap hari.</span></div>' +
+      '<div class="harian-list" id="rekapHarianList"></div></div>';
 
     /* Tabel matrix siswa x hari */
     html += '<div class="card anim-in anim-in-3">' +
@@ -259,32 +268,87 @@
 
     wrap.innerHTML = html;
 
-    /* Grafik per kebiasaan kelas */
+    /* ---- Kelengkapan per kebiasaan ----
+       Dua angka yang ditampilkan sengaja dipisah:
+         - "terisi" : berapa HARI-SISWA yang terisi (siswa x hari)
+         - "murid"  : berapa SISWA yang pernah mengisi
+       Versi lama cuma menampilkan persen kecil (mis. 1 dari 8
+       siswa = 2%) sehingga orang tua guru mengira datanya tidak
+       masuk. Sekarang keduanya ditulis apa adanya. */
     var per = H.list.map(function (h) {
-      var terisi = 0, jml = 0;
+      var hariTerisi = 0, jml = 0;
+      var murid = 0;
       r.baris.forEach(function (b) {
         var rows = J.entriesOf(b.nis).filter(function (e) {
           return e.kode === h.key && b.hariRentang.indexOf(e.tanggal) !== -1;
         });
-        if (rows.length) {
-          terisi++;
-          jml += H.scoreEntry(h.key, rows[rows.length - 1].nilai);
-        }
+        if (!rows.length) return;
+        murid++;
+        /* Satu siswa boleh mengisi kebiasaan ini lebih dari sekali
+           dalam rentang; setiap isian dihitung sebagai 1 slot. */
+        hariTerisi += rows.length;
+        jml += H.scoreEntry(h.key, rows[rows.length - 1].nilai);
       });
-      var persen = s.total ? Math.round((terisi / (s.total * rentangHari)) * 100) : 0;
+      var totalSlot = s.total * rentangHari;
       return {
         key: h.key, no: h.no, title: h.title, color: h.color,
-        persen: persen,
-        poin: terisi ? Math.round(jml / terisi) : 0
+        persen: totalSlot ? Math.round((hariTerisi / totalSlot) * 100) : 0,
+        murid: murid,
+        totalMurid: s.total,
+        hariTerisi: hariTerisi,
+        totalSlot: totalSlot,
+        poin: murid ? Math.round(jml / murid) : 0
       };
     });
     document.getElementById('rekapKelasList').innerHTML = per.map(function (p) {
+      var ket = p.totalMurid
+        ? p.murid + ' dari ' + p.totalMurid + ' siswa &middot; ' + p.hariTerisi + ' isian'
+        : 'Belum ada siswa';
       return '<div class="rekap-item">' +
         '<div class="ri-no" style="background:' + p.color + '">' + p.no + '</div>' +
         '<div class="ri-body"><div class="ri-title"><strong>' + J.esc(p.title) + '</strong>' +
-        '<span>' + p.persen + '% &middot; ' + p.poin + ' poin</span></div>' +
-        '<div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div></div></div>';
+        '<span>' + ket + ' &middot; ' + p.poin + ' poin</span></div>' +
+        '<div class="progress thin"><i style="width:' + Math.min(100, p.persen) + '%;background:' + p.color + '"></i></div></div></div>';
     }).join('');
+
+    /* ---- Rekap harian: berapa siswa mengisi tiap hari ----
+       Ini yang belum ada sebelumnya. Cukup 1 siswa yang sudah
+       mengisi, angkanya langsung terlihat di sini. */
+    var perHari = r.hariRentang.slice().reverse().map(function (tgl) {
+      var terisi = 0, lengkap = 0, poin = 0;
+      r.baris.forEach(function (b) {
+        var h = b.harian[tgl];
+        if (!h || h.jumlah <= 0) return;
+        terisi++;
+        poin += h.poin;
+        if (h.lengkap) lengkap++;
+      });
+      return {
+        tanggal: tgl,
+        terisi: terisi,
+        total: s.total,
+        lengkap: lengkap,
+        persen: s.total ? Math.round((terisi / s.total) * 100) : 0,
+        poin: terisi ? Math.round(poin / terisi) : 0,
+        hariIni: tgl === hariIni
+      };
+    }).reverse();
+
+    document.getElementById('rekapHarianList').innerHTML =
+      '<div class="harian-grid">' + perHari.map(function (d) {
+        var label = J.fmtTanggalPendek(d.tanggal) + ' &middot; ' + J.fmtHari(d.tanggal);
+        var ket = d.terisi
+          ? d.terisi + ' dari ' + d.total + ' siswa'
+          : 'Belum ada';
+        return '<div class="harian-item' + (d.hariIni ? ' is-now' : '') + '">' +
+          '<div class="hi-top"><strong>' + label + '</strong>' +
+          (d.hariIni ? '<span class="pill-now">Hari ini</span>' : '') + '</div>' +
+          '<div class="hi-bar"><i style="width:' + d.persen + '%"></i></div>' +
+          '<div class="hi-meta"><span>' + ket + '</span>' +
+          '<span>' + d.terisi + ' lengkap 7</span>' +
+          '<span>' + d.poin + ' poin</span></div>' +
+        '</div>';
+      }).join('') + '</div>';
 
     /* Event */
     wrap.querySelectorAll('[data-rata]').forEach(function (b) {
@@ -973,8 +1037,7 @@
   }
 
   function gambarSemua() {
-    document.getElementById('appName').textContent = (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
-    document.title = 'Panel Guru - ' + (J.sekolah || (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat'));
+    document.title = 'Panel Guru - JEJAK 7 KAIH';
     gambarKelas();
     gambarDashboard();
     muatTabelSiswa();

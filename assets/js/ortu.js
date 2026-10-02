@@ -86,10 +86,9 @@
       return;
     }
     var kelas = J.getKelas(anak.kelasId);
-    document.getElementById('appName').textContent = 'Pantau ' + anak.nama.split(' ')[0];
-    document.title = 'Pantau ' + anak.nama.split(' ')[0] + ' - ' + (J.sekolah || 'Jurnal 7 Anak Indonesia Hebat');
+    document.title = 'Pantau ' + anak.nama.split(' ')[0] + ' - JEJAK 7 KAIH';
     document.getElementById('identitas').textContent =
-      anak.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
+      'Pantau Anak \u00b7 ' + anak.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
     document.getElementById('sapaan').textContent = 'Kemajuan ' + anak.nama.split(' ')[0];
     document.getElementById('subJudul').textContent =
       (kelas ? kelas.nama : '-') + ' &middot; No. absen ' + anak.nis + ' &middot; ' +

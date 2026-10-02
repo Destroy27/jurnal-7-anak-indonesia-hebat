@@ -7,7 +7,8 @@
    Header sekarang simple & modern:
    - latar krem solid (bukan putih transparan) supaya lebih tenang
    - garis bawah tipis, tidak ada bayangan tebal
-   - logo pakai file sekolah (assets/img/logo.png) di dalam kotak hijau botol,
+   - navbar memakai SATU logo sekolah (assets/img/logo-sd.png)
+     di dalam kotak putih, dengan ikon bawaan sebagai cadangan,
      dengan ikon bawaan sebagai cadangan kalau file-nya belum ada
    -School name jadi pill krem terpisah, bukan teks kecil yang samar */
 .topnav {
@@ -29,50 +30,51 @@
   padding-block: clamp(6px, 1.5vw, 10px);
 }
 
-.brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+/* === BRAND / LOGO NAVBAR ===
+   Navbar hanya memakai SATU logo: logo sekolah
+   (assets/img/logo-sd.png). Logo dibungkus kotak putih kecil
+   supaya gambar/logo berwarna tetap terbaca di atas navbar krem.
+   Ikon Font Awesome hanya menjadi cadangan kalau file logonya
+   belum diunggah. */
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brand-icon {
   position: relative;
-  width: 42px; height: 42px;
+  width: 44px; height: 44px;
   border-radius: 13px;
   flex-shrink: 0;
-  background: var(--maroon-700);
-  color: var(--gold-400);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--maroon-700);
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px;
+  font-size: 18px;
   overflow: hidden;
 }
-/* Logo aplikasi (assets/img/logo.png) mengisi kotak ini.
-   Ikon Font Awesome tetap jadi cadangan, jadi navbar tetap rapi
-   kalau file logo belum sempat diunggah. */
 .brand-icon .brand-logo {
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
-  padding: 4px;
+  padding: 3px;
   object-fit: contain;
   background: var(--card);
 }
 .brand-text { min-width: 0; }
-/* Nama sekolah jadi pill krem: jelas dibaca, tapi tidak bersaing
-   dengan nama aplikasi */
-.brand-text p {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--maroon-600);
-  background: var(--maroon-50);
-  border: 1px solid var(--maroon-100);
-  border-radius: var(--radius-full);
-  padding: 2px 10px;
-}
+/* Baris atas: identitas aplikasi — tetap "JEJAK 7 KAIH" di semua
+   halaman supaya konsisten. */
 .brand-text h1 {
   font-family: var(--font);
-  font-size: 15.5px; font-weight: 800;
-  letter-spacing: -0.015em;
+  font-size: 16px; font-weight: 800;
+  letter-spacing: 0.055em;
+  line-height: 1.15;
   color: var(--maroon-900);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Baris bawah: konteks halaman (nama siswa / panel guru / sekolah).
+   Teks kecil tanpa kotak supaya navbar tetap ringan. */
+.brand-text p {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 

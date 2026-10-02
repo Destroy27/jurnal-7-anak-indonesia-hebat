@@ -36,8 +36,7 @@
   if (!gerbang()) return;
 
   document.head.insertAdjacentHTML('beforeend', J.svgDefs());
-  document.getElementById('appName').textContent = (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
-  document.title = 'Jurnal Saya - ' + (J.sekolah || (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat'));
+  document.title = 'Jurnal Saya - JEJAK 7 KAIH';
 
   var sinkronSelesai = false;
 

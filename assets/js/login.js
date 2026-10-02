@@ -12,14 +12,16 @@
   document.getElementById('tahun').textContent = new Date().getFullYear();
   document.head.insertAdjacentHTML('beforeend', J.svgDefs());
 
-  /* ---------- Nama aplikasi & sekolah ---------- */
+  /* ---------- Nama aplikasi & sekolah ----------
+     Navbar sudah berlabel "JEJAK 7 KAIH" secara statis supaya
+     konsisten di semua halaman; yang berubah dari config hanya
+     nama sekolah pada baris bawah + judul tab browser. */
   function terapkanNamaApp(nama) {
     nama = nama || 'Jurnal 7 Anak Indonesia Hebat';
     var sekolah = J.sekolah || '';
-    document.title = sekolah ? nama + ' - ' + sekolah : nama;
-    document.getElementById('namaAppNav').textContent = nama;
+    document.title = sekolah ? 'JEJAK 7 KAIH - ' + sekolah : 'JEJAK 7 KAIH';
     var sub = document.getElementById('namaSekolahNav');
-    if (sub) sub.textContent = sekolah || 'Mencetak Anak Indonesia Hebat';
+    if (sub) sub.textContent = sekolah || 'SD N 4 Jehem';
     document.getElementById('namaAppFoot').textContent = nama;
     var foot = document.getElementById('namaSekolahFoot');
     if (foot) foot.textContent = sekolah;

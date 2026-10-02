@@ -29,9 +29,10 @@ window.SITECONFIG = {
      LOGO APLIKASI
      ------------------------------------------------------------
      Cara paling cepat: salin logomu ke folder  assets/img/
-     dengan nama  logo.png  (atau .jpg). Semua halaman langsung
-     memakainya — navbar, halaman depan, dan kotak logo di kartu
-     login. Tidak perlu sentuh kode sama sekali.
+     dengan nama  logo-sd.png  (atau .jpg — hapus yang lama
+     supaya tidak bentrok). Semua halaman langsung memakainya —
+     navbar, halaman depan, dan kotak logo di kartu login.
+     Tidak perlu sentuh kode sama sekali.
 
      Kalau file-nya tidak ada, aplikasi otomatis memakai
      assets/img/logo.svg (logo bawaan) supaya tidak ada gambar

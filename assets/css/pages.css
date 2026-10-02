@@ -33,19 +33,144 @@
   line-height: 1.68;
 }
 
+/* === KARTU PENGENALAN (puncak halaman depan) ===
+   Judul aplikasi + keterangan danalan tidak lagi berupa teks polos,
+   tapi 4 kartu. Kartu pertama sedikit beda (kartu identitas) supaya
+   mata langsung tahu nama aplikasinya. */
+.intro-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 16px;
+}
+.intro-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 15px 15px 14px;
+}
+.intro-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  background: var(--maroon-50);
+  color: var(--maroon-700);
+  font-size: 14.5px;
+  margin-bottom: 10px;
+}
+.intro-card h1,
+.intro-card h2 {
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--maroon-900);
+  line-height: 1.3;
+}
+.intro-card .intro-sub {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--maroon-600);
+  line-height: 1.4;
+}
+.intro-desc {
+  margin-top: 6px;
+  font-size: 11.8px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+/* Kartu identitas: judul besar + nama resmi aplikasi. */
+.intro-card-brand {
+  background: linear-gradient(158deg, var(--maroon-700), var(--maroon-600));
+  border-color: transparent;
+  color: #fff;
+}
+.intro-card-brand .intro-ic {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.intro-card-brand h1 {
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+.intro-card-brand .intro-sub { color: rgba(255, 255, 255, 0.9); }
+.intro-card-brand .intro-desc { color: rgba(255, 255, 255, 0.82); }
+
+/* === KARTU FUNGSI (blok kanan form login) === */
+.feat-list { display: flex; flex-direction: column; gap: 11px; margin-top: 16px; }
+.feat-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 14px;
+}
+.feat-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: var(--maroon-50);
+  color: var(--maroon-700);
+  font-size: 15px;
+}
+.feat-card h3 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--maroon-900);
+  line-height: 1.3;
+}
+.feat-card p {
+  margin-top: 3px;
+  font-size: 11.8px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.feat-badges {
+  margin-top: 14px;
+  padding-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px dashed var(--border);
+}
+
 /* ====
    KARTU 7 KEBIASAAN (halaman depan)
    Tata letak: lingkaran gambar di tengah -> judul -> panel
    deskripsi -> chip info. Grid otomatis supaya rapi dari HP
    kecil sampai layar lebar.
    ==== */
+/* Kepala seksi: judul + satu kalimat cara mengganti foto. */
+.show-head { text-align: center; }
+.show-head h2 {
+  font-size: clamp(16px, 2.4vw, 20px);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  color: var(--maroon-900);
+}
+.show-head p {
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .show-cards {
   display: grid;
   /* auto-fill (bukan auto-fit) supaya baris terakhir tidak melebar
      berlebihan ketika jumlahnya 7 dan kolomnya 4. */
-  grid-template-columns: repeat(auto-fit, minmax(clamp(130px, 45vw, 180px), 1fr));
-  gap: 16px;
-  margin-top: 26px;
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  gap: 13px;
+  margin-top: 16px;
 }
 
 .show-card {
@@ -57,7 +182,7 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 20px 14px 14px;
+  padding: 15px 12px 12px;
   overflow: hidden;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
@@ -71,11 +196,11 @@
 .show-card::before {
   content: "";
   position: absolute;
-  top: -78px;
+  top: -62px;
   left: 50%;
   transform: translateX(-50%);
-  width: 190px;
-  height: 190px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   background: var(--hc, var(--maroon-600));
   opacity: 0.07;
@@ -90,17 +215,18 @@
   width: 100%;
 }
 
-/* Cincin: pemisah tipis antara lingkaran gambar dan kartu. */
+/* Cincin: pemisah tipis antara lingkaran gambar dan kartu.
+   Sengaja kecil supaya 7 kartu muat rapat tanpa jadi tinggi. */
 .show-ring {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 76px;
+  height: 76px;
   flex-shrink: 0;
 }
 .show-ring::before {
   content: "";
   position: absolute;
-  inset: -7px;
+  inset: -6px;
   border-radius: 50%;
   /* Fallback untuk browser lama (tidak bisa color-mix). */
   border: 1.5px dashed var(--border);
@@ -124,8 +250,10 @@
   box-shadow: 0 0 0 3px var(--card), 0 0 0 4.5px var(--hc, var(--maroon-600));
   overflow: hidden;
 }
+/* Ikon cadangan (dipakai kalau foto belum ada) sengaja kecil
+   supaya tidak mendominasi kartu. */
 .show-media > i {
-  font-size: 32px;
+  font-size: 21px;
   color: rgba(255, 255, 255, 0.94);
 }
 .show-media img {
@@ -139,11 +267,11 @@
 /* Nomor kebiasaan, menempel di kanan atas lingkaran. */
 .show-no {
   position: absolute;
-  top: -4px;
-  right: -12px;
+  top: -3px;
+  right: -10px;
   z-index: 2;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -151,19 +279,19 @@
   background: var(--maroon-700);
   color: #fff;
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   border: 2px solid var(--card);
   box-shadow: var(--shadow-xs);
 }
 
 .show-title {
-  font-size: 15px;
+  font-size: 13.4px;
   font-weight: 800;
   letter-spacing: -0.012em;
   color: var(--maroon-900);
-  line-height: 1.28;
-  margin-top: 14px;
+  line-height: 1.26;
+  margin-top: 11px;
 }
 
 .show-body {
@@ -173,26 +301,28 @@
   align-items: center;
   width: 100%;
   flex: 1;
-  margin-top: 9px;
+  margin-top: 8px;
 }
 /* Panel deskripsi: kotak bening di dalam kartu supaya teks
-   penjelasan tidak langsung menempel ke kartu utama. */
+   penjelasan tidak langsung menempel ke kartu utama. flex:1
+   membuat semua kartu sama tinggi walau teksnya berbeda. */
 .show-desc {
   width: 100%;
+  flex: 1;
   background: var(--bg-soft);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  font-size: 12.2px;
-  line-height: 1.6;
+  padding: 8px 10px;
+  font-size: 11.4px;
+  line-height: 1.55;
   color: var(--ink-2);
 }
 /* Baris info kecil: untuk kebiasaan jam tampil targetnya,
    untuk kebiasaan centang tampil caranya mengisi. */
 .show-meta {
   margin-top: auto;
-  padding-top: 10px;
-  font-size: 11px;
+  padding-top: 9px;
+  font-size: 10.3px;
   font-weight: 700;
   color: var(--hc, var(--maroon-700));
   display: flex;
@@ -294,20 +424,27 @@
   .login-panel { order: -1; }
   .login-intro > p { font-size: 14.5px; }
   .showcase { padding-block: 24px 2px; }
+  /* Kartu pengenalan jadi 2 kolom supaya tidak memanjang. */
+  .intro-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) {
   /* Di HP: 2 kolom (bukan 1) supaya 7 kartu tidak terlalu panjang
      untuk di-scroll. Lingkaran, nomor, dan teks ikut mengecil. */
-  .show-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 20px; }
-  .show-card { padding: 15px 10px 11px; border-radius: var(--radius); }
-  .show-card::before { width: 150px; height: 150px; top: -60px; }
-  .show-ring { width: 72px; height: 72px; }
+  .intro-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .intro-card { padding: 12px 12px 11px; }
+  .intro-card-brand h1 { font-size: 17px; }
+  .intro-desc { font-size: 11.2px; }
+
+  .show-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .show-card { padding: 13px 9px 10px; border-radius: var(--radius); }
+  .show-card::before { width: 120px; height: 120px; top: -48px; }
+  .show-ring { width: 62px; height: 62px; }
   .show-ring::before { inset: -5px; }
-  .show-media > i { font-size: 24px; }
-  .show-no { width: 23px; height: 23px; font-size: 11.5px; top: -3px; right: -9px; }
-  .show-title { font-size: 13.2px; margin-top: 11px; }
-  .show-desc { font-size: 11px; line-height: 1.55; padding: 8px 9px; border-radius: var(--radius-xs); }
-  .show-meta { font-size: 10.2px; padding-top: 8px; }
+  .show-media > i { font-size: 18px; }
+  .show-no { width: 19px; height: 19px; font-size: 9.5px; top: -2px; right: -8px; }
+  .show-title { font-size: 12.4px; margin-top: 9px; }
+  .show-desc { font-size: 10.8px; line-height: 1.5; padding: 7px 8px; border-radius: var(--radius-xs); }
+  .show-meta { font-size: 9.6px; padding-top: 7px; }
 
   .login-panel { padding: 20px; border-radius: var(--radius-lg); }
   .login-head { gap: 12px; margin-bottom: 17px; }
@@ -317,7 +454,8 @@
 }
 /* HP sangat kecil: 1 kolom supaya teks tidak terlalu sempit. */
 @media (max-width: 359px) {
-  .show-cards { grid-template-columns: 1fr; }
+  .show-cards,
+  .intro-cards { grid-template-columns: 1fr; }
 }
 
 /* Footer login */
@@ -635,6 +773,90 @@
 .rekap-item .ri-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
 .rekap-item .ri-title strong { font-size: 13px; font-weight: 700; color: var(--ink); }
 .rekap-item .ri-title span { font-size: 12px; font-family: var(--mono); font-weight: 700; color: var(--maroon-600); }
+
+/* Judul kecil pemisah dua blok di dalam satu kartu */
+.sub-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 22px 0 12px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+.sub-head h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--maroon-900);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sub-head h4 i { color: var(--maroon-600); font-size: 13px; }
+.sub-head span { font-size: 11.5px; color: var(--muted); }
+
+/* === REKAP HARIAN (kartu per hari) ===
+   Tiap kartu = 1 tanggal. Bar menunjukkan berapa persen siswa
+   yang mengisi hari itu, jadi 1 dari 8 siswa pun tetap terlihat. */
+.harian-list { display: flex; flex-direction: column; gap: 9px; }
+.harian-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+}
+.harian-item.is-now {
+  border-color: var(--maroon-300);
+  background: var(--maroon-50);
+}
+.hi-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.hi-top strong { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.pill-now {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--maroon-700);
+  border-radius: var(--radius-full);
+  padding: 2px 9px;
+}
+.hi-bar {
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: rgba(19, 74, 59, 0.1);
+  overflow: hidden;
+}
+.hi-bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--maroon-600), var(--maroon-400));
+  min-width: 3px;
+}
+.hi-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--muted);
+}
+.hi-meta span:first-child { color: var(--maroon-700); font-weight: 700; }
+
+@media (max-width: 520px) {
+  .rekap-list { gap: 13px; }
+  .rekap-item .ri-title { flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 5px; }
+  .rekap-item .ri-title span { font-size: 11px; }
+  .sub-head { margin: 18px 0 10px; padding-top: 15px; }
+  .harian-item { padding: 9px 11px; }
+}
 
 /* === DASHBOARD GURU === */
 .class-picker {

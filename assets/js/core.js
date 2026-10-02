@@ -66,13 +66,13 @@
     return String(peta[key] || '').trim();
   }
   /* ---------------- Logo aplikasi ----------------
-     Semua halaman (depan, murid, guru, orang tua) memakai logo
-     yang sama. Logo utama dibaca dari  assets/img/logo.png;
-     kalau file itu belum diunggah, browser otomatis turun ke
-     assets/img/logo.svg (logo bawaan), jadi halaman tidak pernah
+     Semua halaman (depan, murid, guru, orang tua) memakai SATU
+     logo yang sama, yaitu assets/img/logo-sd.png (logo SD N 4
+     Jehem). Kalau file itu belum diunggah, browser otomatis turun
+     ke assets/img/logo.svg (logo bawaan), jadi halaman tidak pernah
      rusak. Kalau SITECONFIG.logo diisi, path itulah yang dipakai
      sehingga logo bisa diganti tanpa menyentuh file HTML. */
-  var LOGO_UTAMA = 'assets/img/logo.png';
+  var LOGO_UTAMA = 'assets/img/logo-sd.png';
   var LOGO_CADANGAN = 'assets/img/logo.svg';
 
   function logoURL() {
@@ -440,7 +440,15 @@
       ? Math.round(yangTerisi.reduce(function (a, b) { return a + b.poin; }, 0) / yangTerisi.length)
       : 0;
     var best = baris[0] || null;
-    var perluBantu = baris.filter(function (b) { return b.hariAktifJml <= 1; });
+    /* "Perlu bantuan" = belum mengisi jurnal HARI INI. Bukan
+   "aktif" saja, karena anak yang sudah mulai 2-3 hari lalu juga
+   belum mengisi hari ini, dan itulah yang perlu dikejar guru.
+   `hariAktifJml` tidak ada di baris rekap kelas (itu milik
+   rekapSiswa) - kalau salah nama, hasilnya selalu kosong. */
+var perluBantu = baris.filter(function (b) {
+  var h = b.harian[hariIni];
+  return !(h && h.jumlah > 0);
+});
 
     return {
       kelas: getKelas(kelasId),
