@@ -174,10 +174,8 @@
   }
 
   function tolakCatatanKosong(salah) {
-    salah.forEach(function(h){ document.querySelector('[data-note="' + h.key + '"]').classList.add('galat'); });
-    if (!salah.length) return false;
-    J.toast('Catatan wajib diisi', 'Harap isi catatan untuk kebiasaan yang dicentang.', 'warn');
-    return true;
+    // Catatan tidak wajib lagi
+    return false;
   }
 
   function gambarFormulir() {
@@ -283,7 +281,7 @@
       (persen === 100 ? '<span class="badge badge-gold"><i class="fa-solid fa-star"></i> Jurnal lengkap!</span>' : '<span class="badge badge-soft"><i class="fa-solid fa-hourglass-half"></i> ' + (H.total() - n) + ' lagi</span>');
     
     var btn = document.getElementById('btnSimpanSemua');
-    btn.disabled = n === 0;
+    btn.disabled = false;
     btn.innerHTML = n > 0 ? '<i class="fa-solid fa-floppy-disk"></i> Simpan (' + n + ')' : '<i class="fa-solid fa-floppy-disk"></i> Simpan';
     // Progress bar yang jelas
     var bar = document.getElementById('progressBar');

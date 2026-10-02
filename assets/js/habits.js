@@ -66,7 +66,7 @@
       deskripsi: 'Beribadah bukan hanya sekadar ritual, tetapi juga menyimpan makna spiritual dan moral yang membentuk kepribadian, pencarian makna hidup, serta membentuk hubungan yang harmonis seseorang dengan Tuhan, alam, dan sesama.',
       type: 'check',
       label: 'Sudah beribadah dan berdoa hari ini',
-      wajibCatatan: true,
+      wajibCatatan: false,
       icon: 'fa-solid fa-hands-praying',
       color: '#1F5A7A',
       tip: 'Sesuaikan dengan keyakinan dan agama yang kamu anut.'
@@ -79,7 +79,7 @@
       deskripsi: 'Berolahraga lebih dari sekadar menjaga kesehatan fisik, tetapi mengandung makna mendalam yang berhubungan dengan disiplin, keseimbangan, ketahanan mental, dan bahkan kehidupan yang lebih terarah atau bermakna.',
       type: 'check',
       label: 'Sudah olahraga hari ini',
-      wajibCatatan: true,
+      wajibCatatan: false,
       icon: 'fa-solid fa-person-running',
       color: '#2F7D4F',
       tip: 'Olahraga ringan seperti lari, bersepeda, atau bermain bola sudah cukup.'
@@ -92,7 +92,7 @@
       deskripsi: 'Makan Sehat dan bergizi berkaitan dengan prinsip dan nilai tentang pentingnya memenuhi kebutuhan nutrisi tubuh untuk mendukung kehidupan yang sehat, seimbang, dan bermakna.',
       type: 'check',
       label: 'Sudah makan sehat dan bergizi',
-      wajibCatatan: true,
+      wajibCatatan: false,
       icon: 'fa-solid fa-bowl-food',
       color: '#B85C22',
       tip: 'Makan tiga kali sehari, perbanyak sayur dan buah.'
@@ -105,7 +105,7 @@
       deskripsi: 'Gemar belajar mengajak seseorang untuk tumbuh dalam pemahaman, karakter, dan kearifan.',
       type: 'check',
       label: 'Sudah belajar hari ini',
-      wajibCatatan: true,
+      wajibCatatan: false,
       icon: 'fa-solid fa-book-open',
       color: '#5B4A9E',
       tip: 'Walaupun sudah selesai belajar, sisihkan waktu untuk membaca.'
@@ -118,7 +118,7 @@
       deskripsi: 'Bermasyarakat didasarkan pada nilai-nilai prinsip yang mendorong individu untuk hidup bersama secara harmonis dan berkontribusi terhadap kesejahteraan kolektif.',
       type: 'check',
       label: 'Sudah bersikap baik kepada sesama',
-      wajibCatatan: true,
+      wajibCatatan: false,
       icon: 'fa-solid fa-people-group',
       color: '#2A7A80',
       tip: 'Bantu teman, sopan santun, dan jaga kebersihan bersama.'
