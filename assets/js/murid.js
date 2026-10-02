@@ -286,6 +286,11 @@
     var btn = document.getElementById('btnSimpanSemua');
     btn.disabled = n === 0;
     btn.innerHTML = n > 0 ? '<i class="fa-solid fa-floppy-disk"></i> Simpan (' + n + ')' : '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+    // Progress bar yang jelas
+    var bar = document.getElementById('progressBar');
+    var barText = document.getElementById('progressText');
+    if (bar) bar.style.width = persen + '%';
+    if (barText) barText.textContent = n + '/' + H.total() + ' (' + persen + '%)';
   }
 
   /* OPTIMISTIC UI: Simpan Super Cepat */

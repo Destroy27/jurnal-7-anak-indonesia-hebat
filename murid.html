@@ -206,6 +206,10 @@
       <h2 id="sapaan" style="font-size:20px">Selamat pagi!</h2>
       <p class="text-sm text-muted" id="tanggalHari"></p>
       <div class="flex gap-1 flex-wrap mt-1" id="chipHari"></div>
+      <div class="progress mt-2" style="height: 8px; border-radius: 999px; background: rgba(0,0,0,0.08); overflow: hidden;">
+        <div id="progressBar" style="height: 100%; background: linear-gradient(90deg, var(--maroon-600), var(--gold-600)); transition: width .3s ease;"></div>
+      </div>
+      <div class="text-xs text-muted mt-1" id="progressText">0/7 (0%)</div>
     </div>
     <div class="flex gap-1 flex-wrap no-print">
       <button class="btn btn-ghost btn-sm" id="btnSimpanSemua"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>
