@@ -1,4 +1,4 @@
-/* ============================================================
+/* ====
    site-config.js
    ------------------------------------------------------------
    SATU-SATUNYA file yang perlu diisi guru setelah membuat
@@ -11,7 +11,7 @@
    Catatan: file ini ikut ter-deploy ke GitHub Pages, jadi
    siapa pun bisa melihat isinya. Jangan pernah menaruh
    password atau data sensitif di sini.
-   ============================================================ */
+   ==== */
 window.SITECONFIG = {
   /* Ganti string kosong di bawah dengan URL deployment kamu,
      contoh: https://script.google.com/macros/s/AKfycb.../exec  */
@@ -25,7 +25,7 @@ window.SITECONFIG = {
      dan bisa dicetak di kop laporan. Boleh dikosongkan. */
   namaSekolah: 'SD N 4 Jehem',
 
-  /* ============================================================
+  /* ====
      LOGO APLIKASI
      ------------------------------------------------------------
      Cara paling cepat: salin logomu ke folder  assets/img/
@@ -40,10 +40,10 @@ window.SITECONFIG = {
      Baris di bawah hanya perlu diisi kalau logomu berada di
      tempat lain / repository lain:
         logo: 'assets/img/logo-sekolah.png',
-     ============================================================ */
+     ==== */
   logo: '',
 
-  /* ============================================================
+  /* ====
      GAMBAR 7 KEBIASAAN (sudah terisi)
      ------------------------------------------------------------
      Ketujuh gambar sudah dipasang sebagai .jpg 900 x 900 di
@@ -65,7 +65,7 @@ window.SITECONFIG = {
      Kalau file-nya dihapus / namanya salah, kartu otomatis
      kembali ke ikon + warna kebiasaan. Jadi tidak pernah gagal
      tampil.
-     ============================================================ */
+     ==== */
   gambarKebiasaan: {
     bangun: 'assets/img/habits/bangun.jpg',
     ibadah: 'assets/img/habits/ibadah.jpg',

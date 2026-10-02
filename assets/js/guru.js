@@ -1,9 +1,9 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — guru.js
    ------------------------------------------------------------
    Panel guru: dashboard rekap kelas, kelola siswa & kelas,
    catatan untuk siswa, pengaturan aplikasi.
-   ============================================================ */
+   ==== */
 (function () {
   'use strict';
 
@@ -15,9 +15,9 @@
   var rentangHari = 14;
   var sinkronTerakhir = '-';
 
-  /* ============================================================
+  /* ====
      1. GERBANG
-     ============================================================ */
+     ==== */
   if (!sesi || sesi.role !== 'guru') {
     document.body.innerHTML =
       '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">' +
@@ -34,9 +34,9 @@
   document.getElementById('namaGuru').textContent = sesi.guru ? sesi.guru.nama || sesi.guru.user : 'Guru';
   document.getElementById('identitas').textContent = 'Panel Guru - ' + (J.config.appName || 'Jurnal 7 Anak Indonesia Hebat');
 
-  /* ============================================================
+  /* ====
      2. TAB
-     ============================================================ */
+     ==== */
   document.querySelectorAll('#tabs .tab').forEach(function (t) {
     t.addEventListener('click', function () {
       document.querySelectorAll('#tabs .tab').forEach(function (x) { x.classList.remove('active'); });
@@ -75,9 +75,9 @@
   }
   function sembunyikanStatus() { document.getElementById('statusBar').classList.add('hidden'); }
 
-  /* ============================================================
+  /* ====
      3. PILIH KELAS
-     ============================================================ */
+     ==== */
   function gambarKelas() {
     var picker = document.getElementById('classPicker');
     var list = J.classes;
@@ -138,9 +138,9 @@
     });
   });
 
-  /* ============================================================
+  /* ====
      4. DASHBOARD REKAP
-     ============================================================ */
+     ==== */
   function gambarDashboard() {
     var wrap = document.getElementById('isiDashboard');
     if (!kelasAktif) { wrap.innerHTML = ''; return; }
@@ -323,9 +323,9 @@
     J.toast('CSV diunduh', 'Buka di Excel atau Google Sheets.', 'ok');
   }
 
-  /* ============================================================
+  /* ====
      5. DETAIL SISWA (modal)
-     ============================================================ */
+     ==== */
   function detailSiswa(nis) {
     var s = J.getSiswa(nis);
     if (!s) return;
@@ -436,9 +436,9 @@
     });
   }
 
-  /* ============================================================
+  /* ====
      6. TAB KELAS & SISWA
-     ============================================================ */
+     ==== */
   function muatTabelSiswa() {
     var tbody = document.getElementById('tabelSiswa');
     var k = J.getKelas(kelasAktif);
@@ -788,9 +788,9 @@
     });
   });
 
-  /* ============================================================
+  /* ====
      7. TAB CATATAN
-     ============================================================ */
+     ==== */
   function simpanCatatan(nis, jenis, isi, tanggal) {
     J.simpanCatatan({
       nis: String(nis),
@@ -847,9 +847,9 @@
     document.getElementById('catIsi').value = '';
   });
 
-  /* ============================================================
+  /* ====
      8. TAB PENGATURAN
-     ============================================================ */
+     ==== */
   function muatPengaturan() {
     document.getElementById('setNamaApp').value = J.config.appName || '';
     var ov = J.config.habitOverrides || {};
@@ -960,9 +960,9 @@
     location.href = 'apps-script/Code.gs';
   });
 
-  /* ============================================================
+  /* ====
      9. INIT
-     ============================================================ */
+     ==== */
   /* SHA-256 dari "guru123". Cukup untuk mendeteksi apakah password
      bawaan masih terpasang - tidak perlu membandingkan teks biasa. */
   var SANDI_GURU_AWAL = 'ae81343369944399b70de862dbe75536faa8e44c50ad0a312e380303173f4756';

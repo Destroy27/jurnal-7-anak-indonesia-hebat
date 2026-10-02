@@ -1,9 +1,9 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — components.css
    Kartu · tombol · input · badge · tabel · toast · modal · grafik
-   ============================================================ */
+   ==== */
 
-/* ================= TOP NAV =================
+/* === TOP NAV ===
    Header sekarang simple & modern:
    - latar krem solid (bukan putih transparan) supaya lebih tenang
    - garis bawah tipis, tidak ada bayangan tebal
@@ -102,7 +102,7 @@
   font-size: 12px; font-weight: 700;
 }
 
-/* ================= KARTU ================= */
+/* === KARTU === */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -147,7 +147,7 @@
 .card-hero h2, .card-hero h3 { color: #fff; }
 .card-hero p { color: rgba(255, 255, 255, 0.82); }
 
-/* ================= GRID ================= */
+/* === GRID === */
 .grid { display: grid; gap: 16px; }
 .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -165,7 +165,7 @@
   .grid-keep-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
-/* ================= STAT CARD ================= */
+/* === STAT CARD === */
 .stat {
   position: relative;
   background: var(--card);
@@ -206,7 +206,7 @@
 .stat.green::before { background: linear-gradient(180deg, #2FBF8F, var(--success)); }
 .stat.green .stat-icon { background: var(--success-bg); color: var(--success); }
 
-/* ================= TOMBOL ================= */
+/* === TOMBOL === */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-weight: 700; font-size: 14px; line-height: 1;
@@ -269,7 +269,7 @@
 .btn-block { width: 100%; }
 .btn-icon { width: 38px; height: 38px; padding: 0; border-radius: 11px; }
 
-/* ================= FORM ================= */
+/* === FORM === */
 .field { display: flex; flex-direction: column; gap: 7px; }
 .field > label {
   font-size: 12.5px; font-weight: 700;
@@ -338,7 +338,7 @@
 }
 .input-group .toggle:hover { background: var(--maroon-50); color: var(--maroon-600); }
 
-/* ================= ROLE TABS (login) ================= */
+/* === ROLE TABS (login) === */
 .role-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -365,7 +365,7 @@
   box-shadow: var(--shadow-xs);
 }
 
-/* ================= TABS ================= */
+/* === TABS === */
 .tabs {
   display: flex; gap: 4px;
   padding: 5px;
@@ -388,7 +388,7 @@
 .tab:hover { color: var(--maroon-600); }
 .tab.active { background: var(--card); color: var(--maroon-700); box-shadow: var(--shadow-xs); }
 
-/* ================= BADGE ================= */
+/* === BADGE === */
 .badge {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 5px 11px;
@@ -430,7 +430,7 @@
 .lencana.locked { background: var(--bg); border-color: var(--border); color: var(--muted-2); }
 .lencana.locked i { background: #EFEDE3; color: var(--muted-2); box-shadow: none; }
 
-/* ================= TABEL ================= */
+/* === TABEL === */
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--border);
@@ -460,7 +460,7 @@
 .table .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .table-clickable tbody tr { cursor: pointer; }
 
-/* ================= PROGRESS ================= */
+/* === PROGRESS === */
 .progress {
   height: 8px;
   border-radius: 99px;
@@ -486,7 +486,7 @@
 .progress-row .progress { flex: 1; }
 .progress-row .pct { font-family: var(--mono); font-size: 12px; min-width: 44px; text-align: right; }
 
-/* ================= RING (lingkaran %) ================= */
+/* === RING (lingkaran %) === */
 .ring { position: relative; display: inline-flex; align-items: center; justify-content: center; }
 .ring svg { transform: rotate(-90deg); }
 .ring circle { fill: none; stroke-linecap: round; }
@@ -505,7 +505,7 @@
 }
 .ring-label span { font-size: 10.5px; color: var(--muted); font-weight: 700; margin-top: 3px; }
 
-/* ================= BAR CHART (CSS) ================= */
+/* === BAR CHART (CSS) === */
 .bars { display: flex; align-items: flex-end; gap: 8px; height: 168px; padding-top: 12px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; }
 .bar-track {
@@ -536,7 +536,7 @@
 }
 .bar-label { font-size: 10.5px; color: var(--muted); font-weight: 700; text-align: center; }
 
-/* ================= HEATMAP (kalenderHabit) ================= */
+/* === HEATMAP (kalenderHabit) === */
 .heatmap, .heatmap-head {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -582,7 +582,7 @@
 }
 .heat-legend .heat-cell { width: 14px; height: 14px; aspect-ratio: auto; border-radius: 4px; }
 
-/* ================= LIST ROW ================= */
+/* === LIST ROW === */
 .list-row {
   display: flex; align-items: center; gap: 13px;
   padding: 13px 0;
@@ -603,7 +603,7 @@
 .list-main h4 { font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--ink); }
 .list-main p { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-/* ================= EMPTY STATE ================= */
+/* === EMPTY STATE === */
 .empty {
   text-align: center;
   padding: 44px 22px;
@@ -621,7 +621,7 @@
 .empty h4 { font-family: var(--font); font-size: 15px; color: var(--ink-2); }
 .empty p { font-size: 13px; margin-top: 5px; max-width: 380px; margin-inline: auto; }
 
-/* ================= TOAST ================= */
+/* === TOAST === */
 #toast {
   position: fixed;
   left: 50%; bottom: 26px;
@@ -659,7 +659,7 @@
 .t-title { font-size: 13.5px; font-weight: 800; }
 .t-msg { font-size: 12.5px; color: rgba(255, 255, 255, 0.74); margin-top: 2px; line-height: 1.45; }
 
-/* ================= MODAL ================= */
+/* === MODAL === */
 .modal-backdrop {
   position: fixed; inset: 0;
   z-index: 150;
@@ -699,7 +699,7 @@
   flex-wrap: wrap;
 }
 
-/* ================= BANNER INFO ================= */
+/* === BANNER INFO === */
 .banner {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 14px 16px;
@@ -715,7 +715,7 @@
 .banner-ok { background: var(--success-bg); color: var(--success); border-color: rgba(18, 128, 92, 0.16); }
 .banner-maroon { background: var(--maroon-50); color: var(--maroon-700); border-color: var(--maroon-100); }
 
-/* ================= TOGGLE ================= */
+/* === TOGGLE === */
 .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
 .switch input { display: none; }
 .switch .track {
@@ -740,7 +740,7 @@
 .switch input:checked + .track::after { transform: translateX(18px); }
 .switch .switch-label { font-size: 13px; font-weight: 600; }
 
-/* ================= CHIP ================= */
+/* === CHIP === */
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 12px;
@@ -762,7 +762,7 @@
 }
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ================= CHART MINI (sparkline/trend) ================= */
+/* === CHART MINI (sparkline/trend) === */
 .trend { position: relative; width: 100%; }
 .trend svg { width: 100%; height: auto; display: block; }
 .trend .trend-area { fill: url(#trendGrad); opacity: 0.28; }
@@ -770,7 +770,7 @@
 .trend .trend-dot { fill: #fff; stroke: var(--maroon-600); stroke-width: 2.2; }
 .trend .trend-grid { stroke: var(--border-soft); stroke-width: 1; }
 
-/* ================= PRINT ================= */
+/* === PRINT === */
 @media print {
   .topnav, .no-print, .bg-decor, #toast { display: none !important; }
   body { background: #fff; }

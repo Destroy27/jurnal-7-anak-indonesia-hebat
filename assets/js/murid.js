@@ -1,10 +1,10 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — murid.js
    ------------------------------------------------------------
    Halaman murid: mengisi jurnal harian + melihat rekap pribadi
    + Upload Foto
    + FIX BUG FORM KERISET & OPTIMASI SUPER CEPAT
-   ============================================================ */
+   ==== */
 (function () {
   'use strict';
 

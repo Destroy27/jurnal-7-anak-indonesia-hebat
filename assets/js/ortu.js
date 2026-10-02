@@ -1,9 +1,9 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — ortu.js
    ------------------------------------------------------------
    Halaman orang tua: hanya MEMBACA rekap anaknya.
    Tidak ada tombol ubah/hapus di halaman ini.
-   ============================================================ */
+   ==== */
 (function () {
   'use strict';
 
@@ -14,9 +14,9 @@
   var anak = null;
   var rentangHari = 7;
 
-  /* ============================================================
+  /* ====
      1. GERBANG
-     ============================================================ */
+     ==== */
   if (!sesi || (sesi.role !== 'ortu' && sesi.role !== 'siswa')) {
     document.body.innerHTML =
       '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">' +
@@ -65,9 +65,9 @@
     });
   });
 
-  /* ============================================================
+  /* ====
      2. TAMPILKAN
-     ============================================================ */
+     ==== */
   /* true setelah sinkron pertama selesai. Sebelum itu, "anak belum
      ketemu" hanya berarti belum ada di cache perangkat, bukan berarti
      kode aksesnya salah - jadi banner merah harus ditahan. */
@@ -190,9 +190,9 @@
     }).join('');
   }
 
-  /* ============================================================
+  /* ====
      3. INIT
-     ============================================================ */
+     ==== */
   if (!J.isConfigured()) {
     tampilkanStatus('Database belum terhubung. Hubungi guru sekolah.', 'danger');
     return;

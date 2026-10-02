@@ -1,7 +1,7 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — login.js
    Halaman depan: pilih peran, masuk, arahkan ke halaman terkait.
-   ============================================================ */
+   ==== */
 (function () {
   'use strict';
 

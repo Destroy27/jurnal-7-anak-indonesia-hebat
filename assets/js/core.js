@@ -1,4 +1,4 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat — core.js
    ------------------------------------------------------------
    Dipakai oleh: index.html · murid.html · guru.html · ortu.html
@@ -8,7 +8,7 @@
    - localStorage = cache ringan supaya halaman cepat dibuka
    - Baca data  = JSONP via GET  (?action=get_all)
    - Tulis data = POST mode no-cors + verifikasi ulang (garansi data masuk)
-   ============================================================ */
+   ==== */
 (function (root) {
   'use strict';
 
@@ -122,7 +122,7 @@
     return '';
   }
 
-  /* ================= CACHE LOKAL ================= */
+  /* === CACHE LOKAL === */
   function loadCache() {
     try {
       var raw = localStorage.getItem(KEYS.cache);
@@ -147,7 +147,7 @@
     try { localStorage.setItem(KEYS.script, scriptURL); } catch (e) { /* mode privat */ }
   }
 
-  /* ================= HELPER UMUM ================= */
+  /* === HELPER UMUM === */
   function esc(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -162,7 +162,7 @@
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  /* ================= TANGGAL (selalu waktu lokal) ================= */
+  /* === TANGGAL (selalu waktu lokal) === */
   function todayISO() { return toISO(new Date()); }
 
   function toISO(d) {
@@ -213,7 +213,7 @@
       pad2(d.getHours()) + ':' + pad2(d.getMinutes());
   }
 
-  /* ================= SHA-256 (login) ================= */
+  /* === SHA-256 (login) === */
   function sha256(text) {
     if (root.crypto && root.crypto.subtle && root.TextEncoder) {
       return root.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
@@ -226,7 +226,7 @@
     return Promise.resolve(null);
   }
 
-  /* ================= SELEKTOR DATA ================= */
+  /* === SELEKTOR DATA === */
   function getKelas(id) {
     var list = state.config.classes || [];
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
@@ -266,7 +266,7 @@
   /* Teruskan setelan target guru ke habits.js supaya skor ikut berubah */
   function terapkanTarget() { H.setOverrides(state.config.habitOverrides || {}); }
 
-  /* ================= MESIN REKAP ================= */
+  /* === MESIN REKAP === */
 
   /* Ringkasan satu hari: jumlah kebiasaan terisi + skor rata-rata */
   function ringkasHari(entriesHari) {
@@ -463,7 +463,7 @@
     };
   }
 
-  /* ================= AUTENTIKASI =================
+  /* === AUTENTIKASI ===
      Pola arsitektur tanpa server: data tersinkron ke perangkat,
      sehingga verifikasi dilakukan di sisi klien. Sama seperti
      aplikasi absensi sebelumnya. Lihat catatan keamanan di README.
@@ -513,7 +513,7 @@
     try { localStorage.removeItem(KEYS.sesi); } catch (e) {}
   }
 
-  /* ================= HTTP: JSONP (baca) ================= */
+  /* === HTTP: JSONP (baca) === */
   function fetchJSONP(action, params, cb, timeoutMs) {
     if (!isConfigured()) {
       cb({ ok: false, msg: 'URL Apps Script belum diatur. Buka menu Pengaturan.' });
@@ -548,7 +548,7 @@
     document.head.appendChild(s);
   }
 
-  /* ================= HTTP: POST (tulis) ================= */
+  /* === HTTP: POST (tulis) === */
   function postToSheet(payload, retries) {
     if (!isConfigured()) return Promise.resolve({ ok: false, msg: 'URL Apps Script belum diatur.' });
     retries = retries == null ? 2 : Math.max(0, retries);
@@ -580,7 +580,7 @@
     return coba();
   }
 
-  /* ================= SYNC ================= */
+  /* === SYNC === */
   function syncAll(onDone) {
     if (!isConfigured()) { if (onDone) onDone({ ok: false, msg: 'URL Apps Script belum diatur.' }); return; }
     if (_syncBusy) return;
@@ -612,7 +612,7 @@
     }, ms);
   }
 
-  /* ================= SIMPAN JURNAL (GARANSI MASUK) =================
+  /* === SIMPAN JURNAL (GARANSI MASUK) ===
      Alur: POST -> tunggu -> verifikasi ke database -> bila belum
      masuk, simpan ke antrean lokal & kirim ulang otomatis.
      Inilah yang mencegah catatan hilang saat sinyaljelek.
@@ -768,7 +768,7 @@
     };
   }
 
-  /* ================= ADMIN: KELOLA DATA ================= */
+  /* === ADMIN: KELOLA DATA === */
   function simpanConfig(cfg, cb) {
     if (!_configLoaded) {
       if (cb) cb({ ok: false, msg: 'Tunggu sinkron pertama selesai, lalu coba lagi.' });
@@ -822,7 +822,7 @@
       .then(function (r) { setTimeout(function () { syncAll(cb); }, 500); return r; });
   }
 
-  /* ================= CATATAN GURU UNTUK SISWA ================= */
+  /* === CATATAN GURU UNTUK SISWA === */
   /* Disimpan di sheet CATATAN agar guru bisa menulis pesan untuk orang tua. */
   function simpanCatatan(catatanBaru, cb) {
     return postToSheet({ action: 'save_note', note: catatanBaru })
@@ -837,7 +837,7 @@
       .sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)); });
   }
 
-  /* ================= RENDER: RING / BAR / HEATMAP ================= */
+  /* === RENDER: RING / BAR / HEATMAP === */
   var GRAD_ID = 'j7ringGrad';
   function svgDefs() {
     return '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
@@ -940,7 +940,7 @@
     return out;
   }
 
-  /* ================= TOAST ================= */
+  /* === TOAST === */
   var _toastTimer = null;
   function toast(judul, pesan, tipe) {
     var t = document.getElementById('toast');
@@ -968,7 +968,7 @@
     clearTimeout(_toastTimer);
   }
 
-  /* ================= MODAL ================= */
+  /* === MODAL === */
   function modal(opsi) {
     tutupModal();
     var backdrop = document.createElement('div');
@@ -994,7 +994,7 @@
     document.body.style.overflow = '';
   }
 
-  /* ================= EKSPOR / CETAK ================= */
+  /* === EKSPOR / CETAK === */
   function exportCSV(rows, namaFile) {
     var csv = rows.map(function (r) {
       return r.map(function (c) {
@@ -1010,7 +1010,7 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
   }
 
-  /* ================= KONTEN UTAMA (API PUBLIK) ================= */
+  /* === KONTEN UTAMA (API PUBLIK) === */
   var api = {
     KEYS: KEYS,
     get state() { return state; },

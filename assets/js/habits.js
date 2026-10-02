@@ -1,4 +1,4 @@
-/* ============================================================
+/* ====
    Jurnal 7 Anak Indonesia Hebat - habits.js
    ------------------------------------------------------------
    Sumber tunggal definisi 7 kebiasaan. Dipakai oleh seluruh
@@ -21,7 +21,7 @@
      time  -> jam (contoh: "05:30")   ada target jam (targetTime)
      check -> centang sudah / belum   ada label singkat
    Setiap kebiasaan tetap bisa diisi catatan singkat opsional.
-   ============================================================ */
+   ==== */
 (function (root) {
   'use strict';
 
