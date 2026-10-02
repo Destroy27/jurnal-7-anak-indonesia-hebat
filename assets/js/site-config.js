@@ -19,7 +19,7 @@ window.SITECONFIG = {
 
   /* Nama aplikasi yang tampil di judul & header.
      Bisa diubah juga dari menu Pengaturan di Panel Guru. */
-  namaApp: 'Jurnal 7 Anak Indonesia Hebat',
+  namaApp: 'JEJAK 7 KAIH',
 
   /* Nama sekolah. Tampil di navbar (judul browser, halaman masuk),
      dan bisa dicetak di kop laporan. Boleh dikosongkan. */
