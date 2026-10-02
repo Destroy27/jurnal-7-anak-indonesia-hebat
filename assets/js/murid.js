@@ -379,7 +379,11 @@
 
     /* Bar chart konsistensi/streak */
     try {
-      var barData = (r.hariRentang || []).slice(-Math.max(7, rentangHari)).map(function(d) {
+      var daysArr = (r.hariRentang || []);
+      if (daysArr.length === 0 && r.harian) {
+        daysArr = Object.keys(r.harian).sort().slice(-Math.max(7, rentangHari));
+      }
+      var barData = daysArr.slice(-Math.max(7, rentangHari)).map(function(d) {
         var hr = r.harian[d];
         var jml = hr ? hr.jumlah : 0;
         var persen = Math.round((jml / H.total()) * 100);

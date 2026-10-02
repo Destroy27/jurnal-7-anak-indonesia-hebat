@@ -14,16 +14,19 @@
   position: sticky;
   top: 0;
   z-index: 60;
-  background: var(--bg-soft);
-  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .topnav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  min-height: 72px;
-  padding-block: 10px;
+  gap: clamp(8px, 2vw, 14px);
+  min-height: clamp(56px, 6vw, 72px);
+  padding-block: clamp(6px, 1.5vw, 10px);
 }
 
 .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }

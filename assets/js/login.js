@@ -76,6 +76,15 @@
   }
 
   /* ---------- Ganti peran ---------- */
+  var navRoleEl = document.getElementById('navRole');
+  var navRoleText = document.getElementById('navRoleText');
+  function updateNavRole() {
+    if (!navRoleEl || !navRoleText) return;
+    var map = { siswa: 'Murid', guru: 'Guru', ortu: 'Orang Tua' };
+    navRoleText.textContent = map[role] || '';
+    navRoleEl.classList.remove('hidden');
+  }
+  updateNavRole();
   document.querySelectorAll('.role-tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
       role = tab.dataset.role;
@@ -88,6 +97,7 @@
         p.classList.toggle('hidden', p.dataset.panel !== role);
       });
       document.getElementById('loginError').classList.add('hidden');
+      updateNavRole();
       fokus();
     });
   });
