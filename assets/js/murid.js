@@ -391,6 +391,7 @@
         var hr = r.harian[d];
         var jml = hr ? hr.jumlah : 0;
         var persen = Math.round((jml / H.total()) * 100);
+        if (persen > 100) persen = 100;
         return {
           label: J.fmtTanggalPendek(d).slice(0,5),
           value: persen,
