@@ -16,11 +16,8 @@
   var rentangHari = 7;
   var isian = {}; 
   var formTerbuka = true;
-<<<<<<< HEAD
   var bulanAktif = null; // YYYY-MM, null berarti pakai rentang terakhir
-=======
   var adaPerubahan = false; /* Penanda agar form tidak keriset saat auto-sync */
->>>>>>> a00f30eba99975ca41c2888a3028516e07b23d2c
 
   function gerbang() {
     if (!sesi || sesi.role !== 'siswa' || !sesi.siswa) {
@@ -317,49 +314,13 @@
     adaPerubahan = false; // Reset penanda setelah save berhasil
 
     J.simpanEntries(items, function (r) {
-<<<<<<< HEAD
-      sedangSimpan = false;
-      btn.disabled = false;
-      btn.innerHTML = teksAsli;
-      if (r.ok) {
-        var lengkap = H.list.filter(function (h) { return String(isian[h.key].nilai || '').trim() !== ''; }).length;
-        if (lengkap === H.total()) {
-          J.toast('Jurnal lengkap!', 'Hebat, semua 7 kebiasaan terisi hari ini.', 'ok');
-          konfeti();
-        } else {
-          J.toast('Tersimpan', lengkap + ' dari ' + H.total() + ' kebiasaan tercatat.', 'ok');
-        }
-        // Auto-sync setelah simpan untuk memastikan data ter-upload dengan baik
-        try {
-          var btnSyncEl = document.getElementById('btnSync');
-          if (btnSyncEl) {
-            var asliSync = btnSyncEl.innerHTML;
-            btnSyncEl.innerHTML = '<i class="fa-solid fa-circle-notch spin"></i>';
-            J.syncAll(function(sr){
-              btnSyncEl.innerHTML = asliSync;
-              if (sr.ok) {
-                muatRekap();
-                perbaruiAntrean();
-                if (J.pendingCount === 0) {
-                  J.toast('Tersinkron', 'Data berhasil tersimpan ke database.', 'ok');
-                }
-              } else {
-                muatRekap();
-                perbaruiAntrean();
-              }
-            });
-            return;
-          }
-        } catch(e) {}
-        muatRekap();
+      if (r.ok) { 
+        muatRekap(false); 
         perbaruiAntrean();
-      } else {
-        J.toast('Gagal menyimpan', r.msg, 'err');
-      }
-=======
-      if (r.ok) { muatRekap(false); perbaruiAntrean(); } 
+        // Auto-sync ringan
+        try { if (document.getElementById('btnSync')) { J.syncAll(function(){}); } } catch(e) {}
+      } 
       else { perbaruiAntrean(); }
->>>>>>> a00f30eba99975ca41c2888a3028516e07b23d2c
     });
   }
   document.getElementById('btnSimpanSemua').addEventListener('click', function () { simpanSemua(); });
@@ -416,23 +377,21 @@
     var bangun = r.perHabit.find(function (p) { return p.key === 'bangun'; });
     document.getElementById('statBangun').textContent = bangun && bangun.rataWaktu ? bangun.rataWaktu : '-';
 
-<<<<<<< HEAD
     /* Heatmap - bisa pakai mode bulanan */
     if (bulanAktif) {
       document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, [], { bulan: bulanAktif });
       var partsB = bulanAktif.split('-');
       var namaBln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-      document.getElementById('heatmapHead').innerHTML = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(function(h){return '<span>'+h+'</span>'}).join('');
+      if (document.getElementById('heatmapHead')) {
+        document.getElementById('heatmapHead').innerHTML = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(function(h){return '<span>'+h+'</span>'}).join('');
+      }
       if (document.getElementById('heatmapTitle')) {
         document.getElementById('heatmapTitle').textContent = namaBln[parseInt(partsB[1])-1] + ' ' + partsB[0];
       }
     } else {
       document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
-      document.getElementById('heatmapHead').innerHTML = '';
+      if (document.getElementById('heatmapHead')) document.getElementById('heatmapHead').innerHTML = '';
     }
-=======
-    document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
->>>>>>> a00f30eba99975ca41c2888a3028516e07b23d2c
 
     document.getElementById('rekapList').innerHTML = r.perHabit.map(function (p) {
       return '<div class="rekap-item"><div class="ri-no" style="background:' + p.color + '">' + p.no + '</div><div class="ri-body"><div class="ri-title"><strong>' + J.esc(p.title) + '</strong><span>' + p.persen + '%</span></div><div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div><div class="text-xs text-muted mt-1">' + p.jumlah + ' hari terisi</div></div></div>';
