@@ -12,7 +12,7 @@
 
   var sesi = J.ambilSesi();
   var kelasAktif = '';
-  var rentangHari = 14;
+  var rentangHari = 1;
   var sinkronTerakhir = '-';
 
   /* ====

@@ -377,21 +377,23 @@
     var bangun = r.perHabit.find(function (p) { return p.key === 'bangun'; });
     document.getElementById('statBangun').textContent = bangun && bangun.rataWaktu ? bangun.rataWaktu : '-';
 
-    /* Heatmap - bisa pakai mode bulanan */
-    if (bulanAktif) {
-      document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, [], { bulan: bulanAktif });
-      var partsB = bulanAktif.split('-');
-      var namaBln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-      if (document.getElementById('heatmapHead')) {
-        document.getElementById('heatmapHead').innerHTML = ['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(function(h){return '<span>'+h+'</span>'}).join('');
+    /* Bar chart konsistensi/streak */
+    try {
+      var barData = (r.hariRentang || []).slice(-Math.max(7, rentangHari)).map(function(d) {
+        var hr = r.harian[d];
+        var jml = hr ? hr.jumlah : 0;
+        var persen = Math.round((jml / H.total()) * 100);
+        return {
+          label: J.fmtTanggalPendek(d).slice(0,5),
+          value: persen,
+          teks: persen + '%',
+          kelas: persen >= 100 ? 'gold' : (persen >= 60 ? 'green' : '')
+        };
+      });
+      if (document.getElementById('barKonsistensi')) {
+        document.getElementById('barKonsistensi').innerHTML = J.barChart(barData, { max: 100, tampilkanNilai: true });
       }
-      if (document.getElementById('heatmapTitle')) {
-        document.getElementById('heatmapTitle').textContent = namaBln[parseInt(partsB[1])-1] + ' ' + partsB[0];
-      }
-    } else {
-      document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
-      if (document.getElementById('heatmapHead')) document.getElementById('heatmapHead').innerHTML = '';
-    }
+    } catch(e) {}
 
     document.getElementById('rekapList').innerHTML = r.perHabit.map(function (p) {
       return '<div class="rekap-item"><div class="ri-no" style="background:' + p.color + '">' + p.no + '</div><div class="ri-body"><div class="ri-title"><strong>' + J.esc(p.title) + '</strong><span>' + p.persen + '%</span></div><div class="progress thin"><i style="width:' + p.persen + '%;background:' + p.color + '"></i></div><div class="text-xs text-muted mt-1">' + p.jumlah + ' hari terisi</div></div></div>';
