@@ -208,11 +208,8 @@
   function keys() { return HABITS.map(function (h) { return h.key; }); }
   function total() { return HABITS.length; }
 
-  /* Skor satu isian 0..100
-       time  : 100 bila <= target, turun 20 poin tiap 30 menit
-               melewati target (min 0)
-       check : 100 bila terisi                                        */
-  function scoreEntry(habitKey, nilai) {
+  /* Skor satu isian 0..100 dengan bobot (centang/catatan/dokumen) */
+  function scoreEntry(habitKey, nilai, catatan, foto) {
     var h = BY_KEY[habitKey];
     if (!h) return 0;
     var v = String(nilai == null ? '' : nilai).trim();
@@ -227,7 +224,12 @@
       if (selisih <= 0) return 100;
       return Math.max(0, 100 - Math.ceil(selisih / 30) * 20);
     }
-    return 100;
+    // check
+    var adaCat = catatan ? String(catatan).trim() !== '' : false;
+    var adaFoto = foto ? String(foto).trim() !== '' : false;
+    if (adaFoto) return 100;
+    if (adaCat) return 66; // bobot isi + catatan (approx 2/3)
+    return 33; // hanya centang
   }
 
   /* "05:30" -> 330 (menit sejak 00:00). null bila tidak valid. */
