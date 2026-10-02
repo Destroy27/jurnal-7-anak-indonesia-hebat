@@ -302,8 +302,7 @@
     H.list.forEach(function (h) {
       var v = isian[h.key] || { nilai: '', catatan: '', foto: '' };
       if (!v.nilai && !v.catatan && !v.foto) return;
-      var entry = J.buildEntry(siswa, t, h.key, v.nilai, v.catatan);
-      if (v.foto) entry.foto = v.foto;
+      var entry = J.buildEntry(siswa, t, h.key, v.nilai, v.catatan, v.foto);
       items.push(entry);
     });
     if (!items.length) return J.toast('Belum ada isian', 'Isi minimal satu kebiasaan dulu.', 'warn');
