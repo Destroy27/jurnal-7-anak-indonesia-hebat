@@ -275,7 +275,8 @@
     var jumlah = Object.keys(byKey).length;
     var totalSkor = 0;
     Object.keys(byKey).forEach(function (k) {
-      totalSkor += H.scoreEntry(k, byKey[k].nilai);
+      var en = byKey[k];
+      totalSkor += H.scoreEntry(k, en.nilai, en.catatan, en.foto);
     });
     return {
       tanggal: entriesHari.length ? entriesHari[0].tanggal : '',
@@ -331,7 +332,7 @@
     var totalSlot = rentang.length * H.total();
     var totalIsi = semua.filter(function (e) { return rentang.indexOf(e.tanggal) !== -1; }).length;
     var poin = 0;
-    semua.forEach(function (e) { if (rentang.indexOf(e.tanggal) !== -1) poin += H.scoreEntry(e.kode, e.nilai); });
+    semua.forEach(function (e) { if (rentang.indexOf(e.tanggal) !== -1) poin += H.scoreEntry(e.kode, e.nilai, e.catatan, e.foto); });
 
     /* Per kebiasaan */
     var hariIni = todayISO();
@@ -341,7 +342,7 @@
       }).sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); });
 
       var skorTotal = 0;
-      rows.forEach(function (r) { skorTotal += H.scoreEntry(h.key, r.nilai); });
+      rows.forEach(function (r) { skorTotal += H.scoreEntry(h.key, r.nilai, r.catatan, r.foto); });
 
       var rataWaktu = null;
       if (h.type === 'time' && rows.length) {

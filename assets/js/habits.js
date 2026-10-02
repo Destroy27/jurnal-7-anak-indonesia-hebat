@@ -228,8 +228,8 @@
     var adaCat = catatan ? String(catatan).trim() !== '' : false;
     var adaFoto = foto ? String(foto).trim() !== '' : false;
     if (adaFoto) return 100;
-    if (adaCat) return 66; // bobot isi + catatan (approx 2/3)
-    return 33; // hanya centang
+    if (adaCat) return 67; // ~2/3
+    return 33; // ~1/3
   }
 
   /* "05:30" -> 330 (menit sejak 00:00). null bila tidak valid. */
