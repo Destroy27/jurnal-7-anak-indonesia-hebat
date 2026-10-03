@@ -193,7 +193,9 @@ function pastikanSheet(nama, header) {
         terlanjur jadi Date, dinormalkan saat dibaca. Jadi data
         lama langsung terbaca tanpa perlu diedit manual.
    ============================================================ */
-function pad2_(n) { return (Number(n) < 10 ? '0' : '') + n; }
+/* WAJIB: n harus jadi Number dulu sebelum ditempel. Kalau tidak,
+   pad2_('03') menghasilkan '003' sehingga tanggal jadi '2026-10-003'. */
+function pad2_(n) { n = Number(n); return (n < 10 ? '0' : '') + n; }
 
 function fmtTanggalISO_(v) {
   if (v === null || v === undefined || v === '') return '';
@@ -201,8 +203,13 @@ function fmtTanggalISO_(v) {
     return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
   }
   var s = String(v).trim();
-  var m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s);
+  /* hari 1-3 digit supaya sisa format rusak lama ("2026-10-003")
+     tetap dinormalkan jadi 2026-10-03 */
+  var m = /^(\d{4})-(\d{1,2})-(\d{1,3})/.exec(s);
   if (m) return m[1] + '-' + pad2_(m[2]) + '-' + pad2_(m[3]);
+  /* dd/MM/yyyy (format bawaan Sheets saat locale Singapura) */
+  var p = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/.exec(s);
+  if (p) return p[3] + '-' + pad2_(p[2]) + '-' + pad2_(p[1]);
   return s;
 }
 
@@ -716,7 +723,12 @@ function menuCek() {
      2) BARIS DOBEL dibuang. dulu setiap simpan menambah baris baru
         (upsert gagal karena tanggalnya sudah jadi objek Date), jadi
         satu isian bisa terimpan puluhan kali dan kelengkapan naik
-        lebih dari 100%. Yang dipertahankan hanya baris TERBARU. */
+        lebih dari 100%. Yang dipertahankan hanya baris TERBARU.
+
+   CARA BARU: bukan menghapus baris satu per satu (deleteRow 2000+
+   kali akan KEBURUAN timeout di Apps Script), tapi.build ulang
+   sheet: hapus semua baris data dengan SATU deleteRows(), lalu
+   tulis ulang hanya baris yang unik. Total +/- 5 panggilan API. */
 function menuFormatTanggal() {
   var ui = SpreadsheetApp.getUi();
   var sh = getSS().getSheetByName(SHEET_JURNAL);
@@ -726,63 +738,76 @@ function menuFormatTanggal() {
   var lebar = Math.min(Math.max(sh.getLastColumn(), HEADER_JURNAL.length), 10);
   var data = sh.getRange(2, 1, n, lebar).getValues();
 
-  /* Cari baris terbaik (paling baru) untuk tiap kombinasi
+  /* Kumpulkan baris TERBARU untuk tiap kombinasi
      kelas + siswa + tanggal + kode */
   var terbaik = {};
-  var barisBaik = [];
   for (var i = 0; i < n; i++) {
     var tgl = fmtTanggalISO_(data[i][3]);
     if (!tgl) continue;
     var kunci = String(data[i][0]).trim() + '||' + String(data[i][1]).trim() +
       '||' + tgl + '||' + String(data[i][4]).trim();
-    var iso = String(data[i][7] == null ? '' : data[i][7]);
     var stamp = (Object.prototype.toString.call(data[i][7]) === '[object Date]' && !isNaN(data[i][7].getTime()))
-      ? data[i][7].getTime() : iso;
+      ? data[i][7].getTime() : String(data[i][7] == null ? '' : data[i][7]);
     if (terbaik[kunci] === undefined || stamp >= terbaik[kunci].stamp) {
-      terbaik[kunci] = { stamp: stamp, row: i + 2 };
+      terbaik[kunci] = { stamp: stamp, row: i };
     }
   }
+
+  var barisBaik = [];
   for (var kk in terbaik) barisBaik.push(terbaik[kk].row);
   barisBaik.sort(function (a, b) { return a - b; });
 
-  var hapus = [];
-  var disimpan = 0;
-  for (var r = n + 1; r >= 2; r--) {
-    if (barisBaik.indexOf(r) === -1) hapus.push(r);
+  /* Susun isi akhir sekaligus menormalkan tanggal & jam */
+  var hasil = [];
+  for (var b = 0; b < barisBaik.length; b++) {
+    var r = data[barisBaik[b]];
+    hasil.push([
+      String(r[0]).trim(),
+      String(r[1]).trim(),
+      String(r[2]).trim(),
+      fmtTanggalISO_(r[3]),
+      String(r[4]).trim(),
+      fmtJamHM_(r[5]),
+      String(r[6] == null ? '' : r[6]).trim(),
+      String(r[7] == null ? '' : r[7]).trim(),
+      fmtJamHM_(r[8]),
+      (r[9] != null && String(r[9]).trim().toUpperCase() === 'YA') ? 'YA' : ''
+    ]);
   }
 
-  var tanggalBaru = [], nilaiBaru = [], jamBaru = [];
-  var bedaTanggal = 0, bedaNilai = 0;
-  for (var j = 0; j < n; j++) {
-    var tgl2 = fmtTanggalISO_(data[j][3]);
-    var nil2 = fmtJamHM_(data[j][5]);
-    var jam2 = fmtJamHM_(data[j][8]);
-    if (Object.prototype.toString.call(data[j][3]) === '[object Date]') bedaTanggal++;
-    if (Object.prototype.toString.call(data[j][5]) === '[object Date]') bedaNilai++;
-    tanggalBaru.push([tgl2]);
-    nilaiBaru.push([nil2]);
-    jamBaru.push([jam2]);
+  var hapus = n - hasil.length;
+  if (hapus > 0) {
+    var jawab = ui.alert(
+      'Bersihkan ' + hapus + ' baris dobel?',
+      'Baris jurnal sekarang : ' + n + '\n' +
+      'Baris unik             : ' + hasil.length + '\n' +
+      'Baris dobel            : ' + hapus + '\n\n' +
+      'Isi dobel dihapus, yang tertinggal selalu versi TERBARU.',
+      ui.ButtonSet.YES_NO);
+    if (jawab !== ui.Button.YES) { ui.alert('Dibatalkan, tidak ada yang diubah.'); return; }
   }
 
-  sh.getRange(2, 1, n, lebar).setNumberFormat('@');
-  sh.getRange(2, 4, n, 1).setValue(tanggalBaru);
-  sh.getRange(2, 6, n, 1).setValue(nilaiBaru);
-  sh.getRange(2, 9, n, 1).setValue(jamBaru);
-  /* Kolom "Ada Foto" baru: isi ulang dari data lama (semua kosong). */
-  if (sh.getLastColumn() < HEADER_JURNAL.length) {
-    sh.getRange(1, HEADER_JURNAL.length, 1, 1).setValue([HEADER_JURNAL[HEADER_JURNAL.length - 1]]);
+  /* --- Bangun ulang sheet (cepat: total +/- 6 panggilan API) --- */
+  sh.deleteRows(2, n);
+  /* pastikan kolom cukup untuk 10 header */
+  var kurangKolom = HEADER_JURNAL.length - sh.getLastColumn();
+  if (kurangKolom > 0) sh.insertColumnsAfter(Math.max(sh.getLastColumn(), 1), kurangKolom);
+  /* pastikan baris cukup untuk data yang akan ditulis ulang */
+  var kurangBaris = (hasil.length + 2) - sh.getMaxRows();
+  if (kurangBaris > 0) sh.insertRowsAfter(sh.getMaxRows(), kurangBaris);
+  sh.getRange(1, 1, 1, HEADER_JURNAL.length).setValues([HEADER_JURNAL]);
+  sh.getRange(2, 1, Math.max(sh.getMaxRows() - 1, 1), HEADER_JURNAL.length).setNumberFormat('@');
+  if (hasil.length) {
+    sh.getRange(2, 1, hasil.length, HEADER_JURNAL.length).setValues(hasil);
   }
-
-  /* Buang baris dobel (dari bawah ke atas supaya indeks tidak geser) */
-  for (var h = 0; h < hapus.length; h++) sh.deleteRow(hapus[h]);
-  disimpan = barisBaik.length;
+  sh.setFrozenRows(1);
+  sh.setTabColor('#8B1826');
 
   cacheBuang_(LOGS_CACHE_KEY);
   ui.alert('Selesai diperbaiki.\n\n' +
-    'Baris jurnal sebelum  : ' + n + '\n' +
-    'Baris setelah        : ' + disimpan + '\n' +
-    'Baris dobel dihapus  : ' + hapus.length + '\n\n' +
-    'Tanggal diubah ke teks : ' + bedaTanggal + ' baris\n' +
-    'Jam bangun/tidur      : ' + bedaNilai + ' baris\n\n' +
-    'Semua kolom JURNAL sekarang Plain Text.');
+    'Baris jurnal sebelum : ' + n + '\n' +
+    'Baris jurnal sesudah : ' + hasil.length + '\n' +
+    'Baris dobel dihapus  : ' + hapus + '\n\n' +
+    'Semua kolom JURNAL sekarang Plain Text, jadi tanggal\n' +
+    'tidak akan berubah jadi tanggal lagi di masa depan.');
 }
