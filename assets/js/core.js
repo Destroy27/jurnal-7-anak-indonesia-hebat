@@ -232,10 +232,16 @@
     for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
     return null;
   }
-  /* No. absen dicari tanpa memperhatikan huruf besar/kecil:
-     "Siswa01" oleh murid tetap ketemu siswa "siswa01". */
+  /* No. absen ditulis bebas: "1", "01", "001" semuanya berarti anak yang
+     sama, dan huruf besar/kecil juga dianggap sama. Tanpa ini murid yang
+     mengetik "01" ditolak padahal di sheet tersimpan "1". */
+  function nisKunci_(v) {
+    var s = String(v == null ? '' : v).trim().toLowerCase();
+    if (/^\d+$/.test(s)) return String(Number(s));   /* "01" -> "1", "007" -> "7" */
+    return s;
+  }
   function getSiswa(nis, kelasId) {
-    var n = String(nis == null ? '' : nis).trim().toLowerCase();
+    var n = nisKunci_(nis);
     var kc = kelasId == null || kelasId === '' ? '' : String(kelasId).trim().toLowerCase();
 
     /* CARI YANG PERSIS DULU.
@@ -247,21 +253,21 @@
        yang salah.
 
        Karena itu kelas ikut dipertimbangkan kalau tersedia.
-       Bila kelas tidak diberikan, sementara ini tetap memakai
-       kandidat pertama - sama seperti perilaku lama. */
-    /* Bila ada NIS yang sama di beberapa kelas, cari yang unik dulu
-       supaya getSiswa(nis) tanpa kelasId tidak salah pilih diam-diam. */
-    var unik = cocok.length === 1 ? cocok[0] : null;
-    var hasil = unik || cocok[0] || null;
+       Bila kelas tidak diberikan, pemanggil hanya mendapat kandidat
+       pertama - sama seperti perilaku lama. */
     var cocok = [];
     for (var i = 0; i < state.students.length; i++) {
       var s = state.students[i];
-      if (String(s.nis).trim().toLowerCase() !== n) continue;
+      if (nisKunci_(s.nis) !== n) continue;
       if (kc && String(s.kelasId).trim().toLowerCase() === kc) return s;
       cocok.push(s);
     }
     if (kc) return null;            /* kelas diketahui, tidak ada yang cocok */
-    return hasil;
+    /* Kandidat tunggal pasti orang yang dimaksud. Kalau ada lebih dari
+       satu (NIS sama di beberapa kelas), pakai yang pertama supaya
+       perilakunya sama persis dengan versi lama. */
+    var unik = cocok.length === 1 ? cocok[0] : null;
+    return unik || cocok[0] || null;
   }
   function getSiswaKelas(kelasId) {
     return state.students
@@ -279,10 +285,10 @@
      100% dan rata-rata menjadi tidak masuk akal. Yang dipakai
      selalu baris paling TERBARU per (tanggal + kode). */
   function entriesOf(nis) {
-    var n = String(nis);
+    var n = nisKunci_(nis);
     var peta = {};
     state.entries.forEach(function (e) {
-      if (String(e.nis) !== n) return;
+      if (nisKunci_(e.nis) !== n) return;
       var k = String(e.tanggal) + '__' + String(e.kode);
       var lama = peta[k];
       if (!lama) { peta[k] = e; return; }
