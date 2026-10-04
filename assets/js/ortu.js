@@ -217,6 +217,6 @@
        supaya bar merah "belum terhubung" tidak nempel di layar
        padahal database sudah nyambung. */
     sembunyikanStatus();
-    J.mulaiAutoSync(function () { muatSemua(); }, 120000);
+    J.mulaiAutoSync(function () { muatSemua(); });
   });
 })();

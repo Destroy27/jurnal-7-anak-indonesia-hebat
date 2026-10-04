@@ -497,23 +497,70 @@
     document.getElementById('tanggalHari').textContent = J.fmtHari(J.todayISO()) + ', ' + J.fmtTanggal(J.todayISO());
   }
 
-  function muatSemua() {
+  function muatSemua(paksaToast) {
     if (!siswa) pasangIdentitas();
     if (!siswa) return;
-    muatIsianHariIni();
-    gambarFormulir();
-    setFormTerbuka(true);
+    /* Jangan sentuh formulir kalau murid sedang mengetik. Ini penting
+       karena sekarang render pertama bisa terjadi SEBELUM sinkron
+       selesai — jadi sinkron bisa tiba tepat saat murid mulai isi. */
+    if (!adaPerubahan) {
+      muatIsianHariIni();
+      gambarFormulir();
+      setFormTerbuka(true);
+    }
     muatSapaan();
-    muatRekap();
+    muatRekap(paksaToast !== false);
+  }
+
+  /* ============================================================
+     TAMPILKAN DULU DARI CACHE, BARU SINKRON DI BELAKANG
+     ------------------------------------------------------------
+     VERSI LAMA (murid.js saja): halaman ini menunggu balasan API
+     dulu sebelum menampilkan apa pun. Itu 2-4 detik hampa karena
+     sheet masih 2.527 baris duplikat.
+
+     SEKARANG: tampilkan dari localStorage (0,01 detik, tanpa
+     jaringan), lalu segarkan di belakang. Bila cache kosong,
+     perilaku lama dipertahankan persis. Bila sinkron gagal tapi
+     cache ada, tampilan tetap utuh - murid tidak pernah melihat
+     halaman kosong.
+
+     CATATAN: core.js sudah memuat cache ke state.* sebelum
+     script ini dijalankan, jadi J.state di sini sudah terisi.
+     ============================================================ */
+  var adaCacheLokal = !!(J.state.students && J.state.students.length);
+
+  if (adaCacheLokal) {
+    /* Cache ada -> tampilkan SEKETIKA, tanpa menunggu server. */
+    pasangIdentitas();
+    muatSemua(false);          /* false = jangan munculkan toast */
+    perbaruiAntrean();
+  } else {
+    /* Belum pernah dibuka di perangkat ini -> tidak ada yang bisa
+       ditampilkan, jadi tunggu server seperti biasa. */
+    document.getElementById('identitas').textContent = 'Memuat data...';
   }
 
   J.syncAll(function (r) {
     sinkronSelesai = true;
-    if (!r.ok) return tampilkanStatus('Database belum terbaca: ' + r.msg, 'danger');
+    if (!r.ok) {
+      /* Cache tetap ditampilkan; hanya bar status yang diberi tahu.
+         Murid bisa tetap jalan dengan data terakhir, bukan kosong. */
+      if (adaCacheLokal) {
+        tampilkanStatus('Menampilkan data dari cache perangkat. ' + r.msg, 'warn');
+      } else {
+        tampilkanStatus('Database belum terbaca: ' + r.msg, 'danger');
+      }
+      return;
+    }
     pasangIdentitas();
-    muatSemua();
+    /* Kalau cache sudah ditampilkan duluan, jangan toast lagi. */
+    muatSemua(!adaCacheLokal);
     perbaruiAntrean();
-    
+    /* Bar status dibersihkan begitu sinkron berhasil, supaya pesan
+       "dari cache perangkat" tidak nempel setelah data segar masuk. */
+    sembunyikanStatus();
+
     /* INI FIX BUG KERISET: Saat auto-sync, JANGAN render ulang form jika ada perubahan! */
     J.mulaiAutoSync(function () {
       pasangIdentitas();
@@ -521,6 +568,6 @@
       muatRekap(false);
       perbaruiAntrean();
       /* Fungsi muatIsianHariIni() & gambarFormulir() dihapus dari sini! */
-    }, 90000);
+    });
   });
 })();

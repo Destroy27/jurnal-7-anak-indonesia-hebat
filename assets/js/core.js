@@ -644,10 +644,29 @@ var perluBantu = baris.filter(function (b) {
     });
   }
 
+  /* ============================================================
+     AUTO-SYNC BERJALAN DI LATAR BELAKANG
+     ------------------------------------------------------------
+     Default 90 detik terlalu sering untuk jurnal harian: tidak ada
+     yang butuh data berubah tiap 1,5 menit. Murid mengisi satu kali
+     seumur hari, guru membuka rekap satu-dua kali sehari.
+
+     5 menit memangkas jumlah unduhan menjadi seperenam dari
+     sebelumnya. Ditambah: jangan langsung sync saat tab baru dibuka
+     (biasanya justru sedang mengetik) — tunggu dulu tab diam.
+
+     Nilai ms dari pemanggil tetap dipakai, jadi angka 90000 di
+     halaman lain tidak ikut berubah dan tidak merusak apa pun.
+     ============================================================ */
   function mulaiAutoSync(onDone, ms) {
-    ms = ms || 90000;
-    syncAll(onDone);
+    ms = ms || 300000;                 /* 5 menit, bukan 90 detik */
+    var jedaAwal = 8000;               /* beri waktu halaman selesai tampil */
+
+    setTimeout(function () { syncAll(onDone); }, jedaAwal);
+
     setInterval(function () {
+      /* Jangan sync kalau tab disembunyikan: tidak terlihat, tidak
+         perlu data segar, dan hemat kuota. */
       if (typeof document !== 'undefined' && document.hidden) return;
       syncAll(onDone);
     }, ms);

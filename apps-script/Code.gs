@@ -539,7 +539,19 @@ function getEntries_() {
     });
   }
   isi.sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)); });
-  cachePut_(LOGS_CACHE_KEY, JSON.stringify(isi), 3);
+  /* TTL 60 detik, bukan 3 detik.
+
+     Dulu 3 detik hampir tidak berguna: setiap perangkat auto-sync
+     tiap 90 detik, jadi hampir tidak pernah ada yang kena cache.
+     Yang terjadi cuma satu sheet dibaca berulang kali.
+
+     Dengan 60 detik, 30 perangkat yang datang bersamaan membaca
+     sheet CUMA SEKALI. Beban baca sheet berkurang drastis.
+
+     Aman karena jurnal tidak butuh real-time: murid yang baru
+     menyimpan akan melihat datanya sendiri lewat respons simpan,
+     bukan lewat pembacaan cache ini. */
+  cachePut_(LOGS_CACHE_KEY, JSON.stringify(isi), 60);
   return { ok: true, entries: isi };
 }
 

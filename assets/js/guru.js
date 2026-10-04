@@ -1066,7 +1066,7 @@ var rentangHari = 7;
          pesan "belum terhubung" tidak nempel setelah database
          sebenarnya sudah nyambung. */
       sembunyikanStatus();
-      J.mulaiAutoSync(function () { gambarSemua(); }, 90000);
+      J.mulaiAutoSync(function () { gambarSemua(); });
     });
   } else {
     gambarSemua();
@@ -1078,7 +1078,7 @@ var rentangHari = 7;
       /* Sama seperti jalur di atas: bar status dibersihkan
          setelah sinkron berhasil. */
       sembunyikanStatus();
-      J.mulaiAutoSync(function () { gambarSemua(); }, 90000);
+      J.mulaiAutoSync(function () { gambarSemua(); });
     });
   }
 
