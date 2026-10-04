@@ -213,15 +213,76 @@ function fmtTanggalISO_(v) {
   return s;
 }
 
+/* Jam masih bisa tersimpan dengan 3 digit ("005:30", "009:18")
+   karena bug pad2 lama. Angka 0 di depan jam hanya beli satu
+   karakter, bukan makna - jam aslinya tetap 5, bukan 5 jam. */
 function fmtJamHM_(v) {
   if (v === null || v === undefined || v === '') return '';
   if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime())) {
     return Utilities.formatDate(v, Session.getScriptTimeZone(), 'HH:mm');
   }
   var s = String(v).trim();
-  var m = /^(\d{1,2}):(\d{2})/.exec(s);
-  if (m) return pad2_(m[1]) + ':' + m[2];
+  /* 1-3 digit jam + 1-2 digit menit, lalu dibuang nol berlebihannya.
+     "005:30" -> "05:30", "009:18" -> "09:18", "019:30" -> "19:30",
+     "7:5" -> "07:05". Nilai di luar jam 23 menit 59 dikembalikan
+     apa adanya supaya tidak berubah jadi tanggal ngawur. */
+  var m = /^(\d{1,3}):(\d{1,2})$/.exec(s);
+  if (m) {
+    var jam = Number(m[1]), menit = Number(m[2]);
+    if (jam <= 23 && menit <= 59) return pad2_(jam) + ':' + pad2_(menit);
+    return s;
+  }
   return s;
+}
+
+/* Apakah ini tanggal KALENDER yang benar-benar ada?
+   Uji bentuk teks saja tidak cukup: "2026-10-00" LULOS pola
+   \d{4}-\d{2}-\d{2} karena "00" memang dua angka. Tapi tanggal
+   hari ke-0 tidak pernah ada di kalender, jadi mesin rekap tetap
+   tidak akan membacanya. Wajib diuji dengan kalender sungguhan. */
+function isoTanggalSah_(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return false;
+  var y = Number(m[1]), bln = Number(m[2]), hr = Number(m[3]);
+  if (bln < 1 || bln > 12 || hr < 1 || hr > 31) return false;
+  var d = new Date(y, bln - 1, hr);
+  return d.getFullYear() === y && d.getMonth() === bln - 1 && d.getDate() === hr;
+}
+
+/* Pulihkan tanggal dari kolom WAKTU (Waktu ISO / Waktu Tampil).
+   Dipakai kalau kolom Tanggal sudah tidak bisa dipercaya, misalnya
+   "2026-10-000" yang berarti hari ke-0. Kolom waktu masih menyimpan
+   waktu penyimpanannya, jadi tanggal aslinya masih bisa dikembalikan
+   dalam zona waktu sekolah. */
+function tglDariWaktu_(v) {
+  if (v === null || v === undefined || v === '') return '';
+  var d;
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime())) {
+    d = v;
+  } else {
+    var s = String(v).trim();
+    d = new Date(s);
+    /* Tanggal polos tanpa penanda zona ditafsirkan new Date()
+       sebagai UTC, padahal nilainya ditulis dalam waktu lokal. */
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !/(Z|[+-]\d{2}:?\d{2})$/.test(s)) {
+      d = new Date(s + 'Z');
+    }
+  }
+  if (isNaN(d.getTime())) return '';
+  var out = Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return isoTanggalSah_(out) ? out : '';
+}
+
+/* Satu pintu masuk untuk menormalkan kolom Tanggal.
+   Urutannya: coba dari kolom Tanggal; kalau hasilnya tanggal yang
+   tidak ada di kalender, ambil dari kolom Waktu. */
+function tanggalValid_(vTanggal, vWaktuISO, vWaktuTampil) {
+  var t = fmtTanggalISO_(vTanggal);
+  if (isoTanggalSah_(t)) return { ok: true, tanggal: t, asal: 'kolom' };
+  var dariWaktu = tglDariWaktu_(vWaktuISO);
+  if (!dariWaktu) dariWaktu = tglDariWaktu_(vWaktuTampil);
+  if (dariWaktu) return { ok: true, tanggal: dariWaktu, asal: 'waktu' };
+  return { ok: false, tanggal: t, asal: '' };
 }
 
 /* Jadikan semua kolom JURNAL berformat Plain Text. Cukup dicek
@@ -259,7 +320,9 @@ function getAll_() {
   /* Deteksi tanggal rusak.
      Gejalanya rekap selalu 0%: mesin rekap membandingkan e.tanggal
      dengan tanggal kalender (mis. "2026-10-04"). Kalau sheet masih
-     menyimpan "2026-10-003", tidak akan pernah cocok sama sekali.
+     menyimpan "2026-10-003", atau "2026-10-00" yang bentuknya
+     sudah mirip tanggal tapi hari ke-0 tidak ada di kalender,
+     tidak akan pernah cocok sama sekali.
      Efeknya: chart, persen, streak, dan poin semuanya nol - dan
      kelihatan seperti "aplikasinya tidak jalan".
      Dikirim ke frontend supaya guru diberi tahu, bukan diam saja. */
@@ -267,7 +330,7 @@ function getAll_() {
   var contoh = '';
   for (var i = 0; i < ent.entries.length; i++) {
     var t = String(ent.entries[i].tanggal || '');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    if (!isoTanggalSah_(t)) {
       rusak++;
       if (!contoh) contoh = t;
     }
@@ -540,7 +603,12 @@ function getEntries_() {
     data.forEach(function (r) {
       var kelasId = String(r[0]).trim();
       var nis = String(r[1]).trim();
-      var tanggal = fmtTanggalISO_(r[3]);
+      /* Kolom Tanggal pernah berisi "2026-10-000" (hari ke-0) yang
+         bentuknya mirip tanggal tapi tidak pernah ada di kalender.
+         Kalau begitu, tanggalnya diambil dari kolom Waktu supaya
+         isian murid tidak hilang dari rekap. */
+      var tv = tanggalValid_(r[3], r[7], r[8]);
+      var tanggal = tv.tanggal;
       var kode = String(r[4]).trim();
       if (!kelasId || !nis || !tanggal || !kode) return;
       isi.push({
@@ -773,9 +841,17 @@ function menuFormatTanggal() {
   /* Kumpulkan baris TERBARU untuk tiap kombinasi
      kelas + siswa + tanggal + kode */
   var terbaik = {};
+  var dipulihkanDariWaktu = 0;
+  var tidakBisaDipulihkan = 0;
   for (var i = 0; i < n; i++) {
-    var tgl = fmtTanggalISO_(data[i][3]);
-    if (!tgl) continue;
+    /* Tanggal dari kolom Tanggal kalau bisa dipakai. Kalau tidak
+       (mis. "2026-10-000" = hari ke-0), ambil dari kolom Waktu.
+       Tanpa ini 352 baris isian murid akan tetap tak terbaca
+       setelah dibersihkan. */
+    var tv = tanggalValid_(data[i][3], data[i][7], data[i][8]);
+    var tgl = tv.tanggal;
+    if (!tv.ok) { tidakBisaDipulihkan++; continue; }
+    if (tv.asal === 'waktu') dipulihkanDariWaktu++;
     var kunci = String(data[i][0]).trim() + '||' + String(data[i][1]).trim() +
       '||' + tgl + '||' + String(data[i][4]).trim();
     var stamp = (Object.prototype.toString.call(data[i][7]) === '[object Date]' && !isNaN(data[i][7].getTime()))
@@ -793,11 +869,12 @@ function menuFormatTanggal() {
   var hasil = [];
   for (var b = 0; b < barisBaik.length; b++) {
     var r = data[barisBaik[b]];
+    var tv2 = tanggalValid_(r[3], r[7], r[8]);
     hasil.push([
       String(r[0]).trim(),
       String(r[1]).trim(),
       String(r[2]).trim(),
-      fmtTanggalISO_(r[3]),
+      tv2.tanggal,
       String(r[4]).trim(),
       fmtJamHM_(r[5]),
       String(r[6] == null ? '' : r[6]).trim(),
@@ -840,6 +917,13 @@ function menuFormatTanggal() {
     'Baris jurnal sebelum : ' + n + '\n' +
     'Baris jurnal sesudah : ' + hasil.length + '\n' +
     'Baris dobel dihapus  : ' + hapus + '\n\n' +
+    'Tanggal yang tidak terbaca, dipulihkan\n' +
+    'dari kolom waktu     : ' + dipulihkanDariWaktu + '\n' +
+    'Tanggal tidak bisa dipulihkan : ' + tidakBisaDipulihkan + '\n\n' +
+    (dipulihkanDariWaktu > 0
+      ? 'Tanggal yang dipulihkan memakai waktu saat isian\n' +
+        'disimpan. Periksa sekilas kalau ada yang aneh.\n\n'
+      : '') +
     'Semua kolom JURNAL sekarang Plain Text, jadi tanggal\n' +
     'tidak akan berubah jadi tanggal lagi di masa depan.');
 }
