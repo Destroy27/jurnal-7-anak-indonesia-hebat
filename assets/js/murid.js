@@ -42,7 +42,7 @@
   var sinkronSelesai = false;
 
   function pasangIdentitas() {
-    siswa = J.getSiswa(sesi.siswa.nis);
+    siswa = J.getSiswa(sesi.siswa.nis, sesi.siswa.kelasId);
     if (!siswa) {
       document.getElementById('identitas').textContent = sinkronSelesai ? 'Data tidak ditemukan' : 'Memuat data...';
       return;
@@ -263,10 +263,84 @@
     });
   }
 
+  /* ============================================================
+     DRAFTER: SIMPAN YANG SEDANG DIISIH SECARA OTOMATIS
+     ------------------------------------------------------------
+     Dulunya isian hanya hidup di memori. Kalau murid menutup tab
+     di tengah mengisi (atau HP-nya restart), semua yang diketik
+     hilang dan harus diisi ulang dari nol.
+
+     Sekarang setiap ketikan disimpan ke localStorage, dengan kunci
+     yang mencakup NIS + tanggal. Jadi:
+       - Murid keluar lalu buka lagi -> isian kembali utuh
+       - Berpindah hari -> draf hari lama tidak ikut terbawa
+     Foto TIDAK ikut disimpan (bisa berukuran besar).
+     ============================================================ */
+  var KUNCI_DRAF = 'j7_draft_';
+  var _tundaDraf = null;
+  var punyaDrafDipulihkan = false;
+
+  function kunciDraf() {
+    return KUNCI_DRAF + (siswa ? siswa.nis : 'x') + '_' + J.todayISO();
+  }
+
+  function simpanDraf() {
+    if (!siswa) return;
+    try {
+      var bersih = {};
+      var ada = false;
+      H.list.forEach(function (h) {
+        var v = isian[h.key] || {};
+        if (String(v.nilai || '').trim() === '' && String(v.catatan || '').trim() === '' && !v.adaFoto) return;
+        bersih[h.key] = { nilai: v.nilai || '', catatan: v.catatan || '', adaFoto: !!v.adaFoto };
+        ada = true;
+      });
+      if (ada) localStorage.setItem(kunciDraf(), JSON.stringify(bersih));
+      else localStorage.removeItem(kunciDraf());
+    } catch (e) { /* localStorage penuh - draf adalah pelengkap, bukan kritis */ }
+  }
+
+  function muatDraf() {
+    if (!siswa) return false;
+    try {
+      var raw = localStorage.getItem(kunciDraf());
+      if (!raw) return false;
+      var d = JSON.parse(raw);
+      if (!d) return false;
+      var ada = false;
+      H.list.forEach(function (h) {
+        var v = d[h.key];
+        if (!v) return;
+        /* Draf hanya dipulihkan kalau isian server kosong untuk
+           kebiasaan ini. Kalau server sudah punya isian (mis. dari
+           perangkat lain), data server yang lebih trustworthy. */
+        if (isian[h.key] && String(isian[h.key].nilai || '') !== '') return;
+        if (String(v.nilai || '') !== '' || String(v.catatan || '') !== '') {
+          isian[h.key] = v;
+          if (String(v.nilai || '') !== '') ada = true;
+        }
+      });
+      if (ada) punyaDrafDipulihkan = true;
+      return ada;
+    } catch (e) { return false; }
+  }
+
+  function hapusDraf() {
+    if (!siswa) return;
+    try { localStorage.removeItem(kunciDraf()); } catch (e) {}
+  }
+
+  /* Tunda penulisan draf supaya tidak localStorage pada tiap ketikan. */
+  function jedaDraf() {
+    clearTimeout(_tundaDraf);
+    _tundaDraf = setTimeout(simpanDraf, 600);
+  }
+
   function setIsian(k, nilai) {
     if (!isian[k]) isian[k] = { nilai: '', catatan: '', foto: '', adaFoto: false };
     isian[k].nilai = nilai == null ? '' : String(nilai);
     adaPerubahan = true; /* Menandai bahwa murid sedang mengetik/mengubah form */
+    jedaDraf();
 
     var h = H.byKey(k) || H.safe(k);
     var kartu = document.querySelector('[data-kartu="' + k + '"]');
@@ -310,41 +384,107 @@
     if (barText) barText.textContent = n + '/' + H.total() + ' (' + persen + '%)';
   }
 
-  /* OPTIMISTIC UI: Simpan Super Cepat */
+  /* ============================================================
+     SIMPAN JURNAL
+     ------------------------------------------------------------
+     Lima perbaikan yangrequested Tuan setelah mencoba bersama
+     pacarnya:
+
+     1. DULU: tidak ada notifikasi sama sekali setelah simpan.
+        Murid menekan tombol lalu tidak tahu apa-apa terjadi.
+        SEKARANG: toast.success + tombol jadi "Tersimpan".
+
+     2. DULU: ada DUA tombol simpan (atas & bawah) keduanya
+        memanggil fungsi yang sama - murid bingung.
+        SEKARANG: tombol HEADER disembunyikan saat form terbuka.
+
+     3. DULU: setelah simpan, murid bisa langsung simpan lagi
+        sehingga data dobel di sheet.
+        SEKARANG: dikunci sampai tanggal berganti.
+
+     4. Draft otomatis: isian disimpan lokal, jadi keluar-masuk
+        halaman tidak menghilangkan hasil kerja murid.
+
+     5. Tombol menampilkan jumlah isian yang akan dikirim, jadi
+        murid tahu apa yang sedang dikirim.
+     ============================================================ */
   function simpanSemua() {
+    if (sedangSimpan) return;   /* cegah klik ganda */
+
     var salah = validasiCatatan();
     if (tolakCatatanKosong(salah)) return;
 
     var t = J.todayISO();
+
+    /* KUNCI HARI INI: kalau semua kebiasaan sudah punya entri
+       di server untuk tanggal ini, tidak ada yang perlu dikirim.
+       Ini yang mencegah baris dobel menumpuk di sheet. */
+    var sudahDikirim = 0;
     var items = [];
     H.list.forEach(function (h) {
       var v = isian[h.key] || { nilai: '', catatan: '', foto: '', adaFoto: false };
       if (!v.nilai && !v.catatan && !v.adaFoto) return;
-      /* Foto disimpan ke gudang lokal (tidak ikut ke server),
-         ke server cuma terkirim penanda "YA" untuk bobot poin. */
+      var sudah = J.entryOf(siswa.nis, t, h.key);
+      if (sudah && String(sudah.nilai || '') === String(v.nilai || '') &&
+          String(sudah.catatan || '') === String(v.catatan || '')) {
+        sudahDikirim++;   /* isian identik, tidak perlu dikirim lagi */
+        return;
+      }
       if (v.foto) J.simpanFoto(siswa.nis, t, h.key, v.foto);
       items.push(J.buildEntry(siswa, t, h.key, v.nilai, v.catatan, !!v.adaFoto || !!v.foto));
     });
-    if (!items.length) return J.toast('Belum ada isian', 'Isi minimal satu kebiasaan dulu.', 'warn');
 
-    var btn = document.getElementById('btnSimpanSemua');
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Mengirim...';
+    if (!items.length) {
+      if (sudahDikirim > 0) {
+        return J.toast('Sudah tersimpan',
+          'Semua isian hari ini sudah ada di server. Tidak ada yang perlu dikirim lagi.', 'ok');
+      }
+      return J.toast('Belum ada isian', 'Isi minimal satu kebiasaan dulu.', 'warn');
     }
+
+    /* Kunci KEDUA tombol selama proses, dan tampilkan jumlahnya
+       supaya murid tahu persis apa yang sedang dikirim. */
+    var labelSending = '<i class="fa-solid fa-circle-notch spin"></i> Mengirim ' + items.length + '...';
+    var btn = document.getElementById('btnSimpanSemua');
+    var btnH = document.getElementById('btnSimpanHeader');
+    if (btn) { btn.disabled = true; btn.innerHTML = labelSending; }
+    if (btnH) { btnH.disabled = true; btnH.innerHTML = labelSending; }
     sedangSimpan = true;
+    adaPerubahan = false;
+    simpanDraf();   /* draf tetap disimpan sebagai pengaman */
 
-    adaPerubahan = false; // Reset penanda setelah simpan
-
+    var labelOk = '<i class="fa-solid fa-check"></i> Tersimpan';
+    var labelGagal = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
     J.simpanEntries(items, function (r) {
       sedangSimpan = false;
-      if (btn) btn.disabled = false;
+      if (btn) { btn.disabled = false; btn.innerHTML = labelOk; }
+      if (btnH) { btnH.disabled = false; btnH.innerHTML = labelOk; }
+
       if (r.ok) {
+        /* NOTIFIKASI SUKSES - ini yang tadinya hilang sama sekali */
+        if (r.confirmed) {
+          J.toast('Jurnal tersimpan', items.length + ' kebiasaan untuk hari ini sudah masuk database.', 'ok');
+          hapusDraf();
+        } else {
+          J.toast('Tersimpan di perangkat',
+            items.length + ' isian menunggu sinyal. Akan dikirim otomatis - jangan tutup halaman.', 'warn');
+        }
         gambarFormulir();
         muatRekap(false);
         perbaruiAntrean();
         try { if (document.getElementById('btnSync')) { J.syncAll(function () {}); } } catch (e) {}
+        /* Kembalikan label normal setelah 2,5 detik supaya tombol
+           tidak terlihat "macet" di status berhasil. */
+        setTimeout(function () {
+          if (sedangSimpan) return;
+          var lb = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+          if (btn) btn.innerHTML = lb;
+          if (btnH) btnH.innerHTML = lb;
+        }, 2500);
       } else {
+        if (btn) btn.innerHTML = labelGagal;
+        if (btnH) btnH.innerHTML = labelGagal;
+        J.toast('Gagal menyimpan', (r && r.msg) || 'Coba lagi beberapa saat lagi.', 'err');
         perbaruiAntrean();
       }
     });
@@ -363,6 +503,21 @@
     if (f) f.style.display = v ? '' : 'none';
     var b = document.getElementById('btnIsi');
     if (b) b.innerHTML = v ? '<i class="fa-solid fa-eye-slash"></i> Sembunyikan' : '<i class="fa-solid fa-pen"></i> Isi Jurnal';
+
+    /* TOMBOL GANDA. Dulu ada dua tombol "Simpan" yang keduanya
+       memanggil fungsi yang sama (satu di header kartu, satu di
+       bawah formulir). Murid bingung dan tidak tahu mana yang benar.
+       Sekarang: ketika formulir TERBUKA, tombol header disembunyikan
+       supaya hanya ada satu tombol simpan yang terlihat.
+       Saat formulir tertutup, tombol header kembali muncul sebagai
+       jalan pintas. */
+    var btnH = document.getElementById('btnSimpanHeader');
+    if (btnH) {
+      btnH.style.display = v ? 'none' : '';
+      /* Jangan sampai tombol header tetap terkunci dari proses
+         simpan sebelumnya. */
+      if (!v && sedangSimpan) { btnH.disabled = false; btnH.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan'; }
+    }
     if (v) setTimeout(function () { if (f) f.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 40);
   }
   on('btnIsi', 'click', function () { setFormTerbuka(!formTerbuka); });
@@ -504,9 +659,21 @@
        karena sekarang render pertama bisa terjadi SEBELUM sinkron
        selesai — jadi sinkron bisa tiba tepat saat murid mulai isi. */
     if (!adaPerubahan) {
+      /* Data tersimpan di server jadi acuan utama... */
       muatIsianHariIni();
+      /* ...lalu timpa dengan draf lokal yang belum sempat terkirim.
+         Draf menang supaya ketikan yang belum tersimpan tidak hilang.
+         Dipanggil SESUDAH muatIsianHariIni dan SEBELUM gambarFormulir,
+         karena gambarFormulir membaca isian untuk menggambar UI. */
+      muatDraf();
       gambarFormulir();
       setFormTerbuka(true);
+      /* Beri tahu kalau(isian yang diketik sebelumnya berhasil dipulihkan. */
+      if (punyaDrafDipulihkan) {
+        J.toast('Isian dipulihkan',
+          'Ada isian yang belum sempat tersimpan. Lengkapi lalu tekan Simpan.', 'warn');
+        punyaDrafDipulihkan = false;
+      }
     }
     muatSapaan();
     muatRekap(paksaToast !== false);
@@ -560,6 +727,17 @@
     /* Bar status dibersihkan begitu sinkron berhasil, supaya pesan
        "dari cache perangkat" tidak nempel setelah data segar masuk. */
     sembunyikanStatus();
+
+    /* PERINGATAN TANGGAL RUSAK. Tanpa ini, gejalanya "rekap selalu 0"
+       dan;Tuan mengira aplikasinya rusak. Padahal penyebabnya ada di
+       sheet, bukan di kode. Guru perlu diberi tahu agar menjalankan
+       menu "Jurnal 7 Kebiasaan - Perbaiki Tanggal & Jam". */
+    if (r.tanggalRusak > 0) {
+      J.toast('Rekap belum terbaca',
+        'Sebagian data tanggal rusak di database (' + r.tanggalRusak + ' baris, contoh ' +
+        (r.contohTanggalRusak || '-') + '). Minta guru membuka spreadsheet lalu pilih ' +
+        'Jurnal 7 Kebiasaan - Perbaiki Tanggal & Jam.', 'warn');
+    }
 
     /* INI FIX BUG KERISET: Saat auto-sync, JANGAN render ulang form jika ada perubahan! */
     J.mulaiAutoSync(function () {

@@ -891,7 +891,7 @@ var rentangHari = 7;
       return String(b.tanggal).localeCompare(String(a.tanggal));
     });
     wrap.innerHTML = semua.length ? semua.slice(0, 40).map(function (n) {
-      var s = J.getSiswa(n.nis);
+      var s = J.getSiswa(n.nis, n.kelasId);
       return '<div class="note-card' + (n.jenis === 'pujian' ? ' note-gold' : '') + '">' +
         '<div class="nc-meta"><i class="fa-solid fa-user"></i>' + J.esc(s ? s.nama : n.nis) +
         ' &middot; ' + J.esc(n.guru || 'Guru') + ' &middot; ' + J.esc(J.fmtTanggal(n.tanggal || '')) + '</div>' +

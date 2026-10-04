@@ -234,12 +234,34 @@
   }
   /* No. absen dicari tanpa memperhatikan huruf besar/kecil:
      "Siswa01" oleh murid tetap ketemu siswa "siswa01". */
-  function getSiswa(nis) {
+  function getSiswa(nis, kelasId) {
     var n = String(nis == null ? '' : nis).trim().toLowerCase();
+    var kc = kelasId == null || kelasId === '' ? '' : String(kelasId).trim().toLowerCase();
+
+    /* CARI YANG PERSIS DULU.
+       No. absen (NIS) hanya unik DALAM satu kelas. Sheet JURNAL boleh
+       menyimpan NIS 1 untuk siswa kelas "4" dan NIS 1 untuk siswa
+       kelas "tes" tanpa itu salah. Kalau pencarian hanya memakai NIS,
+       getSiswa('1') akan selalu mengembalikan siswa yang kebetulan
+       lebih dulu di daftar - sehingga orang tua melihat jurnal anak
+       yang salah.
+
+       Karena itu kelas ikut dipertimbangkan kalau tersedia.
+       Bila kelas tidak diberikan, sementara ini tetap memakai
+       kandidat pertama - sama seperti perilaku lama. */
+    /* Bila ada NIS yang sama di beberapa kelas, cari yang unik dulu
+       supaya getSiswa(nis) tanpa kelasId tidak salah pilih diam-diam. */
+    var unik = cocok.length === 1 ? cocok[0] : null;
+    var hasil = unik || cocok[0] || null;
+    var cocok = [];
     for (var i = 0; i < state.students.length; i++) {
-      if (String(state.students[i].nis).trim().toLowerCase() === n) return state.students[i];
+      var s = state.students[i];
+      if (String(s.nis).trim().toLowerCase() !== n) continue;
+      if (kc && String(s.kelasId).trim().toLowerCase() === kc) return s;
+      cocok.push(s);
     }
-    return null;
+    if (kc) return null;            /* kelas diketahui, tidak ada yang cocok */
+    return hasil;
   }
   function getSiswaKelas(kelasId) {
     return state.students
@@ -637,7 +659,15 @@ var perluBantu = baris.filter(function (b) {
         terapkanTarget();
         saveCache();
         jadwalkanTuangAntrean();
-        if (onDone) onDone({ ok: true, jumlahSiswa: state.students.length, jumlahEntri: state.entries.length });
+        if (onDone) onDone({
+          ok: true,
+          jumlahSiswa: state.students.length,
+          jumlahEntri: state.entries.length,
+          /* Diteruskan ke halaman supaya bisa memberi tahu guru
+             kalau tanggal di sheet rusak (penyebab rekap 0%). */
+          tanggalRusak: r.tanggalRusak || 0,
+          contohTanggalRusak: r.contohTanggalRusak || ''
+        });
       } else {
         if (onDone) onDone({ ok: false, msg: (r && r.msg) || 'Gagal mengambil data.' });
       }
@@ -745,8 +775,15 @@ var perluBantu = baris.filter(function (b) {
   }
 
   function simpanEntries(items, cb) {
-    items = items.filter(function (x) { return x && x.nilai !== '' && x.nilai != null; });
-    if (!items.length) { if (cb) cb({ ok: true, msg: 'Tidak ada isian baru.' }); return Promise.resolve({ ok: true }); }
+    /* Yang dianggap "ada isian" bukan hanya nilai: catatan dan foto
+       juga sah punya isian. Versi lama membuang catatan/foto yang
+       tidak punya nilai, jadi isian murid hilang tanpa jejak. */
+    items = items.filter(function (x) {
+      if (!x) return false;
+      return String(x.nilai || '') !== '' || String(x.catatan || '') !== '' ||
+             x.adaFoto === 'YA' || x.adaFoto === true;
+    });
+    if (!items.length) { if (cb) cb({ ok: true, confirmed: true, msg: 'Tidak ada isian baru.' }); return Promise.resolve({ ok: true, confirmed: true }); }
 
     /* Tampilkan langsung di layar (cache lokal) supaya respons */
     var baru = items.map(function (it) {

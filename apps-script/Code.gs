@@ -255,13 +255,33 @@ function getAll_() {
   var cfg = getConfig_();
   var sis = getStudents_();
   var ent = getEntries_();
+
+  /* Deteksi tanggal rusak.
+     Gejalanya rekap selalu 0%: mesin rekap membandingkan e.tanggal
+     dengan tanggal kalender (mis. "2026-10-04"). Kalau sheet masih
+     menyimpan "2026-10-003", tidak akan pernah cocok sama sekali.
+     Efeknya: chart, persen, streak, dan poin semuanya nol - dan
+     kelihatan seperti "aplikasinya tidak jalan".
+     Dikirim ke frontend supaya guru diberi tahu, bukan diam saja. */
+  var rusak = 0;
+  var contoh = '';
+  for (var i = 0; i < ent.entries.length; i++) {
+    var t = String(ent.entries[i].tanggal || '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+      rusak++;
+      if (!contoh) contoh = t;
+    }
+  }
+
   return {
     ok: cfg.ok && sis.ok && ent.ok,
     config: cfg.config,
     students: sis.students,
     entries: ent.entries,
     jumlahSiswa: sis.students.length,
-    jumlahEntri: ent.entries.length
+    jumlahEntri: ent.entries.length,
+    tanggalRusak: rusak,
+    contohTanggalRusak: contoh
   };
 }
 

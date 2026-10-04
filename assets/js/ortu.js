@@ -74,7 +74,7 @@
   var sinkronSelesai = false;
 
   function muatSemua() {
-    anak = J.getSiswa(sesi.siswa.nis);
+    anak = J.getSiswa(sesi.siswa.nis, sesi.siswa.kelasId);
     if (!anak) {
       if (!sinkronSelesai) {
         document.getElementById('sapaan').textContent = 'Memuat data...';
@@ -86,10 +86,19 @@
       return;
     }
     var kelas = J.getKelas(anak.kelasId);
-    document.title = 'Pantau ' + anak.nama.split(' ')[0] + ' - JEJAK 7 KAIH';
+    /* Nama panggilan: pakai kolom "Nama Panggilan" yang diisi guru
+       di sheet SISWA (mis. "Dary", "mikayla"). Dulu halaman ini
+       selalu memakai kata pertama nama lengkap, sehingga ortu melihat
+       "Gede" padahal anaknya dipanggil "Dary".
+       Kalau kolom kosong, jatuh ke kata pertama nama. */
+    var namaAnak = String(anak.nama || '').trim();
+    var dipanggil = String(anak.panggilan || '').trim();
+    if (!dipanggil) dipanggil = namaAnak.split(/\s+/)[0] || namaAnak;
+
+    document.title = 'Pantau ' + dipanggil + ' - JEJAK 7 KAIH';
     document.getElementById('identitas').textContent =
-      'Pantau Anak \u00b7 ' + anak.nama + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
-    document.getElementById('sapaan').textContent = 'Kemajuan ' + anak.nama.split(' ')[0];
+      'Pantau Anak \u00b7 ' + namaAnak + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
+    document.getElementById('sapaan').textContent = 'Kemajuan ' + dipanggil;
     document.getElementById('subJudul').textContent =
       (kelas ? kelas.nama : '-') + ' &middot; No. absen ' + anak.nis + ' &middot; ' +
       rentangHari + ' hari terakhir';
