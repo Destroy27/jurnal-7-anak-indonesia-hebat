@@ -1,7 +1,7 @@
 # 📖 Jurnal 7 Anak Indonesia Hebat
 
-Aplikasi **jurnal kebiasaan harian untuk siswa SD**, berbasis **Google Spreadsheet** (tanpa
-server sendiri), siap di-hosting gratis di **GitHub Pages**.
+Aplikasi **jurnal kebiasaan harian untuk siswa SD**, siap di-hosting gratis di
+**GitHub Pages**, dengan database **Cloudflare D1**.
 
 Anak mengisi jurnal 7 kebiasaan setiap hari — mulai dari jam bangun pagi — lalu **rekapnya
 otomatis** terlihat oleh guru di sekolah dan orang tua di rumah.
@@ -11,8 +11,23 @@ otomatis** terlihat oleh guru di sekolah dan orang tua di rumah.
 > dan judul tab browser.
 >
 > 🌐 Website: **https://destroy27.github.io/jurnal-7-anak-indonesia-hebat/**
+>
+> ⚙️ **Untuk pengguna di SD N 4 Jehem: tidak ada yang perlu dipasang.** Backend-nya
+> sudah aktif dan URL-nya sudah terisi di `site-config.js`. Langsung buka saja
+> websitenya.
 
-![Stack](https://img.shields.io/badge/Stack-HTML%20%2B%20CSS%20%2B%20JS-maroon) ![DB](https://img.shields.io/badge/DB-Google%20Sheets%20%2B%20Apps%20Script-gold) ![Host](https://img.shields.io/badge/Host-GitHub%20Pages-blue)
+![Stack](https://img.shields.io/badge/Stack-HTML%20%2B%20CSS%20%2B%20JS-maroon) ![DB](https://img.shields.io/badge/DB-Cloudflare%20D1-orange) ![Host](https://img.shields.io/badge/Host-GitHub%20Pages-blue)
+
+### Database pernah dua kali
+
+Aplikasi ini dulu memakai **Google Spreadsheet + Apps Script**. Sekarang memakai
+**Cloudflare Workers + D1**. Alasannya terukur, bukan perkiraan: Spreadsheet punya
+jeda tetap sekitar 1,3 detik sebelum jawaban apa pun keluar, dan kadang satu
+permintaan memakan 16 detik. D1 menjawab dalam 0,2 detik dan tidak pernah
+melewati setengah detik untuk data yang sama.
+
+Keduanya masih bisa dipakai. Yang aktif sekarang adalah D1. Cara kembali ke
+Spreadsheet ada di bagian [Troubleshooting](#troubleshooting).
 
 ---
 
@@ -87,7 +102,31 @@ jadi bisa diubah tanpa menyentuh kode lain.
 
 ## 🚀 Cara Pasang (Setup)
 
-### Langkah 1 — Buat Database Spreadsheet + Backend
+### Langkah 1 — Siapkan backend
+
+Backend yang aktif adalah **Cloudflare Workers + D1**. Cara pasang lengkap ada
+di [`worker/README.md`](worker/README.md), termasuk perintah mengimpor data dari
+Spreadsheet lama kalau sudah punya.
+
+Ringkasnya, di dalam folder `worker/`:
+
+```powershell
+.\pasang.ps1
+```
+
+Skrip itu membuat database D1, mengimpor data, lalu mengunggah Worker. Setelah
+selesai ia mencetak URL backend seperti `https://jejak7-api.jejak7-api.workers.dev/exec`.
+
+> **Mengapa butuh jalur `/exec`?** Aplikasi menolak URL yang tidak berakhiran
+> `/exec` (dicek di `core.js`, fungsi `isConfigured`). Worker juga menjawab di
+> jalur root, tapi alamat yang dipakai aplikasi tetap yang berakhiran `/exec`.
+> Jangan dihapus bagian itu.
+
+<details>
+<summary>Alternatif lama — Google Spreadsheet + Apps Script (masih bisa dipakai)</summary>
+
+Kalau lebih suka tidak memakai Cloudflare, sistem lama masih utuh di folder
+[`apps-script/`](apps-script/):
 
 1. Buka **https://sheets.new** → buat spreadsheet baru, misal **"Jurnal 7 Kebiasaan SD"**
 2. Menu **Ekstensi → Apps Script**
@@ -108,14 +147,16 @@ jadi bisa diubah tanpa menyentuh kode lain.
 > Kolom terakhir sengaja ditambahkan paling kanan, jadi sheet versi lama (5 kolom)
 > tetap terbaca tanpa perlu migrasi.
 
+</details>
+
 ### Langkah 2 — Tempel URL ke Website
 
 1. Buka file [`assets/js/site-config.js`](assets/js/site-config.js)
-2. Ganti string kosong pada baris `scriptUrl` dengan URL `/exec` tadi:
+2. Ganti baris `scriptUrl` dengan URL `/exec` tadi:
 
    ```js
    window.SITECONFIG = {
-     scriptUrl: 'https://script.google.com/macros/s/AKfycb.../exec',
+     scriptUrl: 'https://jejak7-api.jejak7-api.workers.dev/exec',
      namaApp: 'Jurnal 7 Anak Indonesia Hebat'
    };
    ```
@@ -123,7 +164,13 @@ jadi bisa diubah tanpa menyentuh kode lain.
 3. **Unggah ulang** file tersebut ke repository (langkah 4)
 
 > Cukup **satu kali**. Setelah itu semua perangkat — HP murid, HP orang tua, laptop guru —
-> langsung terhubung tanpa perlusetting apa pun.
+> langsung terhubung tanpa perlu setting apa pun.
+>
+> ⚠️ Kalau pernah memakai Spreadsheet sebelumnya, **jangan** mengosongkan
+> `scriptUrl`. Alasannya: perangkat lama menyimpan URL lamanya di `localStorage`,
+> dan `localStorage` menang atas `site-config`. `core.js` sudah menangani
+> ini — URL Google otomatis dikalahkan kalau `site-config` menunjuk ke tempat
+> lain — tapi jangan bergantung pada itu kalau bisa dihindari.
 
 ### Langkah 3 — Jalankan Lokal (menguji)
 
@@ -132,7 +179,7 @@ python -m http.server 8080
 ```
 
 Buka **http://localhost:8080/index.html**. Bisa juga langsung klik `index.html`
-di browser — seluruh fungsi tetap jalan (data lewat Apps Script).
+di browser — seluruh fungsi tetap jalan (data lewat backend yang terpasang).
 
 ### Langkah 4 — Konfigurasi Awal di Panel Guru
 
