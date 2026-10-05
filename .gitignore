@@ -7,3 +7,9 @@ __*
 .wrangler/
 .dev.vars
 .env
+
+# Data murid - JANGAN pernah masuk GitHub (repositori ini publik)
+# isinya nama anak, sandi, dan kode orang tua
+get_all.json
+impor.sql
+*.sqlite3
