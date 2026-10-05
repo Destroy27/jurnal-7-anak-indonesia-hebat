@@ -1,0 +1,53 @@
+# ============================================================
+# JEJAK 7 KAIH - Backend Cloudflare Worker
+# ------------------------------------------------------------
+# CARA PAKAI (cukup beberapa perintah, sekali saja):
+#
+#   1. npm install
+#   2. npx wrangler login          <- membuka browser, masuk ke akun Cloudflare
+#   3. npx wrangler d1 create jejak7
+#      salin database_id yang muncul ke bawah, lalu jalankan:
+#      npx wrangler d1 execute jejak7 --local  --file=migrations/0001_init.sql
+#      npx wrangler d1 execute jejak7 --remote --file=migrations/0001_init.sql
+#   4. npx wrangler deploy
+#
+# Lalu salin URL https://jejak7-api.<namamu>.workers.dev ke
+# assets/js/site-config.js baris scriptUrl.
+# Untuk mengembalikan ke Apps Script, ubah baris itu saja.
+#
+# CATATAN: komentar di berkas ini WAJIB pakai "#".
+# Parser TOML wrangler tidak mengenali "//" sebagai komentar, dan
+# akan menolak berkas dengan pesan "illegal character in key".
+# ============================================================
+
+name = "jejak7-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Batas CPU Worker gratis adalah 10 ms. Semua pekerjaan berat
+# (membaca 70 baris dari D1) adalah operasi I/O, bukan CPU, jadi
+# 10 ms ini longgar. Dinaikkan sedikit supaya aman kalau nanti
+# data bertambah.
+[limits]
+cpu_ms = 50
+
+# database_id diisi setelah "npx wrangler d1 create jejak7" dijalankan.
+# Nilai di bawah hanya placeholder untuk pengujian lokal.
+[[d1_databases]]
+binding = "DB"
+database_name = "jejak7"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# Variabel lingkungan. TIDAK pernah menaruh rahasia di sini -
+# berkas ini ikut ter-deploy ke GitHub Pages.
+[vars]
+ZONA_WAKTU = "Asia/Makassar"
+
+# Catatan: tidak ada [triggers] cron. Semua sinkron berasal dari
+# perangkat yang sedang dipakai, jadi tidak ada trafik sia-sia
+# saat sekolah tutup. Ini yang membuat kuota jauh lebih lega
+# dibanding model lama yang menyalakan timer terus.
+#
+# TIDAK ADA [observability] dan tidak ada Workers KV: baca-tulis
+# cukup dari D1 saja, menambah service hanya menambah tempat salah.

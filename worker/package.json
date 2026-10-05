@@ -1,0 +1,20 @@
+{
+  "name": "jejak7-api",
+  "version": "1.0.0",
+  "description": "Backend Jurnal 7 Anak Indonesia Hebat - Cloudflare Worker + D1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create jejak7",
+    "db:migrate": "wrangler d1 execute jejak7 --local --file=migrations/0001_init.sql",
+    "db:migrate:remote": "wrangler d1 execute jejak7 --remote --file=migrations/0001_init.sql",
+    "import": "node tools/impor-dari-spreadsheet.mjs",
+    "cek": "node tools/uji-backend.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.147.0"
+  }
+}
