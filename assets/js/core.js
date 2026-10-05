@@ -672,7 +672,13 @@ var perluBantu = baris.filter(function (b) {
           /* Diteruskan ke halaman supaya bisa memberi tahu guru
              kalau tanggal di sheet rusak (penyebab rekap 0%). */
           tanggalRusak: r.tanggalRusak || 0,
-          contohTanggalRusak: r.contohTanggalRusak || ''
+          contohTanggalRusak: r.contohTanggalRusak || '',
+          /* Status cache dari backend. Kalau false terus-menerus,
+             cache-nya mati - itu bukan masalah yang dilihat murid,
+             tapi berarti tiap sinkron membaca ulang seluruh sheet. */
+          cacheBerfungsi: !!r.cacheBerfungsi,
+          jumlahPotonganCache: r.jumlahPotonganCache || 0,
+          cachePesanError: r.cachePesanError || ''
         });
       } else {
         if (onDone) onDone({ ok: false, msg: (r && r.msg) || 'Gagal mengambil data.' });
@@ -695,17 +701,40 @@ var perluBantu = baris.filter(function (b) {
      halaman lain tidak ikut berubah dan tidak merusak apa pun.
      ============================================================ */
   function mulaiAutoSync(onDone, ms) {
-    ms = ms || 300000;                 /* 5 menit, bukan 90 detik */
+    ms = ms || 300000;                 /* dianggap basi setelah 5 menit */
     var jedaAwal = 8000;               /* beri waktu halaman selesai tampil */
+    var pengamanMs = 3600000;          /* jaring pengaman: 1 jam */
+    var terakhirBerhasil = Date.now();
 
-    setTimeout(function () { syncAll(onDone); }, jedaAwal);
+    function jalankan() {
+      syncAll(function (r) {
+        if (r && r.ok) terakhirBerhasil = Date.now();
+        if (onDone) onDone(r);
+      });
+    }
 
-    setInterval(function () {
-      /* Jangan sync kalau tab disembunyikan: tidak terlihat, tidak
-         perlu data segar, dan hemat kuota. */
+    /* Halaman baru dibuka: satu sinkron apa pun kondisinya. */
+    setTimeout(jalankan, jedaAwal);
+
+    /* Setelah itu hanya bila memang sudah basi. SyncAll sudah
+       menolak dua permintaan yang tumpang tindih (_syncBusy),
+       jadi peristiwa focus + visibilitychange yang datang
+       berurutan tidak menyebabkan dua kali permintaan ke server. */
+    function bilaBasi() {
       if (typeof document !== 'undefined' && document.hidden) return;
-      syncAll(onDone);
-    }, ms);
+      if ((Date.now() - terakhirBerhasil) < ms) return;
+      jalankan();
+    }
+
+    if (typeof document !== 'undefined' && document.addEventListener) {
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) bilaBasi();
+      });
+    }
+    if (typeof root !== 'undefined' && root.addEventListener) {
+      root.addEventListener('focus', bilaBasi);
+    }
+    setInterval(bilaBasi, pengamanMs);
   }
 
   /* === SIMPAN JURNAL (GARANSI MASUK) ===

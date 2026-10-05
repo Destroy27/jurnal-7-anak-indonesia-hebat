@@ -137,15 +137,82 @@ function withLock_(fn, timeoutMs) {
 
 /* ============================================================
    CACHE
+   ------------------------------------------------------------
+   PENTING. CacheService membatasi 100 KB per kunci (dokumentasi
+   Google: "The maximum amount of data that can be stored per key
+   is 100KB"). Data jurnal 2.573 baris = 700 KB, jadi cachePut_
+   SELALU gagal - dan karena errornya ditelan catch kosong, tidak
+   ada yang tahu. Akibatnya setiap perangkat membaca ulang seluruh
+   sheet setiap kali sinkron.
+
+   Bukti: get_config (474 B) selalu cache=true, sedangkan
+   get_entries (700 KB) tidak pernah cache.
+
+   Sekarang nilai besar dipecah menjadi beberapa kunci yang
+   masing-masing di bawah batas. Nilai kecil tetap satu kunci seperti
+   biasa. Pecahan yang belum lengkap dianggap "belum ada", jadi
+   tidak mungkin mengembalikan data setengah jadi.
    ============================================================ */
+var CACHE_PECAH_MAKS  = 90000;   /* aman di bawah 100 KB */
+var CACHE_PECAH_MAKS_KEY = 24;   /* batas bawah dari jumlah kunci yang dibersihkan */
+var _cachePesanError  = '';      /* error terakhir, supaya bisa dikirim ke frontend */
+var _cacheJumlahPotongan = 0;
+
+function _cacheBersihkan_(key, c) {
+  var n = 0;
+  try { n = parseInt(c.get(key + '#n'), 10) || 0; } catch (e) { n = 0; }
+  c.remove(key);
+  c.remove(key + '#n');
+  var batas = (n > 0) ? n : CACHE_PECAH_MAKS_KEY;
+  for (var i = 0; i < batas; i++) c.remove(key + '#' + i);
+}
 function cacheGet_(key) {
-  try { return CacheService.getScriptCache().get(key); } catch (e) { return null; }
+  try {
+    var c = CacheService.getScriptCache();
+    var mentah = c.get(key);
+    if (mentah !== null && mentah !== undefined) return mentah;
+    var n = parseInt(c.get(key + '#n'), 10);
+    if (!(n > 0)) return null;
+    var bagian = new Array(n);
+    for (var i = 0; i < n; i++) {
+      var b = c.get(key + '#' + i);
+      if (b === null || b === undefined) return null;   /* belum lengkap */
+      bagian[i] = b;
+    }
+    _cacheJumlahPotongan = n;
+    return bagian.join('');
+  } catch (e) {
+    _cachePesanError = (e && e.message) ? String(e.message) : String(e);
+    return null;
+  }
 }
 function cachePut_(key, val, detik) {
-  try { CacheService.getScriptCache().put(key, val, detik || CACHE_DETIK); } catch (e) {}
+  try {
+    var c = CacheService.getScriptCache();
+    var ttl = detik || CACHE_DETIK;
+    var s = (val === null || val === undefined) ? '' : String(val);
+    if (s.length <= CACHE_PECAH_MAKS) {
+      _cacheBersihkan_(key, c);
+      c.put(key, s, ttl);
+      _cacheJumlahPotongan = 0;
+      return true;
+    }
+    /* Dipecah: potong jadi beberapa kunci kecil. */
+    var n = Math.ceil(s.length / CACHE_PECAH_MAKS);
+    _cacheBersihkan_(key, c);
+    for (var i = 0; i < n; i++) {
+      c.put(key + '#' + i, s.substr(i * CACHE_PECAH_MAKS, CACHE_PECAH_MAKS), ttl);
+    }
+    c.put(key + '#n', String(n), ttl);
+    _cacheJumlahPotongan = n;
+    return true;
+  } catch (e) {
+    _cachePesanError = (e && e.message) ? String(e.message) : String(e);
+    return false;
+  }
 }
 function cacheBuang_(key) {
-  try { CacheService.getScriptCache().remove(key); } catch (e) {}
+  try { _cacheBersihkan_(key, CacheService.getScriptCache()); } catch (e) {}
 }
 function buangSemuaCache_() {
   cacheBuang_(LOGS_CACHE_KEY);
@@ -344,7 +411,13 @@ function getAll_() {
     jumlahSiswa: sis.students.length,
     jumlahEntri: ent.entries.length,
     tanggalRusak: rusak,
-    contohTanggalRusak: contoh
+    contohTanggalRusak: contoh,
+    /* Status cache - dulu tidak pernah dilaporkan, sehingga cache
+       yang mati tidak ketahuan. Sekarang bisa diperiksa dari luar:
+       cacheBerfungsi true = data dibaca dari cache (cepat). */
+    cacheBerfungsi: !!ent.cached,
+    jumlahPotonganCache: _cacheJumlahPotongan || 0,
+    cachePesanError: _cachePesanError || ''
   };
 }
 
@@ -586,8 +659,11 @@ function saveStudents_(body) {
 var HEADER_JURNAL = ['Kelas ID', 'No. Absen', 'Nama', 'Tanggal', 'Kode Kebiasaan', 'Nilai', 'Catatan', 'Waktu ISO', 'Waktu Tampil', 'Ada Foto'];
 
 function getEntries_() {
-  /* Cache 3 detik: saat banyak perangkat sync bersamaan dalam
-     jendela waktu yang sama, spreadsheet hanya dibaca 1x. */
+  /* Cache: saat banyak perangkat sync bersamaan dalam jendela waktu
+     yang sama, spreadsheet hanya dibaca 1x. Nilai besar dipecah
+     sendiri oleh cachePut_ (batas Google 100 KB per kunci). */
+  _cachePesanError = '';
+  _cacheJumlahPotongan = 0;
   var cached = cacheGet_(LOGS_CACHE_KEY);
   if (cached !== null) {
     var arr = [];
