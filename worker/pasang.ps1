@@ -20,7 +20,19 @@
 #   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 # ============================================================
 
-$ErrorActionPreference = 'Stop'
+# PENTING: jangan pakai 'Stop' di sini.
+# Cloudflare sering menulis peringatan ke stderr, misalnya:
+#   "[WARNING] This process may take some time, during which your
+#    D1 database will be unavailable to serve queries."
+# Peringatan itu NORMAL. Tapi dengan 'Stop', PowerShell langsung
+# menghentikan seluruh skrip begitu melihat tulisan di stderr -
+# inilah yang terjadi pada percobaan pertama: 4 langkah pertama
+# berhasil, lalu skrip mati di tengah jalan.
+# Karena itu dipakai 'Continue', dan setiap langkah diperiksa
+# sendiri lewat tanda kegagalan Cloudflare yang berupa
+# "[code: 12345]". Kalau benar-benar ada yang salah, langkah itu
+# akan berhenti dan memberi tahu Tuan.
+$ErrorActionPreference = 'Continue'
 $ProgressPreference    = 'SilentlyContinue'
 
 # Pastikan kita berada di folder ini, apa pun folder asalnya.
@@ -116,7 +128,7 @@ Judul 'LANGKAH 4 dari 8 - buat tabel di database'
 # ------------------------------------------------------------
 Info 'Menjalankan berkas migrations/0001_init.sql ke server...'
 $skema = (& npx wrangler d1 execute $NAMA --remote --file=migrations/0001_init.sql 2>&1 | Out-String)
-if ($skema -match 'error|Error|ERROR') {
+if ($skema -match '\[code:\s*\d+') {
   Gagal 'Gagal membuat tabel. Pesan:'
   Write-Host $skema -ForegroundColor DarkGray
   Read-Host '  Tekan Enter untuk menutup'
@@ -157,7 +169,7 @@ Oke ("SQL siap: {0:N0} baris." -f ([System.IO.File]::ReadAllLines($sql).Count))
 Judul 'LANGKAH 7 dari 8 - masukkan data ke database'
 # ------------------------------------------------------------
 $masuk = (& npx wrangler d1 execute $NAMA --remote --file=impor.sql 2>&1 | Out-String)
-if ($masuk -match 'ERROR') {
+if ($masuk -match '\[code:\s*\d+') {
   Gagal 'Gagal memasukkan data. Pesan:'
   Write-Host $masuk -ForegroundColor DarkGray
   Read-Host '  Tekan Enter untuk menutup'
@@ -184,10 +196,28 @@ Judul 'LANGKAH 8 dari 8 - pasang ke internet'
 # ------------------------------------------------------------
 Info 'Mengunggah Worker ke Cloudflare...'
 $deploy = (& npx wrangler deploy 2>&1 | Out-String)
-$alamat = [regex]::Match($deploy, 'https://[a-z0-9\-]+\.workers\.dev').Value
+
+# Alamat bisa berbentuk dua pola:
+#   https://nama-worker.workers.dev          (kalau subdomain akun = default)
+#   https://nama-worker.subdomain-akun.workers.dev   (kalau subdomain akun disetel)
+# Pola pertama TIDAK cocok dengan regex biasa, jadi ini harus
+# menerima satu atau dua bagian sebelum "workers.dev".
+$alamat = [regex]::Match($deploy, 'https://[a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.workers\.dev').Value
 if (-not $alamat) {
   Tanya 'Deploy selesai tapi alamat tidak terbaca. Tampilkan semua pesan:'
   Write-Host $deploy -ForegroundColor DarkGray
+  Read-Host '  Tekan Enter untuk menutup'
+  exit 1
+}
+
+# Cegah kesalahan nyata: salah tulis [limits] cpu_ms akan ditolak
+# paket gratis dengan pesan bercode. Jangan dianggap sukses.
+if ($deploy -match '\[code:\s*\d+') {
+  Tanya 'Deploy DITOLAK Cloudflare:'
+  Write-Host $deploy -ForegroundColor DarkGray
+  Write-Host ''
+  Info 'Paling sering penyebabnya: blok [limits] cpu_ms di wrangler.toml.'
+  Info 'Paket gratis tidak boleh menyetel batas CPU. Hapus blok itu.'
   Read-Host '  Tekan Enter untuk menutup'
   exit 1
 }
@@ -203,11 +233,53 @@ Write-Host '  Alamat backend baru:' -ForegroundColor White
 Write-Host ''
 Write-Host "      $alamat" -ForegroundColor Yellow
 Write-Host ''
-Write-Host '  UJI DULU sebelum mengganti aplikasi:' -ForegroundColor White
-Write-Host "      $alamat?action=get_all" -ForegroundColor DarkGray
+Write-Host '  Script akan menguji sendiri. Tunggu sebentar...' -ForegroundColor Gray
 Write-Host ''
-Write-Host '  Harus muncul angka 13 siswa dan 70 entri.' -ForegroundColor Gray
+
+# ------------------------------------------------------------
+# Uji sendiri. Cloudflare butuh 1-2 menit untuk menyalakan
+# alamat baru, jadi skrip menunggu dan mencoba berulang kali.
+# Driven tanpa browser, jadi Tuan tidak perlu mengetik apa pun.
+$udahSiap = $false
+for ($i = 1; $i -le 10; $i++) {
+  Start-Sleep -Seconds 12
+  $kode = (& curl.exe -sL -g -o NUL -w '%{http_code}' --max-time 20 "$alamat`?action=get_config" 2>$null)
+  $teks = "  mencoba ke-$i ... HTTP $kode"
+  if ($kode -eq '200') { $udahSiap = $true; Write-Host ($teks + '  SIAP') -ForegroundColor Green }
+  else { Write-Host ($teks + '  (menunggu Cloudflare menyalakan alamat)') -ForegroundColor DarkGray }
+  if ($udahSiap) { break }
+}
 Write-Host ''
+
+if (-not $udahSiap) {
+  Tanya 'Alamat belum menjawab setelah 2 menit.'
+  Info 'Ini biasanya jeda penyalaan Cloudflare, bukan kerusakan.'
+  Info 'Buka sendiri di browser untuk memastikan:'
+  Write-Host "      $alamat`?action=get_all" -ForegroundColor DarkGray
+  Write-Host ''
+  Info 'Kalau muncul JSON, worker-nya sehat. Beri tahu saya,'
+  Info 'saya yang lanjutkan mengecek jumlah datanya.'
+  Read-Host '  Tekan Enter untuk menutup'
+  exit 1
+}
+
+# Hitung isi database lewat API yang sama dengan frontend.
+$isi = (& curl.exe -sL -g --max-time 40 "$alamat`?action=get_all" 2>$null | Out-String)
+try {
+  $data = $isi | ConvertFrom-Json
+  Write-Host '  ISI DATABASE SEKARANG:' -ForegroundColor White
+  Write-Host "      siswa : " + $data.jumlahSiswa -ForegroundColor Gray
+  Write-Host "      entri : " + $data.jumlahEntri -ForegroundColor Gray
+  Write-Host ''
+  if ($data.jumlahSiswa -eq 13 -and $data.jumlahEntri -eq 70) {
+    Oke 'Jumlah cocok dengan data asli. Tidak ada yang hilang.'
+  } else {
+    Info 'Jumlah TIDAK sama dengan data asli (harusnya 13 siswa / 70 entri).'
+    Info 'Jangan ganti aplikasi dulu. Beri tahu saya.'
+  }
+} catch {
+  Info 'Tidak bisa membaca JSON dari alamat ini. Beri tahu saya.'
+}
 Write-Host '  Kalau angkanya sudah benar, beri tahu saya saja. Saya'
 Write-Host '  yang ganti satu baris di site-config.js supaya Tuan'
 Write-Host '  tidak perlu mengedit berkas sendiri.'

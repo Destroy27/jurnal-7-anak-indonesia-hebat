@@ -141,8 +141,12 @@ out.push('--   siswa  : ' + siswa.length + ' -> ' + siswaBersih.length + ' (buan
 out.push('--   entri  : ' + semuaEntri.length + ' -> ' + jurnal.length + ' (buang ' + (semuaEntri.length - jurnal.length) + ' duplikat)');
 out.push('--   tanggal tidak sah dibuang: ' + tanggalTidakSah);
 out.push('-- ============================================================');
-out.push('PRAGMA foreign_keys = OFF;');
-out.push('BEGIN TRANSACTION;');
+/* PENTING: JANGAN menulis BEGIN TRANSACTION / COMMIT di sini.
+   Cloudflare D1 menolak perintah itu dan menjawab:
+     "To execute a transaction, please use the state.storage.transaction()"
+   SQLite lokal (wrangler dev) menerimanya, jadi bug ini baru muncul
+   waktu diuji ke server sungguhan. Perintah D1 otomatis diproses
+   sebagai satu batch, jadi transaksi manual tidak diperlukan. */
 out.push('');
 out.push('DELETE FROM jurnal;');
 out.push('DELETE FROM siswa;');
@@ -172,7 +176,7 @@ for (const j of jurnal) {
     sql(j.tsISO) + ', ' + sql(j.tsDisplay) + ', ' + j.adaFoto + ');');
 }
 out.push('');
-out.push('COMMIT;');
+out.push('-- Selesai. Tidak ada COMMIT - lihat catatan di atas.');
 
 /* Ringkasan ke stderr supaya tidak ikut jadi SQL. */
 console.error('---- ringkasan impor ----');

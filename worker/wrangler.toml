@@ -24,19 +24,19 @@ name = "jejak7-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 
-# Batas CPU Worker gratis adalah 10 ms. Semua pekerjaan berat
-# (membaca 70 baris dari D1) adalah operasi I/O, bukan CPU, jadi
-# 10 ms ini longgar. Dinaikkan sedikit supaya aman kalau nanti
-# data bertambah.
-[limits]
-cpu_ms = 50
+# JANGAN menulis blok [limits] di sini. Paket gratis Cloudflare
+# menolak penyetelan batas CPU dengan pesan:
+#   "CPU limits are not supported for the Free plan" [code: 100328]
+# Paket gratis sudah memberi kuota CPU sendiri (cukup untuk pekerjaan
+# kita, karena semua yang berat adalah operasi baca dari D1, bukan
+# perhitungan). Menambah blok [limits] hanya membuat deploy gagal.
+# Kalau nanti Tuan naik ke paket berbayar, baru boleh menambahnya.
 
-# database_id diisi setelah "npx wrangler d1 create jejak7" dijalankan.
-# Nilai di bawah hanya placeholder untuk pengujian lokal.
+# database_id diisi oleh "npx wrangler d1 create jejak7".
 [[d1_databases]]
 binding = "DB"
 database_name = "jejak7"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "7633908b-cdf2-4426-ac20-2ad541320aec"
 migrations_dir = "migrations"
 
 # Variabel lingkungan. TIDAK pernah menaruh rahasia di sini -
