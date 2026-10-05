@@ -15,8 +15,13 @@
   var H = root.HABITS7;
 
   /* ---------------- Kunci penyimpanan lokal ---------------- */
+  /* cache dinaikkan ke v2 saat backend pindah ke Cloudflare. Isi cache
+     lama berasal dari Spreadsheet dan masih membawa 2.573 baris duplikat.
+     Kalau v1 masih dipakai, halaman itu akan sempat menampilkan data
+     lama sebelum sinkron pertama selesai. Dengan v2, semua perangkat
+     mulai dari data D1 yang bersih. */
   var KEYS = {
-    cache:  'j7_cache_v1',
+    cache:  'j7_cache_v2',
     script: 'j7_script_url',
     sesi:   'j7_sesi',
     kelas:  'j7_kelas_terpilih'
@@ -104,8 +109,24 @@
       })(imgs[i]);
     }
   }
+  /* URL yang tersimpan di localStorage biasanya menang atas site-config.
+     Itu benar untuk Panel Guru yang sengaja mengganti URL. Tapi saat backend
+     dipindah dari Spreadsheet ke Cloudflare (5 Oktober 2026), perangkat lama
+     akan tetap menembak Spreadsheet kalau tidak ada pengecualian di bawah.
+     Akibatnya guru menulis ke D1 sementara murid membaca Spreadsheet - dua
+     sumber data berjalan bersamaan tanpa ada yang sadari.
+     Jadi: kalau URL tersimpan milik Google tapi site-config sudah menunjuk ke
+     tempat lain, site-config yang dipakai. URL pilihan guru (proxy sendiri)
+     tetap dihormati seperti sebelumnya. */
   var scriptURL = (function () {
-    try { return localStorage.getItem(KEYS.script) || siteScriptURL(); } catch (e) { return siteScriptURL(); }
+    var dariSites = siteScriptURL();
+    try {
+      var tersimpan = String(localStorage.getItem(KEYS.script) || '').trim();
+      if (!tersimpan) return dariSites;
+      var tersimpanGoogle = /script\.google\.com/i.test(tersimpan);
+      var sitesGoogle = /script\.google\.com/i.test(dariSites);
+      return (tersimpanGoogle && !sitesGoogle) ? dariSites : tersimpan;
+    } catch (e) { return dariSites; }
   })();
   function isConfigured() {
     /* Terima URL http(s) apa pun yang berakhiran /exec - milik Google
@@ -787,7 +808,7 @@ var perluBantu = baris.filter(function (b) {
   }
 
   /* ---------- Gudang foto lokal (TERPISAH dari cache jurnal) ----------
-     Base64 foto berukuran besar. Kalau ikut masuk ke j7_cache_v1,
+     Base64 foto berukuran besar. Kalau ikut masuk ke j7_cache_v2,
      localStorage penuh (batas ±5 MB) lalu saveCache gagal diam-diam
      dan halaman selalu memakai data lama - itu sebabnya jurnal
      "tidak kesimpen". Karena itu foto disimpan pada kunci sendiri. */
