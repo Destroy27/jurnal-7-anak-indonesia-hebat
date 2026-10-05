@@ -23,6 +23,13 @@
 $ErrorActionPreference = 'Stop'
 $ProgressPreference    = 'SilentlyContinue'
 
+# Pastikan kita berada di folder ini, apa pun folder asalnya.
+# Penting: npx mencari program di folder saat ini. Kalau Tuan
+# menjalankan skrip ini dengan klik-klik, folder saat ini bisa
+# saja bukan folder worker - lalu npx tidak menemukan wrangler
+# dan gagal.
+Set-Location $PSScriptRoot
+
 # Hilangkan animasi supaya tidak berantakan di layar
 try { $Host.UI.RawUI.WindowTitle = 'Pasang JEJAK 7 KAIH ke Cloudflare' } catch { }
 
