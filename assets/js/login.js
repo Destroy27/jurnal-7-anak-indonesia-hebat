@@ -105,9 +105,34 @@
   });
 
   function fokus() {
-    var id = { siswa: 'nis', guru: 'gUser', ortu: 'kode' }[role];
+    var id = { siswa: 'kelas', guru: 'gUser', ortu: 'kode' }[role];
     var el = document.getElementById(id);
     if (el) setTimeout(function () { el.focus(); }, 60);
+  }
+
+  /* ---------- Isi pilihan kelas ----------
+     No. absen hanya unik dalam satu kelas, jadi murid wajib menyebut
+     kelasnya dulu. Daftarnya diambil dari config yang sudah di-sync,
+     lalu dibuang kelas yang tidak punya siswa sama sekali. */
+  function isiPilihanKelas() {
+    var sel = document.getElementById('kelas');
+    if (!sel) return;
+    var ada = (J.classes || []).filter(function (k) {
+      return (J.getSiswaKelas(k.id) || []).length > 0;
+    });
+    /* Kalau config belum termuat (mis. baru dibuka), jangan tampilkan
+       daftar kosong - biar murid tidak bingung. Form akan menolak
+       login dengan pesan "Database belum terhubung". */
+    if (!ada.length) return;
+    var lama = sel.value;
+    sel.innerHTML = '<option value="">Pilih kelasmu</option>';
+    ada.forEach(function (k) {
+      var o = document.createElement('option');
+      o.value = k.id;
+      o.textContent = k.nama + (k.wali ? ' - ' + k.wali : '');
+      sel.appendChild(o);
+    });
+    if (lama) sel.value = lama;
   }
 
   /* ---------- Lihat / sembunyikan sandi ---------- */
@@ -143,10 +168,12 @@
 
     var p;
     if (role === 'siswa') {
+      var kelas = document.getElementById('kelas').value;
       var nis = document.getElementById('nis').value.trim();
       var panggilan = document.getElementById('pin').value.trim();
+      if (!kelas) { gagal('Pilih kelas dulu.'); return; }
       if (!nis || !panggilan) { gagal('No. absen dan nama panggilan wajib diisi.'); return; }
-      p = J.loginSiswa(nis, panggilan);
+      p = J.loginSiswa(nis, panggilan, kelas);
     } else if (role === 'guru') {
       var u = document.getElementById('gUser').value.trim();
       var pw = document.getElementById('gPass').value;
@@ -217,6 +244,7 @@
     J.syncAll(function (r) {
       if (r.ok) {
         perbaruiSetup();
+        isiPilihanKelas();
         gambarKebiasaan();
         terapkanNamaApp(J.config.appName);
         sembunyikanError();
@@ -236,6 +264,7 @@
     J.syncAll(function (r) {
       perbaruiSetup();
       if (r.ok) {
+        isiPilihanKelas();
         terapkanNamaApp(J.config.appName);
         gambarKebiasaan();
         sembunyikanError();

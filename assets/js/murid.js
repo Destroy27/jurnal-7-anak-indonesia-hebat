@@ -86,7 +86,7 @@
     isian = {};
     var t = J.todayISO();
     H.list.forEach(function (h) {
-      var e = J.entryOf(siswa.nis, t, h.key);
+      var e = J.entryOf(siswa.nis, t, h.key, siswa.kelasId);
       isian[h.key] = {
         nilai: e ? e.nilai : '',
         catatan: e ? e.catatan : '',
@@ -94,7 +94,7 @@
            Foto dibaca dari gudang foto lokal. Kalau foto sudah ada di
            perangkat lain, tetap tampil sebagai "ada dokumentasi"
            walau gambar pratinjaunya tidak ada. */
-        foto: J.ambilFoto(siswa.nis, t, h.key) || '',
+        foto: J.ambilFoto(siswa.nis, t, h.key, siswa.kelasId) || '',
         adaFoto: !!(e && e.adaFoto)
       };
     });
@@ -424,13 +424,13 @@
     H.list.forEach(function (h) {
       var v = isian[h.key] || { nilai: '', catatan: '', foto: '', adaFoto: false };
       if (!v.nilai && !v.catatan && !v.adaFoto) return;
-      var sudah = J.entryOf(siswa.nis, t, h.key);
+      var sudah = J.entryOf(siswa.nis, t, h.key, siswa.kelasId);
       if (sudah && String(sudah.nilai || '') === String(v.nilai || '') &&
           String(sudah.catatan || '') === String(v.catatan || '')) {
         sudahDikirim++;   /* isian identik, tidak perlu dikirim lagi */
         return;
       }
-      if (v.foto) J.simpanFoto(siswa.nis, t, h.key, v.foto);
+      if (v.foto) J.simpanFoto(siswa.nis, t, h.key, v.foto, siswa.kelasId);
       items.push(J.buildEntry(siswa, t, h.key, v.nilai, v.catatan, !!v.adaFoto || !!v.foto));
     });
 
@@ -563,7 +563,7 @@
   }
 
   function muatRekap(paksaToast) {
-    var r = J.rekapSiswa(siswa.nis, rentangHari);
+    var r = J.rekapSiswa(siswa.nis, rentangHari, siswa.kelasId);
     setTeks('statHariAktif', r.hariAktifJml);
     setTeks('statPoin', r.rataPoin);
     setTeks('statStreak', r.streak);

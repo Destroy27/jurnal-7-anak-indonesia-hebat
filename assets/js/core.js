@@ -240,6 +240,14 @@
     if (/^\d+$/.test(s)) return String(Number(s));   /* "01" -> "1", "007" -> "7" */
     return s;
   }
+  /* No. absen TIDAK unik sendirian - ia unik per kelas. Dua kelas boleh
+     sama-sama punya anak nomor 1. Karena itu identitas siswa adalah
+     pasangan (kelas, no. absen), dan semua pembacaan entri wajib tahu
+     kelasnya. Tanpa ini, anak kelas A bisa melihat jurnal anak lain
+     yang kebetulan memakai nomor absen sama. */
+  function kelasKunci_(v) {
+    return v == null || v === '' ? '' : String(v).trim().toLowerCase();
+  }
   function getSiswa(nis, kelasId) {
     var n = nisKunci_(nis);
     var kc = kelasId == null || kelasId === '' ? '' : String(kelasId).trim().toLowerCase();
@@ -284,11 +292,13 @@
      tidak di-rapikan di sini, kelengkapan/daya bisa lebih dari
      100% dan rata-rata menjadi tidak masuk akal. Yang dipakai
      selalu baris paling TERBARU per (tanggal + kode). */
-  function entriesOf(nis) {
+  function entriesOf(nis, kelasId) {
     var n = nisKunci_(nis);
+    var kc = kelasKunci_(kelasId);
     var peta = {};
     state.entries.forEach(function (e) {
       if (nisKunci_(e.nis) !== n) return;
+      if (kc && kelasKunci_(e.kelasId) !== kc) return;
       var k = String(e.tanggal) + '__' + String(e.kode);
       var lama = peta[k];
       if (!lama) { peta[k] = e; return; }
@@ -297,8 +307,8 @@
     return Object.keys(peta).map(function (k) { return peta[k]; })
       .sort(function (a, b) { return String(a.tanggal).localeCompare(String(b.tanggal)); });
   }
-  function entryOf(nis, tanggal, kode) {
-    return entriesOf(nis).filter(function (e) {
+  function entryOf(nis, tanggal, kode, kelasId) {
+    return entriesOf(nis, kelasId).filter(function (e) {
       return String(e.tanggal) === String(tanggal) && String(e.kode) === String(kode);
     }).slice(-1)[0] || null;
   }
@@ -365,9 +375,9 @@
   }
 
   /* Rekap lengkap satu siswa dalam rentang hari */
-  function rekapSiswa(nis, jumlahHari) {
+  function rekapSiswa(nis, jumlahHari, kelasId) {
     var n = Number(jumlahHari) || 30;
-    var semua = entriesOf(nis);
+    var semua = entriesOf(nis, kelasId);
     var harian = deretHari(semua);
     var rentang = lastDays(n);
     var hariAktif = Object.keys(harian).filter(function (d) { return harian[d].jumlah > 0; });
@@ -473,7 +483,9 @@
     var n = Number(jumlahHari) || 7;
     var siswa = getSiswaKelas(kelasId);
     var baris = siswa.map(function (s) {
-      var r = rekapSiswa(s.nis, n);
+      /* kelas ikut dikirim: rekap satu kelas tidak boleh ikut menghitung
+         entri anak lain yang kebetulan memakai no. absen sama */
+      var r = rekapSiswa(s.nis, n, kelasId);
       var harianTerisi = r.hariAktifJml;
       return {
         siswa: s,
@@ -551,8 +563,12 @@ var perluBantu = baris.filter(function (b) {
   /* Login murid: No. Absen (bebas, mis. siswa01) + Nama Panggilan.
      Nama panggilan disimpan dua kali: polos (supaya guru bisa
      membantu murid yang lupa) & hash SHA-256 (dipakai saat login). */
-  function loginSiswa(nis, panggilan) {
-    var s = getSiswa(nis);
+  function loginSiswa(nis, panggilan, kelasId) {
+    /* Kelas ikut dicari. Tanpa ini, dua kelas yang sama-sama punya
+       anak nomor absen 1 akan selalu mengembalikan whichever yang
+       kebetulan lebih dulu di daftar - sehingga anak yang kedua tidak
+       bisa masuk sama sekali. */
+    var s = getSiswa(nis, kelasId);
     if (!s) return Promise.resolve({ ok: false, msg: 'No. absen tidak terdaftar. Tanya guru kelasmu.' });
     var pw = String(panggilan || '').trim();
     if (!pw) return Promise.resolve({ ok: false, msg: 'Nama panggilan wajib diisi.' });
@@ -797,15 +813,23 @@ var perluBantu = baris.filter(function (b) {
       } catch (e2) { return false; }
     }
   }
-  function kunciFoto(nis, tanggal, kode) {
-    return [nis, tanggal, kode].join('__');
+  function kunciFoto(nis, tanggal, kode, kelasId) {
+    var kc = kelasKunci_(kelasId);
+    return kc ? [kc, nis, tanggal, kode].join('__') : [nis, tanggal, kode].join('__');
   }
-  function simpanFoto(nis, tanggal, kode, dataUrl) {
+  function simpanFoto(nis, tanggal, kode, dataUrl, kelasId) {
     if (!dataUrl) return false;
-    ambilFotoStore()[kunciFoto(nis, tanggal, kode)] = dataUrl;
+    ambilFotoStore()[kunciFoto(nis, tanggal, kode, kelasId)] = dataUrl;
     return simpanFotoStore();
   }
-  function ambilFoto(nis, tanggal, kode) {
+  function ambilFoto(nis, tanggal, kode, kelasId) {
+    /* Kalau kelas diberikan, coba kunci lengkap dulu; lalu jatuh ke
+       kunci lama (tanpa kelas) supaya foto yang tersimpan sebelum
+       perubahan ini tetap ditemukan. */
+    if (kelasKunci_(kelasId)) {
+      var baru = ambilFotoStore()[kunciFoto(nis, tanggal, kode, kelasId)];
+      if (baru) return baru;
+    }
     return ambilFotoStore()[kunciFoto(nis, tanggal, kode)] || '';
   }
 
@@ -1012,9 +1036,14 @@ var perluBantu = baris.filter(function (b) {
         return r;
       });
   }
-  function catatanUntuk(nis) {
+  function catatanUntuk(nis, kelasId) {
+    var kc = kelasKunci_(kelasId);
     return (state.config.notes || [])
-      .filter(function (n) { return String(n.nis) === String(nis); })
+      .filter(function (n) {
+        if (String(n.nis) !== String(nis)) return false;
+        if (kc && kelasKunci_(n.kelasId) !== kc) return false;
+        return true;
+      })
       .sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)); });
   }
 

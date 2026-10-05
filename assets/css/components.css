@@ -327,6 +327,7 @@
 
 .input-group { position: relative; display: flex; align-items: center; }
 .input-group .input { padding-left: 42px; }
+.input-group .select { padding-left: 42px; }
 .input-group > i:first-child {
   position: absolute; left: 14px;
   color: var(--muted-2); font-size: 14px;

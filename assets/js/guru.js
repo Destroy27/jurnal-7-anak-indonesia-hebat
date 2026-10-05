@@ -239,7 +239,7 @@ var rentangHari = 7;
     }
 
     r.baris.forEach(function (b) {
-      var build = J.entryOf(b.nis, hariIni, 'bangun');
+      var build = J.entryOf(b.nis, hariIni, 'bangun', b.siswa.kelasId);
       html += '<tr data-nis="' + J.esc(b.nis) + '">' +
         '<td><div class="siswa-cell"><div class="av">' + J.esc(J.inisial(b.nama)) + '</div>' +
         '<div class="info"><strong>' + J.esc(b.nama) + '</strong><span>' + J.esc(b.nis) + '</span></div></div></td>' +
@@ -279,7 +279,7 @@ var rentangHari = 7;
       var hariTerisi = 0, jml = 0;
       var murid = 0;
       r.baris.forEach(function (b) {
-        var rows = J.entriesOf(b.nis).filter(function (e) {
+        var rows = J.entriesOf(b.nis, b.siswa.kelasId).filter(function (e) {
           return e.kode === h.key && b.hariRentang.indexOf(e.tanggal) !== -1;
         });
         if (!rows.length) return;
@@ -355,7 +355,7 @@ var rentangHari = 7;
       b.addEventListener('click', function () { rentangHari = parseInt(b.dataset.rata, 10); gambarDashboard(); });
     });
     wrap.querySelectorAll('tbody tr[data-nis]').forEach(function (tr) {
-      tr.addEventListener('click', function () { detailSiswa(tr.dataset.nis); });
+      tr.addEventListener('click', function () { detailSiswa(tr.dataset.nis, kelasAktif); });
     });
     var bc = document.getElementById('btnCetak');
     if (bc) bc.addEventListener('click', function () { window.print(); });
@@ -371,11 +371,11 @@ var rentangHari = 7;
     var rows = [head];
     r.baris.forEach(function (b) {
       var row = [b.nis, b.nama, b.poin, b.kelengkapan, b.hariAktif, b.streak];
-      var eb = J.entriesOf(b.nis).filter(function (e) { return e.kode === 'bangun'; })
+      var eb = J.entriesOf(b.nis, b.siswa.kelasId).filter(function (e) { return e.kode === 'bangun'; })
         .sort(function (a, c) { return String(c.tanggal).localeCompare(String(a.tanggal)); });
       row.push(eb.length ? eb[0].nilai : '');
       H.list.forEach(function (h) {
-        var semua = J.entriesOf(b.nis).filter(function (e) {
+        var semua = J.entriesOf(b.nis, b.siswa.kelasId).filter(function (e) {
           return e.kode === h.key && b.hariRentang.indexOf(e.tanggal) !== -1;
         });
         var n = semua.length;
@@ -390,10 +390,10 @@ var rentangHari = 7;
   /* ====
      5. DETAIL SISWA (modal)
      ==== */
-  function detailSiswa(nis) {
-    var s = J.getSiswa(nis);
+  function detailSiswa(nis, kelasId) {
+    var s = J.getSiswa(nis, kelasId);
     if (!s) return;
-    var r = J.rekapSiswa(nis, rentangHari);
+    var r = J.rekapSiswa(nis, rentangHari, s.kelasId);
     var kelas = J.getKelas(s.kelasId);
     var hariIni = J.todayISO();
 
@@ -419,7 +419,7 @@ var rentangHari = 7;
     }).join('') + '</div>';
 
     /* Catatan sekolah */
-    var catatan = J.catatanUntuk(nis);
+    var catatan = J.catatanUntuk(nis, s.kelasId);
     isi += '<div class="rule-gold mb-3"></div>' +
       '<div class="flex justify-between items-center gap-2 mb-2" style="flex-wrap:wrap">' +
       '<h4 style="font-family:var(--font);font-size:14px">Catatan (' + catatan.length + ')</h4>' +
@@ -520,7 +520,7 @@ var rentangHari = 7;
     }
 
     tbody.innerHTML = siswa.map(function (s) {
-      var r = J.rekapSiswa(s.nis, 14);
+      var r = J.rekapSiswa(s.nis, 14, s.kelasId);
       return '<tr>' +
         '<td><div class="siswa-cell"><div class="av">' + J.esc(J.inisial(s.nama)) + '</div>' +
         '<div class="info"><strong>' + J.esc(s.nama) + '</strong><span>No. absen ' + J.esc(s.nis) + '</span></div></div></td>' +
@@ -540,11 +540,11 @@ var rentangHari = 7;
       b.addEventListener('click', function () { formSiswa(b.dataset.edit); });
     });
     tbody.querySelectorAll('[data-lihat]').forEach(function (b) {
-      b.addEventListener('click', function () { detailSiswa(b.dataset.lihat); });
+      b.addEventListener('click', function () { detailSiswa(b.dataset.lihat, kelasAktif); });
     });
     tbody.querySelectorAll('[data-hapus]').forEach(function (b) {
       b.addEventListener('click', function () {
-        var s = J.getSiswa(b.dataset.hapus);
+        var s = J.getSiswa(b.dataset.hapus, kelasAktif);
         if (!confirm('Hapus siswa ' + s.nama + ' beserta jurnal dan kode orang tuanya?')) return;
         var lain = J.getSiswaKelas(kelasAktif).filter(function (x) { return x.nis !== s.nis; });
         J.simpanSiswa(kelasAktif, lain, function (r) {
@@ -606,7 +606,7 @@ var rentangHari = 7;
   }
 
   function formSiswa(nisLama) {
-    var lama = nisLama ? J.getSiswa(nisLama) : null;
+    var lama = nisLama ? J.getSiswa(nisLama, kelasAktif) : null;
     var kode = lama ? lama.kodeOrtu : kodeOtomatis();
 
     J.modal({
@@ -674,9 +674,13 @@ var rentangHari = 7;
       }
       if (panggilanFinal.length > 20) { J.toast('Nama panggilan maksimal 20 huruf', '', 'warn'); return; }
 
-      var sudahAda = J.getSiswa(nis);
+      /* No. absen unik DALAM kelas yang sedang dibuka, bukan meng seluruh
+         sekolah. Dua kelas boleh sama-sama punya nomor 1. */
+      var sudahAda = J.getSiswa(nis, kelasAktif);
       if (sudahAda && (!lama || sudahAda.nis !== lama.nis)) {
-        J.toast('No. absen sudah dipakai', 'No. absen ' + nis + ' dipakai ' + sudahAda.nama + '.', 'err');
+        var kelasSkrg = J.getKelas(kelasAktif);
+        J.toast('No. absen sudah dipakai', 'No. absen ' + nis + ' dipakai ' + sudahAda.nama +
+          (kelasSkrg ? ' di kelas ' + kelasSkrg.nama : '') + '.', 'err');
         return;
       }
       var bentrokKode = J.state.students.some(function (x) {
@@ -834,7 +838,7 @@ var rentangHari = 7;
     var siswa = J.getSiswaKelas(kelasAktif);
     var rows = [['No. Absen', 'Nama', 'Nama Panggilan', 'KodeOrangTua', 'Jurnal Terisi (14h)']];
     siswa.forEach(function (s) {
-      rows.push([s.nis, s.nama, s.panggilan || '', s.kodeOrtu || '', J.rekapSiswa(s.nis, 14).kelengkapan + '%']);
+      rows.push([s.nis, s.nama, s.panggilan || '', s.kodeOrtu || '', J.rekapSiswa(s.nis, 14, s.kelasId).kelengkapan + '%']);
     });
     J.exportCSV(rows, 'template-siswa-' + (J.getKelas(kelasAktif) || {}).nama + '.csv');
     J.toast('Template diunduh',

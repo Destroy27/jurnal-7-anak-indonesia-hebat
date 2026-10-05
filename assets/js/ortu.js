@@ -107,7 +107,7 @@
 
   function muatRekap() {
     if (!anak) return;
-    var r = J.rekapSiswa(anak.nis, rentangHari);
+    var r = J.rekapSiswa(anak.nis, rentangHari, anak.kelasId);
 
     document.getElementById('subJudul').innerHTML =
       J.esc((J.getKelas(anak.kelasId) || {}).nama || '-') + ' &middot; NIS ' + J.esc(anak.nis) +
@@ -137,7 +137,7 @@
 
     /* Grafik jam bangun */
     var data = r.hariRentang.slice(-10).map(function (d) {
-      var e = J.entryOf(anak.nis, d, 'bangun');
+      var e = J.entryOf(anak.nis, d, 'bangun', anak.kelasId);
       var m = e ? H.parseHM(e.nilai) : null;
       return {
         label: J.fmtTanggalPendek(d).slice(0, 5),
@@ -186,7 +186,7 @@
   }
 
   function muatCatatan() {
-    var catatan = J.catatanUntuk(anak.nis);
+    var catatan = J.catatanUntuk(anak.nis, anak.kelasId);
     var card = document.getElementById('cardCatatan');
     if (!catatan.length) { card.style.display = 'none'; return; }
     card.style.display = '';
