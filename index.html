@@ -62,20 +62,20 @@
           <span class="eyebrow" style="color:var(--gold-400)">Mulai di Sini</span>
           <h2 style="margin-top:10px">Hubungkan Database dulu</h2>
           <p style="max-width:640px;margin-top:8px">
-            Aplikasi ini menyimpan jurnal ke Google Spreadsheet lewat Google Apps Script.
-            Untuk mencoba, isi URL deployment di file <b class="mono">assets/js/site-config.js</b>.
+            Aplikasi ini menyimpan jurnal ke database Cloudflare D1 lewat Cloudflare Worker.
+            Untuk mencoba, isi URL backend di file <b class="mono">assets/js/site-config.js</b>.
           </p>
         </div>
         <div class="ring" style="flex-shrink:0" id="setupRing"></div>
       </div>
 
       <ol style="font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.86);padding-left:20px;list-style:decimal">
-        <li>Buat spreadsheet baru di <b>https://sheets.new</b> lalu beri nama, misal "Jurnal 7 Kebiasaan SD".</li>
-        <li>Menu <b>Ekstensi &rarr; Apps Script</b>, hapus isi <b class="mono">Code.gs</b>, lalu tempel seluruh isi file
-            <b class="mono">apps-script/Code.gs</b> dari repository ini.</li>
-        <li><b>Deploy &rarr; New deployment &rarr; Web app</b>: Execute as <b>Me</b>, Who has access <b>Anyone</b>.</li>
-        <li>Salin URL yang berakhiran <b class="mono">/exec</b>, lalu tempel ke
-            <b class="mono">assets/js/site-config.js</b> pada baris <b class="mono">scriptUrl</b>.</li>
+        <li>Di folder <b class="mono">worker</b>, login ke akun Cloudflare: <b class="mono">npx wrangler login</b>.</li>
+        <li>Jalankan <b class="mono">.\pasang.ps1</b> — skrip ini membuat database D1,
+            mengimpor data, lalu mengunggah Worker.</li>
+        <li>Setelah selesai, skrip mencetak URL backend berakhiran <b class="mono">/exec</b>,
+            misalnya <b class="mono">https://xxx.workers.dev/exec</b>.</li>
+        <li>Tempel URL itu ke <b class="mono">assets/js/site-config.js</b> pada baris <b class="mono">scriptUrl</b>.</li>
         <li>Login sebagai guru dengan <b class="mono">guru</b> / <b class="mono">guru123</b>, lalu segera ganti password.</li>
       </ol>
 
