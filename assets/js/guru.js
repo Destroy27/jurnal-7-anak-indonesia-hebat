@@ -544,7 +544,7 @@ var rentangHari = 7;
       var teks = prompt('Tulis catatan untuk ' + s.nama + ':');
       if (!teks || !teks.trim()) return;
       var jenis = confirm('Klik OK untuk menandai sebagai \'Apresiasi / Pujian\'. Klik Batal untuk catatan biasa.');
-      simpanCatatan(s.nis, jenis ? 'pujian' : 'catatan', teks.trim());
+      simpanCatatan(s.nis, jenis ? 'pujian' : 'catatan', teks.trim(), null, s.kelasId);
     });
 
     document.getElementById('dReset').addEventListener('click', function () {
@@ -927,9 +927,10 @@ var rentangHari = 7;
   /* ====
      7. TAB CATATAN
      ==== */
-  function simpanCatatan(nis, jenis, isi, tanggal) {
+  function simpanCatatan(nis, jenis, isi, tanggal, kelasId) {
     J.simpanCatatan({
       nis: String(nis),
+      kelasId: String(kelasId || ''),
       jenis: jenis || 'catatan',
       isi: isi,
       tanggal: tanggal || J.todayISO(),
@@ -948,7 +949,7 @@ var rentangHari = 7;
     });
     sel.innerHTML = '<option value="">-- Pilih siswa --</option>' + semua.map(function (s) {
       var k = J.getKelas(s.kelasId);
-      return '<option value="' + J.esc(s.nis) + '">' + J.esc(s.nama) + ' (' + J.esc(k ? k.nama : '-') + ')</option>';
+      return '<option value="' + J.esc(s.nis) + '" data-kelas="' + J.esc(s.kelasId) + '">' + J.esc(s.nama) + ' (' + J.esc(k ? k.nama : '-') + ')</option>';
     }).join('');
   }
 
@@ -979,7 +980,11 @@ var rentangHari = 7;
     var tanggal = document.getElementById('catTanggal').value || J.todayISO();
     if (!nis) { J.toast('Pilih siswa', '', 'warn'); return; }
     if (!isi) { J.toast('Isi catatan kosong', '', 'warn'); return; }
-    simpanCatatan(nis, jenis, isi, tanggal);
+    simpanCatatan(nis, jenis, isi, tanggal, (function () {
+      var sel = document.getElementById('catSiswa');
+      var opt = sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex] : null;
+      return opt ? (opt.dataset.kelas || '') : '';
+    })());
     document.getElementById('catIsi').value = '';
   });
 

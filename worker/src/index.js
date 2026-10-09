@@ -455,6 +455,7 @@ async function saveNote(db, body) {
   cfg.notes = cfg.notes || [];
   cfg.notes.push({
     nis: nis,
+    kelasId: teks(n.kelasId),
     jenis: String(n.jenis || 'catatan'),
     isi: isi,
     tanggal: String(n.tanggal || fmtZona(new Date(), 'yyyy-MM-dd')),
