@@ -1062,7 +1062,11 @@ var perluBantu = baris.filter(function (b) {
     return (state.config.notes || [])
       .filter(function (n) {
         if (String(n.nis) !== String(nis)) return false;
-        if (kc && kelasKunci_(n.kelasId) !== kc) return false;
+        /* Catatan lama tidak menyimpan kelasId (sebelum identitas siswa
+           menjadi pasangan kelas+no.absah). Catatan yang TIDAK punya
+           kelasId dianggap milik semua kelas; yang punya kelasId wajib
+           cocok dengan kelas pemanggil. */
+        if (kc && n.kelasId != null && n.kelasId !== '' && kelasKunci_(n.kelasId) !== kc) return false;
         return true;
       })
       .sort(function (a, b) { return String(b.tanggal).localeCompare(String(a.tanggal)); });

@@ -626,7 +626,24 @@
       }).join('') : '<div class="empty">Belum ada riwayat</div>';
     }
 
+    /* Catatan dari guru */
+    muatCatatan();
+
     if (paksaToast) J.toast('Rekap diperbarui', 'Menampilkan data terbaru.', 'ok');
+  }
+
+  function muatCatatan() {
+    var catatan = J.catatanUntuk(siswa.nis, siswa.kelasId);
+    var card = document.getElementById('cardCatatan');
+    if (!card) return;
+    if (!catatan.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    document.getElementById('catatanList').innerHTML = catatan.map(function (n) {
+      return '<div class="note-card' + (n.jenis === 'pujian' ? ' note-gold' : '') + '">' +
+        '<div class="nc-meta"><i class="fa-solid fa-user-tie"></i>' + J.esc(n.guru || 'Guru') +
+        ' &middot; ' + J.esc(J.fmtTanggal(n.tanggal || '')) + '</div>' +
+        '<p>' + J.esc(n.isi) + '</p></div>';
+    }).join('');
   }
 
   function perbaruiAntrean() {
