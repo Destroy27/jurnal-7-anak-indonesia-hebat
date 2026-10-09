@@ -142,6 +142,43 @@ var rentangHari = 7;
     });
   });
 
+  /* Ubah nama/wali kelas yang sedang dipilih. Tidak menghapus data
+     siswa maupun jurnal - hanya memperbarui entri kelas pada konfigurasi. */
+  document.getElementById('btnRenameKelas').addEventListener('click', function () {
+    if (!kelasAktif || !J.getKelas(kelasAktif)) {
+      J.toast('Belum ada kelas dipilih', 'Klik salah satu kelas di daftar dulu.', 'warn');
+      return;
+    }
+    var k = J.getKelas(kelasAktif);
+    J.modal({
+      judul: 'Ubah Nama Kelas',
+      isi:
+        '<div class="field"><label for="rkNama">Nama Kelas <span class="req">*</span></label>' +
+        '<input class="input" id="rkNama" type="text" maxlength="30" value="' + J.esc(k.nama) + '"></div>' +
+        '<div class="field mt-2"><label for="rkWali">Nama Wali Kelas</label>' +
+        '<input class="input" id="rkWali" type="text" maxlength="40" value="' + J.esc(k.wali || '') + '"></div>' +
+        '<div class="banner banner-info mt-3" style="font-size:12px"><i class="fa-solid fa-circle-info"></i>' +
+        '<span>Mengubah nama tidak menghapus data siswa maupun jurnal.</span></div>',
+      footer: '<button class="btn btn-ghost" data-tutup>Batal</button>' +
+        '<button class="btn btn-primary" id="rkSimpan"><i class="fa-solid fa-check"></i> Simpan</button>'
+    });
+    document.getElementById('rkSimpan').addEventListener('click', function () {
+      var nama = document.getElementById('rkNama').value.trim();
+      if (!nama) { J.toast('Nama kelas wajib diisi', '', 'warn'); return; }
+      var wali = document.getElementById('rkWali').value.trim();
+      var cfg = JSON.parse(JSON.stringify(J.config));
+      cfg.classes = (cfg.classes || []).map(function (c) {
+        if (c.id === kelasAktif) { c.nama = nama; c.wali = wali; }
+        return c;
+      });
+      J.tutupModal();
+      J.simpanConfig(cfg, function (r) {
+        if (r && r.ok) { gambarSemua(); J.toast('Kelas diperbarui', 'Nama kelas diubah menjadi "' + nama + '".', 'ok'); }
+        else J.toast('Gagal', (r && r.msg) || '', 'err');
+      });
+    });
+  });
+
   /* Hapus kelas yang sedang dipilih. Server (Worker) sudah otomatis
      membersihkan data siswa & jurnal milik kelas yang hilang saat
      konfigurasi disimpan tanpa kelas tersebut. */
