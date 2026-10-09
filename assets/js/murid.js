@@ -567,6 +567,7 @@
     setTeks('statHariAktif', r.hariAktifJml);
     setTeks('statPoin', r.rataPoin);
     setTeks('statStreak', r.streak);
+    setTeks('strekTeks', r.streak + ' hari');
     setTeks('lencanaDimiliki', r.lencana.length + ' / ' + H.lencana.length);
 
     var bangun = r.perHabit.find(function (p) { return p.key === 'bangun'; });
