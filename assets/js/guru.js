@@ -142,6 +142,37 @@ var rentangHari = 7;
     });
   });
 
+  /* Hapus kelas yang sedang dipilih. Server (Worker) sudah otomatis
+     membersihkan data siswa & jurnal milik kelas yang hilang saat
+     konfigurasi disimpan tanpa kelas tersebut. */
+  document.getElementById('btnHapusKelas').addEventListener('click', function () {
+    if (!kelasAktif || !J.getKelas(kelasAktif)) {
+      J.toast('Belum ada kelas dipilih', 'Klik salah satu kelas di daftar dulu.', 'warn');
+      return;
+    }
+    var k = J.getKelas(kelasAktif);
+    var jml = J.getSiswaKelas(kelasAktif).length;
+    var pesan = 'Hapus kelas "' + k.nama + '"?\n\n' +
+      'Data ' + jml + ' siswa di kelas ini beserta seluruh jurnalnya akan ikut ' +
+      'terhapus permanen. Tindakan ini tidak bisa dibatalkan.';
+    if (!confirm(pesan)) return;
+
+    var namaHapus = k.nama;
+    var cfg = JSON.parse(JSON.stringify(J.config));
+    cfg.classes = (cfg.classes || []).filter(function (c) { return c.id !== kelasAktif; });
+
+    J.simpanConfig(cfg, function (r) {
+      if (r && r.ok) {
+        kelasAktif = '';
+        try { localStorage.removeItem(J.KEYS.kelas); } catch (e) {}
+        gambarSemua();
+        J.toast('Kelas dihapus', 'Kelas "' + namaHapus + '" beserta data siswanya telah dihapus.', 'ok');
+      } else {
+        J.toast('Gagal hapus kelas', (r && r.msg) || '', 'err');
+      }
+    });
+  });
+
   /* ====
      4. DASHBOARD REKAP
      ==== */
