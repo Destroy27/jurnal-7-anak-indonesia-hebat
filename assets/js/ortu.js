@@ -100,7 +100,7 @@
       'Pantau Anak \u00b7 ' + namaAnak + ' - ' + (kelas ? kelas.nama : 'Tanpa kelas');
     document.getElementById('sapaan').textContent = 'Kemajuan ' + dipanggil;
     document.getElementById('subJudul').textContent =
-      (kelas ? kelas.nama : '-') + ' &middot; No. absen ' + anak.nis + ' &middot; ' +
+      (kelas ? kelas.nama : '-') + ' &middot; ' +
       rentangHari + ' hari terakhir';
     muatRekap();
   }
@@ -110,7 +110,7 @@
     var r = J.rekapSiswa(anak.nis, rentangHari, anak.kelasId);
 
     document.getElementById('subJudul').innerHTML =
-      J.esc((J.getKelas(anak.kelasId) || {}).nama || '-') + ' &middot; NIS ' + J.esc(anak.nis) +
+      J.esc((J.getKelas(anak.kelasId) || {}).nama || '-') +
       ' &middot; ' + rentangHari + ' hari terakhir';
 
     document.getElementById('hAktif').textContent = r.hariAktifJml;

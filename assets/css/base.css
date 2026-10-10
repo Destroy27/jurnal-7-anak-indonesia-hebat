@@ -273,6 +273,10 @@ h1, h2, h3, h4 {
   border-radius: 99px;
   background: var(--gold-500);
 }
+/* Varian tanpa garis pemisah di depan teks */
+.eyebrow.no-rule::before {
+  display: none;
+}
 
 /* ---------- Skeleton loading ---------- */
 .skeleton {
