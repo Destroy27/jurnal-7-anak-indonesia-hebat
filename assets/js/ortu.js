@@ -135,19 +135,24 @@
     /* Heatmap */
     document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
 
-    /* Grafik jam bangun */
+    /* Grafik jam bangun — cost: makin telat dari target, makin pendek barnya.
+       Bangun tepat atau lebih awal dari target = bar penuh. */
+    var targetB = H.parseHM(J.targetBangun()) || 330;
     var data = r.hariRentang.slice(-10).map(function (d) {
       var e = J.entryOf(anak.nis, d, 'bangun', anak.kelasId);
       var m = e ? H.parseHM(e.nilai) : null;
+      var cost = 0;
+      if (m !== null) cost = 1 - Math.min(1, Math.max(0, m - targetB) / 180);
       return {
         label: J.fmtTanggalPendek(d).slice(0, 5),
-        value: m === null ? 0 : Math.max(0, 12 - m / 60),
-        menit: m,
-        warna: e ? 'gold' : ''
+        value: m === null ? 0 : cost,
+        teks: e ? e.nilai : '',
+        kelas: e ? ' gold' : '',
+        menit: m
       };
     });
     document.getElementById('grafikBangun').innerHTML = data.some(function (d) { return d.menit !== null; })
-      ? J.barChart(data, { max: 12, tampilkanNilai: false })
+      ? J.barChart(data, { max: 1 })
       : '<div class="empty"><div class="empty-icon"><i class="fa-solid fa-sun"></i></div>' +
         '<h4>Belum ada data jam bangun</h4><p>Data akan muncul setelah anak mengisi jurnal.</p></div>';
 
