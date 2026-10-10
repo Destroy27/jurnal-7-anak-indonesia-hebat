@@ -136,23 +136,27 @@
     document.getElementById('heatmap').innerHTML = J.heatmap(r.harian, r.hariRentang);
 
     /* Grafik jam bangun — cost: makin telat dari target, makin pendek barnya.
-       Bangun tepat atau lebih awal dari target = bar penuh. */
-    var targetB = H.parseHM(J.targetBangun()) || 330;
+       Bangun tepat atau lebih awal dari target = bar penuh. Label bawah
+       memakai jam bangun asli (bukan tanggal); garis putus-putus emas =
+       target sekolah. Tanggal lengkap ada di tooltip saat hover. */
+    var targetTeks = J.targetBangun() || '05:30';
+    var targetB = H.parseHM(targetTeks) || 330;
     var data = r.hariRentang.slice(-10).map(function (d) {
       var e = J.entryOf(anak.nis, d, 'bangun', anak.kelasId);
       var m = e ? H.parseHM(e.nilai) : null;
       var cost = 0;
       if (m !== null) cost = 1 - Math.min(1, Math.max(0, m - targetB) / 180);
       return {
-        label: J.fmtTanggalPendek(d).slice(0, 5),
+        label: e ? e.nilai : '-',
+        judul: J.fmtHari(d) + ', ' + J.fmtTanggal(d) +
+          (e ? ' · Bangun ' + e.nilai : ' · Belum diisi'),
         value: m === null ? 0 : cost,
-        teks: e ? e.nilai : '',
         kelas: e ? ' gold' : '',
         menit: m
       };
     });
     document.getElementById('grafikBangun').innerHTML = data.some(function (d) { return d.menit !== null; })
-      ? J.barChart(data, { max: 1 })
+      ? J.barChart(data, { max: 1, tampilkanNilai: false, garisTarget: 'Target ' + targetTeks })
       : '<div class="empty"><div class="empty-icon"><i class="fa-solid fa-sun"></i></div>' +
         '<h4>Belum ada data jam bangun</h4><p>Data akan muncul setelah anak mengisi jurnal.</p></div>';
 

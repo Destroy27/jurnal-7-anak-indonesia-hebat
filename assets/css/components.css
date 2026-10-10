@@ -528,7 +528,7 @@
 .ring-label span { font-size: 10.5px; color: var(--muted); font-weight: 700; margin-top: 3px; }
 
 /* === BAR CHART (CSS) === */
-.bars { display: flex; align-items: flex-end; gap: 8px; height: 168px; padding-top: 12px; }
+.bars { position: relative; display: flex; align-items: flex-end; gap: 8px; height: 168px; padding-top: 12px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; }
 .bar-track {
   width: 100%;
@@ -557,6 +557,29 @@
   white-space: nowrap;
 }
 .bar-label { font-size: 10.5px; color: var(--muted); font-weight: 700; text-align: center; }
+/* Garis target (mis. target jam bangun dari sekolah) */
+.bar-target {
+  position: absolute;
+  left: 0; right: 0;
+  top: 12px; /* sejajar puncak bar 100% (padding-top .bars) */
+  border-top: 2px dashed var(--gold-500);
+  z-index: 2;
+  pointer-events: none;
+}
+.bar-target span {
+  position: absolute;
+  top: -9px;
+  right: 0;
+  background: var(--gold-500);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
 
 /* === HEATMAP (kalenderHabit) === */
 .heatmap, .heatmap-head {

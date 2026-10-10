@@ -1107,10 +1107,14 @@ var perluBantu = baris.filter(function (b) {
     opsi = opsi || {};
     if (!data.length) return '<div class="empty"><p>Belum ada data.</p></div>';
     var max = opsi.max || Math.max.apply(null, data.map(function (d) { return d.value; }).concat([1]));
-    return '<div class="bars">' + data.map(function (d) {
+    var target = opsi.garisTarget
+      ? '<div class="bar-target" title="' + esc(opsi.garisTarget) + '"><span>' + esc(opsi.garisTarget) + '</span></div>'
+      : '';
+    return '<div class="bars">' + target + data.map(function (d) {
       var tinggi = max ? Math.round((d.value / max) * 100) : 0;
-      if (d.value <= 0) return '<div class="bar-col"><div class="bar-track"><div class="bar-fill empty" style="height:5px"></div></div><div class="bar-label">' + esc(d.label) + '</div></div>';
-      return '<div class="bar-col">' +
+      var judul = d.judul ? ' title="' + esc(d.judul) + '"' : '';
+      if (d.value <= 0) return '<div class="bar-col"' + judul + '><div class="bar-track"><div class="bar-fill empty" style="height:5px"></div></div><div class="bar-label">' + esc(d.label) + '</div></div>';
+      return '<div class="bar-col"' + judul + '>' +
         '<div class="bar-track"><div class="bar-fill' + (d.kelas || '') + '" style="height:' + Math.max(4, tinggi) + '%">' +
         (opsi.tampilkanNilai === false ? '' : '<span class="bar-value">' + esc(d.teks != null ? d.teks : d.value) + '</span>') +
         '</div></div>' +
