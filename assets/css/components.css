@@ -528,7 +528,7 @@
 .ring-label span { font-size: 10.5px; color: var(--muted); font-weight: 700; margin-top: 3px; }
 
 /* === BAR CHART (CSS) === */
-.bars { position: relative; display: flex; align-items: flex-end; gap: 8px; height: 168px; padding-top: 12px; }
+.bars { position: relative; display: flex; align-items: stretch; gap: 8px; height: 168px; padding-top: 12px; }
 .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; min-width: 0; }
 .bar-track {
   width: 100%;
